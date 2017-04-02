@@ -54,20 +54,20 @@ def is_ident(first, ch):
     return False
 
 
-def is_valid_type(type):
-    if type == 'int8':
+def is_valid_type(ty):
+    if ty == 'int8':
         return True
-    if type == 'int16':
+    if ty == 'int16':
         return True
-    if type == 'int32':
+    if ty == 'int32':
         return True
-    if type == 'int64':
+    if ty == 'int64':
         return True
-    if type == 'float':
+    if ty == 'float':
         return True
-    if type == 'double':
+    if ty == 'double':
         return True
-    if type == 'byte':
+    if ty == 'byte':
         return True
     return False
 
@@ -105,9 +105,9 @@ def read_struct(f):
     typename = read_ident(f)
     read_single_char(f, '{')
     while peek_char(f) != '}':
-        type = read_ident(f)
-        if is_valid_type(type) is False:
-            raise ParseError('Inavlid type {}'.format(type))
+        ty = read_ident(f)
+        if is_valid_type(ty) is False:
+            raise ParseError('Inavlid type {}'.format(ty))
         name = read_ident(f)
         # todo: add default value
         read_single_char(f, ';')
