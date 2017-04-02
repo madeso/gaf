@@ -8,8 +8,8 @@ class ParseError(Exception):
 
 
 class CharFile:
-    def __init__(self, file):
-        self.data = file.read()
+    def __init__(self, f):
+        self.data = f.read()
         self.index = 0
 
     def read(self):
@@ -21,12 +21,12 @@ class CharFile:
         return self.data[self.index]
 
 
-def read_char(file):
-    return file.read()
+def read_char(f):
+    return f.read()
 
 
-def peek_char(file):
-    return file.peek()
+def peek_char(f):
+    return f.peek()
 
 
 def is_space(ch):
@@ -72,47 +72,47 @@ def is_valid_type(type):
     return False
 
 
-def read_spaces(file):
-    while is_space(peek_char(file)):
-        read_char(file)
+def read_spaces(f):
+    while is_space(peek_char(f)):
+        read_char(f)
 
 
-def read_ident(file):
-    read_spaces(file)
+def read_ident(f):
+    read_spaces(f)
     ident = ''
     first = True
-    while is_ident(first, peek_char(file)):
-        ident += read_char(file)
+    while is_ident(first, peek_char(f)):
+        ident += read_char(f)
         first = False
     if len(ident) == 0:
-        raise ParseError('expecting ident but found {}'.format(peek_char(file)))
+        raise ParseError('expecting ident but found {}'.format(peek_char(f)))
     return ident
 
 
-def read_single_char(file, ch):
-    read_spaces(file)
-    r = read_char(file)
+def read_single_char(f, ch):
+    read_spaces(f)
+    r = read_char(f)
     if r == ch:
         pass
     else:
         raise ParseError('expecting char {c}, but found {r}'.format(c=ch, r=r))
 
 
-def read_struct(file):
-    struct = read_ident(file)
+def read_struct(f):
+    struct = read_ident(f)
     if struct != 'struct':
         raise ParseError('expected struct found ident {}'.format(struct))
-    typename = read_ident(file)
-    read_single_char(file, '{')
-    while peek_char(file) != '}':
-        type = read_ident(file)
+    typename = read_ident(f)
+    read_single_char(f, '{')
+    while peek_char(f) != '}':
+        type = read_ident(f)
         if is_valid_type(type) is False:
             raise ParseError('Inavlid type {}'.format(type))
-        name = read_ident(file)
+        name = read_ident(f)
         # todo: add default value
-        read_single_char(file, ';')
-        read_spaces(file)
-    read_single_char(file, '}')
+        read_single_char(f, ';')
+        read_spaces(f)
+    read_single_char(f, '}')
 
 
 def on_generate_command(args):
