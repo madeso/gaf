@@ -42,14 +42,14 @@ def is_space(ch):
 
 
 def is_ident(first, ch):
-    if ch >= 'a' and ch <= 'z':
+    if 'a' <= ch <= 'z':
         return True
-    if ch >= 'A' and ch <= 'Z':
+    if 'A' <= ch <= 'Z':
         return True
     if ch == '_':
         return True
     if first is False:
-        if ch > '0' and ch < '9':
+        if '0' <= ch <= '9':
             return True
     return False
 
