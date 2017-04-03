@@ -11,16 +11,22 @@ class CharFile:
     def __init__(self, f):
         self.data = f.read()
         self.index = 0
+        self.line = 1
 
     def read(self):
         c = self.data[self.index]
         self.index += 1
+        if c == '\n':
+            self.line += 1
         return c
 
     def peek(self):
         if self.index >= len(self.data):
             return None
         return self.data[self.index]
+
+    def report_error(self, error):
+        raise ParseError('GAF error: {err} at line {ln}'.format(err=error, ln=self.line))
 
 
 def read_char(f):
@@ -89,7 +95,7 @@ def read_ident(f):
         ident += read_char(f)
         first = False
     if len(ident) == 0:
-        raise ParseError('expecting ident but found {}'.format(peek_char(f)))
+        raise f.report_error('expecting ident but found {}'.format(peek_char(f)))
     return ident
 
 
@@ -99,7 +105,7 @@ def read_single_char(f, ch):
     if r == ch:
         pass
     else:
-        raise ParseError('expecting char {c}, but found {r}'.format(c=ch, r=r))
+        raise f.report_error('expecting char {c}, but found {r}'.format(c=ch, r=r))
 
 
 class Member:
@@ -120,7 +126,7 @@ class Struct:
 def read_struct(f):
     struct_keyword = read_ident(f)
     if struct_keyword != 'struct':
-        raise ParseError('expected struct found ident {}'.format(struct_keyword))
+        raise f.report_error('expected struct found ident {}'.format(struct_keyword))
     struct_name = read_ident(f)
     struct = Struct(struct_name)
     read_single_char(f, '{')
@@ -131,7 +137,7 @@ def read_struct(f):
         # todo: add default value
         read_single_char(f, ';')
         if is_valid_type(ty) is False:
-            raise ParseError('Inavlid type {t} for member {s}.{m}'.format(t=ty, s=struct_name, m=name))
+            raise f.report_error('Inavlid type {t} for member {s}.{m}'.format(t=ty, s=struct_name, m=name))
         struct.add_member(mem)
         read_spaces(f)
     read_single_char(f, '}')
