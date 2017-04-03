@@ -64,22 +64,24 @@ def is_ident(first, ch):
     return False
 
 
-def is_valid_type(ty):
-    if ty == 'int8':
-        return True
-    if ty == 'int16':
-        return True
-    if ty == 'int32':
-        return True
-    if ty == 'int64':
-        return True
-    if ty == 'float':
-        return True
-    if ty == 'double':
-        return True
-    if ty == 'byte':
-        return True
-    return False
+class TypeList:
+    def __init__(self):
+        self.types = []
+
+    def add_type(self, typename):
+        self.types.append(typename)
+
+    def add_default_types(self):
+        self.add_type('int8')
+        self.add_type('int16')
+        self.add_type('int32')
+        self.add_type('int64')
+        self.add_type('float')
+        self.add_type('double')
+        self.add_type('byte')
+
+    def is_valid_type(self, ty):
+        return ty in self.types
 
 
 def read_spaces(f):
@@ -123,7 +125,7 @@ class Struct:
         self.members.append(member)
 
 
-def read_struct(f):
+def read_struct(f, tl):
     struct_keyword = read_ident(f)
     if struct_keyword != 'struct':
         raise f.report_error('expected struct found ident {}'.format(struct_keyword))
@@ -136,7 +138,7 @@ def read_struct(f):
         mem = Member(name, ty)
         # todo: add default value
         read_single_char(f, ';')
-        if is_valid_type(ty) is False:
+        if tl.is_valid_type(ty) is False:
             raise f.report_error('Inavlid type {t} for member {s}.{m}'.format(t=ty, s=struct_name, m=name))
         struct.add_member(mem)
         read_spaces(f)
@@ -147,8 +149,9 @@ def read_struct(f):
 def read_several_structs(f):
     structs = []
     read_spaces(f)
+    tl = TypeList()
     while peek_char(f) is not None:
-        s = read_struct(f)
+        s = read_struct(f, tl)
         structs.append(s)
         read_spaces(f)
     return structs
