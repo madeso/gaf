@@ -64,12 +64,17 @@ def is_ident(first, ch):
     return False
 
 
+class Type:
+    def __init__(self, name):
+        self.name = name
+
+
 class TypeList:
     def __init__(self):
         self.types = []
 
     def add_type(self, typename):
-        self.types.append(typename)
+        self.types.append(Type(typename))
 
     def add_default_types(self):
         self.add_type('int8')
@@ -81,7 +86,7 @@ class TypeList:
         self.add_type('byte')
 
     def is_valid_type(self, ty):
-        return ty in self.types
+        return ty in [x.name for x in self.types]
 
 
 def read_spaces(f):
