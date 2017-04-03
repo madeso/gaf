@@ -143,6 +143,8 @@ def read_struct(f, tl):
         struct.add_member(mem)
         read_spaces(f)
     read_single_char(f, '}')
+    tl.add_type(struct_name)
+
     return struct
 
 
@@ -150,6 +152,7 @@ def read_several_structs(f):
     structs = []
     read_spaces(f)
     tl = TypeList()
+    tl.add_default_types()
     while peek_char(f) is not None:
         s = read_struct(f, tl)
         structs.append(s)
