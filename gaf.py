@@ -65,25 +65,26 @@ def is_ident(first, ch):
 
 
 class Type:
-    def __init__(self, name):
+    def __init__(self, name, cpp_passing):
         self.name = name
+        self.cpp_passing = cpp_passing
 
 
 class TypeList:
     def __init__(self):
         self.types = []
 
-    def add_type(self, typename):
-        self.types.append(Type(typename))
+    def add_type(self, t):
+        self.types.append(t)
 
     def add_default_types(self):
-        self.add_type('int8')
-        self.add_type('int16')
-        self.add_type('int32')
-        self.add_type('int64')
-        self.add_type('float')
-        self.add_type('double')
-        self.add_type('byte')
+        self.add_type(Type('int8', False))
+        self.add_type(Type('int16', False))
+        self.add_type(Type('int32', False))
+        self.add_type(Type('int64', False))
+        self.add_type(Type('float', False))
+        self.add_type(Type('double', False))
+        self.add_type(Type('byte', False))
 
     def is_valid_type(self, ty):
         return ty in [x.name for x in self.types]
@@ -148,7 +149,7 @@ def read_struct(f, tl):
         struct.add_member(mem)
         read_spaces(f)
     read_single_char(f, '}')
-    tl.add_type(struct_name)
+    tl.add_type(Type(struct_name, True))
 
     return struct
 
