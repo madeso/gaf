@@ -18,6 +18,8 @@ class CharFile:
         return c
 
     def peek(self):
+        if self.index >= len(self.data):
+            return None
         return self.data[self.index]
 
 
@@ -42,6 +44,8 @@ def is_space(ch):
 
 
 def is_ident(first, ch):
+    if ch is None:
+        return False
     if 'a' <= ch <= 'z':
         return True
     if 'A' <= ch <= 'Z':
@@ -122,20 +126,30 @@ def read_struct(f):
     read_single_char(f, '{')
     while peek_char(f) != '}':
         ty = read_ident(f)
-        if is_valid_type(ty) is False:
-            raise ParseError('Inavlid type {}'.format(ty))
         name = read_ident(f)
         mem = Member(name, ty)
         # todo: add default value
         read_single_char(f, ';')
+        if is_valid_type(ty) is False:
+            raise ParseError('Inavlid type {t} for member {s}.{m}'.format(t=ty, s=struct_name, m=name))
         struct.add_member(mem)
         read_spaces(f)
     read_single_char(f, '}')
     return struct
 
 
+def read_several_structs(f):
+    structs = []
+    read_spaces(f)
+    while peek_char(f) is not None:
+        s = read_struct(f)
+        structs.append(s)
+        read_spaces(f)
+    return structs
+
+
 def on_generate_command(args):
-    s = read_struct(CharFile(args.file))
+    s = read_several_structs(CharFile(args.file))
     print(s)
 
 
