@@ -98,25 +98,45 @@ def read_single_char(f, ch):
         raise ParseError('expecting char {c}, but found {r}'.format(c=ch, r=r))
 
 
+class Member:
+    def __init__(self, name, typename):
+        self.name = name
+        self.typename = typename
+
+
+class Struct:
+    def __init__(self, name):
+        self.name = name
+        self.members = []
+
+    def add_member(self, member):
+        self.members.append(member)
+
+
 def read_struct(f):
-    struct = read_ident(f)
-    if struct != 'struct':
-        raise ParseError('expected struct found ident {}'.format(struct))
-    typename = read_ident(f)
+    struct_keyword = read_ident(f)
+    if struct_keyword != 'struct':
+        raise ParseError('expected struct found ident {}'.format(struct_keyword))
+    struct_name = read_ident(f)
+    struct = Struct(struct_name)
     read_single_char(f, '{')
     while peek_char(f) != '}':
         ty = read_ident(f)
         if is_valid_type(ty) is False:
             raise ParseError('Inavlid type {}'.format(ty))
         name = read_ident(f)
+        mem = Member(name, ty)
         # todo: add default value
         read_single_char(f, ';')
+        struct.add_member(mem)
         read_spaces(f)
     read_single_char(f, '}')
+    return struct
 
 
 def on_generate_command(args):
-    read_struct(CharFile(args.file))
+    s = read_struct(CharFile(args.file))
+    print(s)
 
 
 def main():
