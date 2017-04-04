@@ -167,7 +167,14 @@ def read_several_structs(f):
 
 
 def on_generate_command(args):
-    s = read_several_structs(CharFile(args.file))
+    if args.debug:
+        s = read_several_structs(CharFile(args.file))
+    else:
+        try:
+            s = read_several_structs(CharFile(args.file))
+        except ParseError as p:
+            print(p.message)
+            return
     print(s)
 
 
@@ -177,7 +184,8 @@ def main():
     sub = parser.add_subparsers(help='sub-command help')
 
     gen_parser = sub.add_parser('generate', help='generate a game format parser', aliases=['gen'])
-    gen_parser.add_argument('file', type=argparse.FileType('r'))
+    gen_parser.add_argument('file', type=argparse.FileType('r'), help='the source gaf file')
+    gen_parser.add_argument('--debug', action='store_const', const=True, default=False, help='debug gaf')
     gen_parser.set_defaults(func=on_generate_command)
 
     args = parser.parse_args()
