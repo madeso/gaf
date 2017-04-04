@@ -22,10 +22,10 @@ class CharFile:
             self.line += 1
         return c
 
-    def peek(self):
-        if self.index >= len(self.data):
+    def peek(self, count):
+        if self.index+count >= len(self.data):
             return None
-        return self.data[self.index]
+        return self.data[self.index+count]
 
     def report_error(self, error):
         raise ParseError('{fi}({ln}): {err}'.format(err=error, ln=self.line, fi=self.name))
@@ -35,8 +35,8 @@ def read_char(f):
     return f.read()
 
 
-def peek_char(f):
-    return f.peek()
+def peek_char(f, count=0):
+    return f.peek(count)
 
 
 def is_space(ch):
@@ -92,9 +92,19 @@ class TypeList:
         return ty in [x.name for x in self.types]
 
 
-def read_spaces(f):
+def read_white_spaces(f):
     while is_space(peek_char(f)):
         read_char(f)
+
+
+def read_spaces(f):
+    while True:
+        read_white_spaces(f)
+        if peek_char(f, 0)=='/' and peek_char(f, 1)=='/':
+            while peek_char(f) != '\n':
+                read_char(f)
+        else:
+            return
 
 
 def read_ident(f):
