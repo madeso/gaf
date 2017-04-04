@@ -9,6 +9,8 @@ class ParseError(Exception):
 
 class CharFile:
     def __init__(self, f):
+        import os
+        self.name = os.path.abspath(f.name)
         self.data = f.read()
         self.index = 0
         self.line = 1
@@ -26,7 +28,7 @@ class CharFile:
         return self.data[self.index]
 
     def report_error(self, error):
-        raise ParseError('GAF error: {err} at line {ln}'.format(err=error, ln=self.line))
+        raise ParseError('{fi}({ln}): {err}'.format(err=error, ln=self.line, fi=self.name))
 
 
 def read_char(f):
