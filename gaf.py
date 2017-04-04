@@ -100,9 +100,16 @@ def read_white_spaces(f):
 def read_spaces(f):
     while True:
         read_white_spaces(f)
-        if peek_char(f, 0)=='/' and peek_char(f, 1)=='/':
+        if peek_char(f, 0) == '/' and peek_char(f, 1) == '/':
             while peek_char(f) != '\n':
                 read_char(f)
+        elif peek_char(f, 0) == '/' and peek_char(f, 1) == '*':
+            slash = read_char(f)
+            star = read_char(f)
+            while peek_char(f, 0) != '*' or peek_char(f, 1)!='/':
+                read_char(f)
+            star = read_char(f)
+            slash = read_char(f)
         else:
             return
 
