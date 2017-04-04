@@ -123,6 +123,9 @@ class Member:
         self.name = name
         self.typename = typename
 
+    def __str__(self):
+        return '{tn} {n};'.format(n=self.name, tn=self.typename)
+
 
 class Struct:
     def __init__(self, name):
@@ -131,6 +134,9 @@ class Struct:
 
     def add_member(self, member):
         self.members.append(member)
+
+    def __str__(self):
+        return 'struct {n} {{\n{mem}\n}}'.format(n=self.name, mem='\n'.join(['  ' + str(x) for x in self.members]))
 
 
 def read_struct(f, tl):
@@ -147,7 +153,7 @@ def read_struct(f, tl):
         # todo: add default value
         read_single_char(f, ';')
         if tl.is_valid_type(ty) is False:
-            raise f.report_error('Inavlid type {t} for member {s}.{m}'.format(t=ty, s=struct_name, m=name))
+            raise f.report_error('Invalid type {t} for member {s}.{m}'.format(t=ty, s=struct_name, m=name))
         struct.add_member(mem)
         read_spaces(f)
     read_single_char(f, '}')
@@ -177,7 +183,7 @@ def on_generate_command(args):
         except ParseError as p:
             print(p.message)
             return
-    print(s)
+    print('\n'.join([str(x) for x in s]))
 
 
 def main():
