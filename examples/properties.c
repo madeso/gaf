@@ -1,12 +1,9 @@
-[layout(inline)]
-struct string {
-  int8 length;
-  char[255] value;
-}
-
 struct Foo {
-  [range(1, 10)]
-  int32 age;
-  
-  string name;
+  // the range property asserts that value are in the range
+  // from(inclusive) to (exclusive)
+  [range(1, 5)]
+  int32 value;
+
+  // so valid values for value in this case are
+  // 1, 2, 3 and 4
 }
