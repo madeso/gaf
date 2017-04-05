@@ -252,14 +252,30 @@ def write_cpp(f, out):
     out.write('#ifndef {}\n'.format(headerguard))
     out.write('#define {}\n'.format(headerguard))
     out.write('\n')
+    source = []
     if f.package_name != '':
         out.write('namespace {} {{\n'.format(f.package_name))
         out.write('\n')
     for s in f.structs:
         out.write('class {} {{\n'.format(s.name))
         out.write(' public:\n')
+        # default constructor
         out.write('  {}();\n'.format(s.name))
         out.write('\n')
+        common_members = [x for x in s.members if is_default_type(x.typename)]
+        source.append('{n}::{n}()\n'.format(n=s.name))
+        sep = ':'
+        for m in common_members:
+            dv = '0'
+            if m.typename == 'float':
+                dv = '0.0f'
+            elif m.typename == 'float':
+                dv='0.0'
+            source.append('  {s} {n}({d})\n'.format(s=sep, n=m.name, d=dv))
+            sep = ','
+        source.append('{}\n')
+        source.append('\n')
+
         for m in s.members:
             if is_default_type(m.typename):
                 out.write('  {tn} {n}() const;\n'.format(n=to_cpp_get(m.name), tn=m.typename))
@@ -274,6 +290,14 @@ def write_cpp(f, out):
             out.write('  {tn} {n};\n'.format(n=to_cpp_typename(m.name), tn=m.typename))
         out.write('}}; // class {}\n'.format(s.name))
         out.write('\n')
+
+    out.write('#ifdef {}_IMPLEMENTATION\n'.format(headerguard))
+    out.write('\n')
+    for s in source:
+        out.write(s)
+    out.write('#endif // {}_IMPLEMENTATION\n'.format(headerguard))
+    out.write('\n')
+
     if f.package_name != '':
         out.write('}} // namespace {}\n'.format(f.package_name))
         out.write('\n')
