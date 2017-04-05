@@ -1,6 +1,13 @@
 #!/usr/bin/env python3
 # GAme Format Parser
 
+from enum import Enum
+import enum
+
+@enum.unique
+class Language(Enum):
+    CPP = object()
+
 
 class ParseError(Exception):
     def __init__(self, message):
@@ -221,6 +228,19 @@ def read_several_structs(f):
 
 def on_generate_command(args):
     if args.debug:
+        s = read_several_structs(CharFile(args.input))
+    else:
+        try:
+            s = read_several_structs(CharFile(args.input))
+        except ParseError as p:
+            print(p.message)
+            return
+    args.output.write(str(s))
+    args.output.write('\n')
+
+
+def on_display_command(args):
+    if args.debug:
         s = read_several_structs(CharFile(args.file))
     else:
         try:
@@ -237,9 +257,16 @@ def main():
     sub = parser.add_subparsers(help='sub-command help')
 
     gen_parser = sub.add_parser('generate', help='generate a game format parser', aliases=['gen'])
-    gen_parser.add_argument('file', type=argparse.FileType('r'), help='the source gaf file')
+    gen_parser.add_argument('generator', choices={t.name.lower(): t for t in Language}, help='the language')
+    gen_parser.add_argument('input', type=argparse.FileType('r'), help='the source gaf file')
+    gen_parser.add_argument('output', type=argparse.FileType('w', encoding='utf-8'), help='the output file file')
     gen_parser.add_argument('--debug', action='store_const', const=True, default=False, help='debug gaf')
     gen_parser.set_defaults(func=on_generate_command)
+
+    dis_parser = sub.add_parser('display', help='generate a game format parser', aliases=['disp', 'print', 'prn'])
+    dis_parser.add_argument('file', type=argparse.FileType('r'), help='the source gaf file')
+    dis_parser.add_argument('--debug', action='store_const', const=True, default=False, help='debug gaf')
+    dis_parser.set_defaults(func=on_display_command)
 
     args = parser.parse_args()
     args.func(args)
