@@ -99,6 +99,11 @@ class TypeList:
         return ty in [x.name for x in self.types]
 
 
+def is_default_type(tn):
+    tl = TypeList()
+    tl.add_default_types()
+    return tl.is_valid_type(tn)
+
 def read_white_spaces(f):
     while is_space(peek_char(f)):
         read_char(f)
@@ -230,11 +235,17 @@ def to_cpp_get(name):
     return 'Get{}{}'.format(name[0].upper(), name[1:])
 
 
+def to_cpp_get_mod(name):
+    return 'Get{}{}Ptr'.format(name[0].upper(), name[1:])
+
+
 def to_cpp_set(name):
     return 'Set{}{}'.format(name[0].upper(), name[1:])
 
+
 def to_cpp_typename(name):
     return '{}_'.format(name)
+
 
 def write_cpp(f, out):
     headerguard = 'HEADERGUARD'
@@ -250,8 +261,13 @@ def write_cpp(f, out):
         out.write('  {}();\n'.format(s.name))
         out.write('\n')
         for m in s.members:
-            out.write('  {tn} {n}() const;\n'.format(n=to_cpp_get(m.name), tn=m.typename))
-            out.write('  void {n}({tn} {an});\n'.format(n=to_cpp_set(m.name), an=m.name, tn=m.typename))
+            if is_default_type(m.typename):
+                out.write('  {tn} {n}() const;\n'.format(n=to_cpp_get(m.name), tn=m.typename))
+                out.write('  void {n}({tn} {an});\n'.format(n=to_cpp_set(m.name), an=m.name, tn=m.typename))
+            else:
+                out.write('  const {tn}& {n}() const;\n'.format(n=to_cpp_get(m.name), tn=m.typename))
+                out.write('  {tn}* {n}();\n'.format(n=to_cpp_get_mod(m.name), tn=m.typename))
+                out.write('  void {n}(const {tn}& {an});\n'.format(n=to_cpp_set(m.name), an=m.name, tn=m.typename))
             out.write('\n')
         out.write(' private:\n')
         for m in s.members:
