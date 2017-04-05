@@ -183,9 +183,13 @@ def read_struct(f, tl):
 class File:
     def __init__(self):
         self.structs = []
+        self.package_name = ''
 
     def __str__(self):
-        return '\n'.join([str(x) for x in self.structs])
+        package_name = ''
+        if len(self.package_name) > 0:
+            package_name = 'package {};\n'.format(self.package_name)
+        return package_name + '\n'.join([str(x) for x in self.structs])
 
 
 def read_several_structs(f):
@@ -198,9 +202,19 @@ def read_several_structs(f):
         if keyword == 'struct':
             s = read_struct(f, tl)
             file.structs.append(s)
+        elif keyword == 'package':
             read_spaces(f)
+            package_name = read_ident(f)
+            if len(file.package_name) > 0:
+                f.report_error('tried to change package name from {old} to {new}'.format(old=file.package_name, new=package_name))
+            if len(file.structs) > 0:
+                f.report_error('cant change package name after adding structs')
+            read_spaces(f)
+            read_single_char(f, ';')
+            file.package_name = package_name
         else:
             raise f.report_error('Expected struct, found unknown ident {}'.format(keyword))
+        read_spaces(f) # place file marker at the next non whitespace or at eof
 
     return file
 
