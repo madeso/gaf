@@ -161,9 +161,6 @@ class Struct:
 
 
 def read_struct(f, tl):
-    struct_keyword = read_ident(f)
-    if struct_keyword != 'struct':
-        raise f.report_error('expected struct found ident {}'.format(struct_keyword))
     struct_name = read_ident(f)
     struct = Struct(struct_name)
     read_single_char(f, '{')
@@ -197,9 +194,14 @@ def read_several_structs(f):
     tl = TypeList()
     tl.add_default_types()
     while peek_char(f) is not None:
-        s = read_struct(f, tl)
-        file.structs.append(s)
-        read_spaces(f)
+        keyword = read_ident(f)
+        if keyword == 'struct':
+            s = read_struct(f, tl)
+            file.structs.append(s)
+            read_spaces(f)
+        else:
+            raise f.report_error('Expected struct, found unknown ident {}'.format(keyword))
+
     return file
 
 
