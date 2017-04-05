@@ -226,6 +226,27 @@ def read_several_structs(f):
     return file
 
 
+def write_cpp(f, out):
+    headerguard = 'HEADERGUARD'
+    out.write('#ifndef {}\n'.format(headerguard))
+    out.write('#define {}\n'.format(headerguard))
+    out.write('\n')
+    if f.package_name != '':
+        out.write('namespace {} {{\n'.format(f.package_name))
+        out.write('\n')
+    for s in f.structs:
+        out.write('class {} {{\n'.format(s.name))
+        for m in s.members:
+            out.write('  {tn} {n};\n'.format(n=m.name, tn=m.typename))
+        out.write('}}; // class {}\n'.format(s.name))
+        out.write('\n')
+    if f.package_name != '':
+        out.write('}} // namespace {}\n'.format(f.package_name))
+        out.write('\n')
+    out.write('\n')
+    out.write('#endif  // {}\n'.format(headerguard))
+
+
 def on_generate_command(args):
     if args.debug:
         s = read_several_structs(CharFile(args.input))
@@ -235,8 +256,10 @@ def on_generate_command(args):
         except ParseError as p:
             print(p.message)
             return
-    args.output.write(str(s))
-    args.output.write('\n')
+    if args.language == Language.CPP:
+        write_cpp(s, args.output)
+    else:
+        raise ParseError('unhandled language {}'.format(args.language))
 
 
 def on_display_command(args):
@@ -253,11 +276,32 @@ def on_display_command(args):
 
 def main():
     import argparse
+
+    class EnumType(object):
+        """Factory for creating enum object types
+        """
+
+        def __init__(self, enumclass):
+            self.enums = enumclass
+
+        def __call__(self, astring):
+            name = self.enums.__name__
+            try:
+                return self.enums[astring.upper()]
+            except KeyError:
+                msg = ', '.join([t.name.lower() for t in self.enums])
+                msg = '%s: use one of {%s}' % (name, msg)
+                raise argparse.ArgumentTypeError(msg)
+
+        def __repr__(self):
+            astr = ', '.join([t.name.lower() for t in self.enums])
+            return '%s(%s)' % (self.enums.__name__, astr)
+
     parser = argparse.ArgumentParser(description='GAme Format parser')
     sub = parser.add_subparsers(help='sub-command help')
 
     gen_parser = sub.add_parser('generate', help='generate a game format parser', aliases=['gen'])
-    gen_parser.add_argument('generator', choices={t.name.lower(): t for t in Language}, help='the language')
+    gen_parser.add_argument('language', type=EnumType(Language), help='the language')
     gen_parser.add_argument('input', type=argparse.FileType('r'), help='the source gaf file')
     gen_parser.add_argument('output', type=argparse.FileType('w', encoding='utf-8'), help='the output file file')
     gen_parser.add_argument('--debug', action='store_const', const=True, default=False, help='debug gaf')
