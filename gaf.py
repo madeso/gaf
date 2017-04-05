@@ -182,17 +182,23 @@ def read_struct(f, tl):
 
     return struct
 
+class File:
+    def __init__(self):
+        self.structs = []
+
+    def __str__(self):
+        return '\n'.join([str(x) for x in self.structs])
 
 def read_several_structs(f):
-    structs = []
+    file = File()
     read_spaces(f)
     tl = TypeList()
     tl.add_default_types()
     while peek_char(f) is not None:
         s = read_struct(f, tl)
-        structs.append(s)
+        file.structs.append(s)
         read_spaces(f)
-    return structs
+    return file
 
 
 def on_generate_command(args):
@@ -204,7 +210,7 @@ def on_generate_command(args):
         except ParseError as p:
             print(p.message)
             return
-    print('\n'.join([str(x) for x in s]))
+    print(s)
 
 
 def main():
