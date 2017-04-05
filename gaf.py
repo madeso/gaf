@@ -274,12 +274,13 @@ def write_cpp(f, out):
             source.append('  {s} {n}({d})\n'.format(s=sep, n=m.name, d=dv))
             sep = ','
         source.append('{}\n')
-        source.append('\n')
 
         for m in s.members:
             if is_default_type(m.typename):
                 out.write('  {tn} {n}() const;\n'.format(n=to_cpp_get(m.name), tn=m.typename))
+                source.append('{tn} {cn}::{n}() const {{ return {v}; }}\n'.format(n=to_cpp_get(m.name), tn=m.typename, cn=s.name, v=to_cpp_typename(m.name)))
                 out.write('  void {n}({tn} {an});\n'.format(n=to_cpp_set(m.name), an=m.name, tn=m.typename))
+                source.append('void {cn}::{n}({tn} {an}) {{ {v} = {an}; }}\n'.format(n=to_cpp_set(m.name), an=m.name, tn=m.typename, cn=s.name, v=to_cpp_typename(m.name)))
             else:
                 out.write('  const {tn}& {n}() const;\n'.format(n=to_cpp_get(m.name), tn=m.typename))
                 out.write('  {tn}* {n}();\n'.format(n=to_cpp_get_mod(m.name), tn=m.typename))
@@ -295,8 +296,8 @@ def write_cpp(f, out):
     out.write('\n')
     for s in source:
         out.write(s)
-    out.write('#endif // {}_IMPLEMENTATION\n'.format(headerguard))
     out.write('\n')
+    out.write('#endif // {}_IMPLEMENTATION\n'.format(headerguard))
 
     if f.package_name != '':
         out.write('}} // namespace {}\n'.format(f.package_name))
