@@ -226,6 +226,16 @@ def read_several_structs(f):
     return file
 
 
+def to_cpp_get(name):
+    return 'Get{}{}'.format(name[0].upper(), name[1:])
+
+
+def to_cpp_set(name):
+    return 'Set{}{}'.format(name[0].upper(), name[1:])
+
+def to_cpp_typename(name):
+    return '{}_'.format(name)
+
 def write_cpp(f, out):
     headerguard = 'HEADERGUARD'
     out.write('#ifndef {}\n'.format(headerguard))
@@ -236,8 +246,16 @@ def write_cpp(f, out):
         out.write('\n')
     for s in f.structs:
         out.write('class {} {{\n'.format(s.name))
+        out.write(' public:\n')
+        out.write('  {}();\n'.format(s.name))
+        out.write('\n')
         for m in s.members:
-            out.write('  {tn} {n};\n'.format(n=m.name, tn=m.typename))
+            out.write('  {tn} {n}() const;\n'.format(n=to_cpp_get(m.name), tn=m.typename))
+            out.write('  void {n}({tn} {an});\n'.format(n=to_cpp_set(m.name), an=m.name, tn=m.typename))
+            out.write('\n')
+        out.write(' private:\n')
+        for m in s.members:
+            out.write('  {tn} {n};\n'.format(n=to_cpp_typename(m.name), tn=m.typename))
         out.write('}}; // class {}\n'.format(s.name))
         out.write('\n')
     if f.package_name != '':
