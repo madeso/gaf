@@ -106,10 +106,14 @@ def read_spaces(f):
         elif peek_char(f, 0) == '/' and peek_char(f, 1) == '*':
             slash = read_char(f)
             star = read_char(f)
+            assert slash == '/'
+            assert star == '*'
             while peek_char(f, 0) != '*' or peek_char(f, 1)!='/':
                 read_char(f)
             star = read_char(f)
             slash = read_char(f)
+            assert slash == '/'
+            assert star == '*'
         else:
             return
 
