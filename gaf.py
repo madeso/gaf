@@ -256,7 +256,7 @@ def write_cpp(f, out):
     if f.package_name != '':
         out.write('namespace {} {{\n'.format(f.package_name))
         out.write('\n')
-    for s in f.structs:
+    for struct_index, s in enumerate(f.structs):
         out.write('class {} {{\n'.format(s.name))
         out.write(' public:\n')
         # default constructor
@@ -274,6 +274,8 @@ def write_cpp(f, out):
             source.append('  {s} {n}({d})\n'.format(s=sep, n=m.name, d=dv))
             sep = ','
         source.append('{}\n')
+        if struct_index == 0:
+            source.append('\n')
 
         for m in s.members:
             if is_default_type(m.typename):
@@ -286,6 +288,7 @@ def write_cpp(f, out):
                 out.write('  {tn}* {n}();\n'.format(n=to_cpp_get_mod(m.name), tn=m.typename))
                 out.write('  void {n}(const {tn}& {an});\n'.format(n=to_cpp_set(m.name), an=m.name, tn=m.typename))
             out.write('\n')
+            source.append('\n')
         out.write(' private:\n')
         for m in s.members:
             out.write('  {tn} {n};\n'.format(n=to_cpp_typename(m.name), tn=m.typename))
@@ -296,7 +299,6 @@ def write_cpp(f, out):
     out.write('\n')
     for s in source:
         out.write(s)
-    out.write('\n')
     out.write('#endif // {}_IMPLEMENTATION\n'.format(headerguard))
 
     if f.package_name != '':
