@@ -256,7 +256,7 @@ def write_cpp(f, out):
     if f.package_name != '':
         out.write('namespace {} {{\n'.format(f.package_name))
         out.write('\n')
-    for struct_index, s in enumerate(f.structs):
+    for s in f.structs:
         out.write('class {} {{\n'.format(s.name))
         out.write(' public:\n')
         # default constructor
@@ -274,8 +274,7 @@ def write_cpp(f, out):
             source.append('  {s} {n}({d})\n'.format(s=sep, n=m.name, d=dv))
             sep = ','
         source.append('{}\n')
-        if struct_index == 0:
-            source.append('\n')
+        source.append('\n')
 
         for m in s.members:
             if is_default_type(m.typename):
@@ -285,8 +284,11 @@ def write_cpp(f, out):
                 source.append('void {cn}::{n}({tn} {an}) {{ {v} = {an}; }}\n'.format(n=to_cpp_set(m.name), an=m.name, tn=m.typename, cn=s.name, v=to_cpp_typename(m.name)))
             else:
                 out.write('  const {tn}& {n}() const;\n'.format(n=to_cpp_get(m.name), tn=m.typename))
+                source.append('const {tn}& {cn}::{n}() const {{ return {v}; }}\n'.format(n=to_cpp_get(m.name), tn=m.typename, cn=s.name, v=to_cpp_typename(m.name)))
                 out.write('  {tn}* {n}();\n'.format(n=to_cpp_get_mod(m.name), tn=m.typename))
+                source.append('{tn}* {cn}::{n}() {{ return &{v}; }}\n'.format(n=to_cpp_get_mod(m.name), tn=m.typename, cn=s.name, v=to_cpp_typename(m.name)))
                 out.write('  void {n}(const {tn}& {an});\n'.format(n=to_cpp_set(m.name), an=m.name, tn=m.typename))
+                source.append('void {cn}::{n}(const {tn}& {an}) {{ {v} = {an}; }}\n'.format(n=to_cpp_set(m.name), an=m.name, tn=m.typename, cn=s.name, v=to_cpp_typename(m.name)))
             out.write('\n')
             source.append('\n')
         out.write(' private:\n')
