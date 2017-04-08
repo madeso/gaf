@@ -1,7 +1,9 @@
 language: cpp
 compiler: clang
 script:
-  ./test-all.py
+   - pwd
+   - ls /usr/bin/python3
+   - ./test-all.py
 addons:
   apt:
     sources:
