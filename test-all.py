@@ -26,16 +26,13 @@ def main():
     print('root', root_folder)
 
     build_folder = os.path.join(root_folder, 'build')
-    print('build', build_folder)
 
     ensure_folder_exist(build_folder)
-    # remove everything in build
 
     code_examples = [Code('onestruct')]
 
     for code in code_examples:
         code_root_folder = os.path.join(build_folder, code.name)
-        print('  specific dir', code_root_folder)
         remove_folder(code_root_folder)
         ensure_folder_exist(code_root_folder)
         with open(os.path.join(code_root_folder, 'CMakeLists.txt'), 'w') as cmake_file:
