@@ -45,7 +45,9 @@ def main():
         ensure_folder_exist(code_build_folder)
         cmake_result = subprocess.check_output(['cmake', '..'], cwd=code_build_folder)
         make_result = subprocess.check_output(['make'], cwd=code_build_folder)
-        app_result = subprocess.check_output(['./app'], cwd=code_build_folder)
+        code_run_folder = os.path.join(code_build_folder, 'run')
+        ensure_folder_exist(code_run_folder)
+        app_result = subprocess.check_output(['../app'], cwd=code_run_folder)
         print(app_result)
 
 
