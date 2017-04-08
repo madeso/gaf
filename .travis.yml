@@ -1,0 +1,4 @@
+language: cpp
+compiler: clang
+script:
+    ./test-all.py
