@@ -4,6 +4,7 @@ script:
    - pwd
    - which python3
    - which python
+   - python --version
    - ./test-all.py
 addons:
   apt:
