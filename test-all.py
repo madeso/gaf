@@ -32,7 +32,8 @@ def main():
     for c in examples:
         d = os.path.join(build, c.name)
         print('  specific dir', d)
-        shutil.rmtree(d)
+        if os.path.exists(d):
+            shutil.rmtree(d)
         ensure_dir(d)
         with open(os.path.join(d, 'CMakeLists.txt'), 'w') as f:
             f.write('''
