@@ -2,7 +2,8 @@ language: cpp
 compiler: clang
 script:
    - pwd
-   - ls /usr/bin/python3
+   - which python3
+   - which python
    - ./test-all.py
 addons:
   apt:
