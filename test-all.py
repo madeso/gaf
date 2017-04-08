@@ -16,6 +16,10 @@ class Code:
         self.gaf = gaf if gaf is not None else name+'.c'
         self.test = test if test is not None else name+'.cc'
 
+def remove_folder(d):
+    if os.path.exists(d):
+        shutil.rmtree(d)
+
 
 def main():
     root = os.getcwd()
@@ -32,14 +36,13 @@ def main():
     for c in examples:
         d = os.path.join(build, c.name)
         print('  specific dir', d)
-        if os.path.exists(d):
-            shutil.rmtree(d)
+        remove_folder(d)
         ensure_dir(d)
         with open(os.path.join(d, 'CMakeLists.txt'), 'w') as f:
             f.write('''
             cmake_minimum_required(VERSION 2.8.9)
             project(gaf)
-            add_executable(gaf {cpp})
+            add_executable(app {cpp})
             '''.format(gaf=c.gaf, cpp= os.path.join(root, 'test-cpp', c.test) ))
         b = os.path.join(d, 'build')
         ensure_dir(b)
@@ -50,7 +53,7 @@ def main():
             print("mr", mr)
             if mr == 0:
                 print(b)
-                xx = subprocess.call(['./gaf'], cwd=b)
+                xx = subprocess.call(['./app'], cwd=b)
                 print(xx)
 
 
