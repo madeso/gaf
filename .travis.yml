@@ -1,9 +1,5 @@
 language: cpp
 compiler: clang
 script:
-   - pwd
-   - which python3
-   - which python
-   - python --version
    - ./test-all.py
 dist: trusty
