@@ -3,6 +3,7 @@
 
 from enum import Enum
 import enum
+import os
 
 @enum.unique
 class Language(Enum):
@@ -247,80 +248,103 @@ def to_cpp_typename(name):
     return '{}_'.format(name)
 
 
-def write_cpp(f, out):
-    headerguard = 'HEADERGUARD'
-    out.write('#ifndef {}\n'.format(headerguard))
-    out.write('#define {}\n'.format(headerguard))
-    out.write('\n')
+def write_cpp(f, out_dir, name):
+    headerguard = name.upper()
+
     source = []
-    if f.package_name != '':
-        out.write('namespace {} {{\n'.format(f.package_name))
-        out.write('\n')
-    for s in f.structs:
-        out.write('class {} {{\n'.format(s.name))
-        out.write(' public:\n')
-        # default constructor
-        out.write('  {}();\n'.format(s.name))
-        out.write('\n')
-        common_members = [x for x in s.members if is_default_type(x.typename)]
-        source.append('{n}::{n}()\n'.format(n=s.name))
-        sep = ':'
-        for m in common_members:
-            dv = '0'
-            if m.typename == 'float':
-                dv = '0.0f'
-            elif m.typename == 'float':
-                dv='0.0'
-            source.append('  {s} {n}({d})\n'.format(s=sep, n=m.name, d=dv))
-            sep = ','
-        source.append('{}\n')
-        source.append('\n')
 
-        for m in s.members:
-            if is_default_type(m.typename):
-                out.write('  {tn} {n}() const;\n'.format(n=to_cpp_get(m.name), tn=m.typename))
-                source.append('{tn} {cn}::{n}() const {{ return {v}; }}\n'.format(n=to_cpp_get(m.name), tn=m.typename, cn=s.name, v=to_cpp_typename(m.name)))
-                out.write('  void {n}({tn} {an});\n'.format(n=to_cpp_set(m.name), an=m.name, tn=m.typename))
-                source.append('void {cn}::{n}({tn} {an}) {{ {v} = {an}; }}\n'.format(n=to_cpp_set(m.name), an=m.name, tn=m.typename, cn=s.name, v=to_cpp_typename(m.name)))
-            else:
-                out.write('  const {tn}& {n}() const;\n'.format(n=to_cpp_get(m.name), tn=m.typename))
-                source.append('const {tn}& {cn}::{n}() const {{ return {v}; }}\n'.format(n=to_cpp_get(m.name), tn=m.typename, cn=s.name, v=to_cpp_typename(m.name)))
-                out.write('  {tn}* {n}();\n'.format(n=to_cpp_get_mod(m.name), tn=m.typename))
-                source.append('{tn}* {cn}::{n}() {{ return &{v}; }}\n'.format(n=to_cpp_get_mod(m.name), tn=m.typename, cn=s.name, v=to_cpp_typename(m.name)))
-                out.write('  void {n}(const {tn}& {an});\n'.format(n=to_cpp_set(m.name), an=m.name, tn=m.typename))
-                source.append('void {cn}::{n}(const {tn}& {an}) {{ {v} = {an}; }}\n'.format(n=to_cpp_set(m.name), an=m.name, tn=m.typename, cn=s.name, v=to_cpp_typename(m.name)))
+    header_only = False
+
+    with open(os.path.join(out_dir, name+'.h'), 'w', encoding='utf-8') as out:
+        out.write('#ifndef {}_H\n'.format(headerguard))
+        out.write('#define {}_H\n'.format(headerguard))
+        out.write('\n')
+        if f.package_name != '':
+            out.write('namespace {} {{\n'.format(f.package_name))
             out.write('\n')
+        for s in f.structs:
+            out.write('class {} {{\n'.format(s.name))
+            out.write(' public:\n')
+            # default constructor
+            out.write('  {}();\n'.format(s.name))
+            out.write('\n')
+            common_members = [x for x in s.members if is_default_type(x.typename)]
+            source.append('{n}::{n}()\n'.format(n=s.name))
+            sep = ':'
+            for m in common_members:
+                dv = '0'
+                if m.typename == 'float':
+                    dv = '0.0f'
+                elif m.typename == 'float':
+                    dv='0.0'
+                source.append('  {s} {n}({d})\n'.format(s=sep, n=m.name, d=dv))
+                sep = ','
+            source.append('{}\n')
             source.append('\n')
-        out.write(' private:\n')
-        for m in s.members:
-            out.write('  {tn} {n};\n'.format(n=to_cpp_typename(m.name), tn=m.typename))
-        out.write('}}; // class {}\n'.format(s.name))
-        out.write('\n')
 
-    out.write('#ifdef {}_IMPLEMENTATION\n'.format(headerguard))
-    out.write('\n')
-    for s in source:
-        out.write(s)
-    out.write('#endif // {}_IMPLEMENTATION\n'.format(headerguard))
+            for m in s.members:
+                if is_default_type(m.typename):
+                    out.write('  {tn} {n}() const;\n'.format(n=to_cpp_get(m.name), tn=m.typename))
+                    source.append('{tn} {cn}::{n}() const {{ return {v}; }}\n'.format(n=to_cpp_get(m.name), tn=m.typename, cn=s.name, v=to_cpp_typename(m.name)))
+                    out.write('  void {n}({tn} {an});\n'.format(n=to_cpp_set(m.name), an=m.name, tn=m.typename))
+                    source.append('void {cn}::{n}({tn} {an}) {{ {v} = {an}; }}\n'.format(n=to_cpp_set(m.name), an=m.name, tn=m.typename, cn=s.name, v=to_cpp_typename(m.name)))
+                else:
+                    out.write('  const {tn}& {n}() const;\n'.format(n=to_cpp_get(m.name), tn=m.typename))
+                    source.append('const {tn}& {cn}::{n}() const {{ return {v}; }}\n'.format(n=to_cpp_get(m.name), tn=m.typename, cn=s.name, v=to_cpp_typename(m.name)))
+                    out.write('  {tn}* {n}();\n'.format(n=to_cpp_get_mod(m.name), tn=m.typename))
+                    source.append('{tn}* {cn}::{n}() {{ return &{v}; }}\n'.format(n=to_cpp_get_mod(m.name), tn=m.typename, cn=s.name, v=to_cpp_typename(m.name)))
+                    out.write('  void {n}(const {tn}& {an});\n'.format(n=to_cpp_set(m.name), an=m.name, tn=m.typename))
+                    source.append('void {cn}::{n}(const {tn}& {an}) {{ {v} = {an}; }}\n'.format(n=to_cpp_set(m.name), an=m.name, tn=m.typename, cn=s.name, v=to_cpp_typename(m.name)))
+                out.write('\n')
+                source.append('\n')
+            out.write(' private:\n')
+            for m in s.members:
+                out.write('  {tn} {n};\n'.format(n=to_cpp_typename(m.name), tn=m.typename))
+            out.write('}}; // class {}\n'.format(s.name))
+            out.write('\n')
 
-    if f.package_name != '':
-        out.write('}} // namespace {}\n'.format(f.package_name))
+        if header_only:
+            out.write('#ifdef {}_IMPLEMENTATION\n'.format(headerguard))
+            out.write('\n')
+            for s in source:
+                out.write(s)
+            out.write('#endif // {}_IMPLEMENTATION\n'.format(headerguard))
+
+        if f.package_name != '':
+            out.write('}} // namespace {}\n'.format(f.package_name))
+            out.write('\n')
         out.write('\n')
-    out.write('\n')
-    out.write('#endif  // {}\n'.format(headerguard))
+        out.write('#endif  // {}_H\n'.format(headerguard))
+
+    if header_only == False:
+        with open(os.path.join(out_dir, name+'.cc'), 'w', encoding='utf-8') as out:
+            out.write('#include "{}.h"\n'.format(name))
+            out.write('\n')
+
+            if f.package_name != '':
+                out.write('namespace {} {{\n'.format(f.package_name))
+                out.write('\n')
+
+            for s in source:
+                out.write(s)
+
+            if f.package_name != '':
+                out.write('}} // namespace {}\n'.format(f.package_name))
+                out.write('\n')
 
 
 def on_generate_command(args):
+    file = CharFile(args.input)
     if args.debug:
-        s = read_several_structs(CharFile(args.input))
+        s = read_several_structs(file)
     else:
         try:
-            s = read_several_structs(CharFile(args.input))
+            s = read_several_structs(file)
         except ParseError as p:
             print(p.message)
             return
     if args.language == Language.CPP:
-        write_cpp(s, args.output)
+        write_cpp(s, args.output_folder, os.path.splitext(os.path.basename(file.name))[0] if args.name is None else args.name)
     else:
         raise ParseError('unhandled language {}'.format(args.language))
 
@@ -366,8 +390,9 @@ def main():
     gen_parser = sub.add_parser('generate', help='generate a game format parser', aliases=['gen'])
     gen_parser.add_argument('language', type=EnumType(Language), help='the language')
     gen_parser.add_argument('input', type=argparse.FileType('r'), help='the source gaf file')
-    gen_parser.add_argument('output', type=argparse.FileType('w', encoding='utf-8'), help='the output file file')
+    gen_parser.add_argument('output_folder', help='the output directory')
     gen_parser.add_argument('--debug', action='store_const', const=True, default=False, help='debug gaf')
+    gen_parser.add_argument('--name', help='use this name instead of the autogenerated name')
     gen_parser.set_defaults(func=on_generate_command)
 
     dis_parser = sub.add_parser('display', help='generate a game format parser', aliases=['disp', 'print', 'prn'])
