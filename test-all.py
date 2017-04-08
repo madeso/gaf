@@ -43,15 +43,10 @@ def main():
             '''.format(gaf=code.gaf, cpp= os.path.join(root_folder, 'test-cpp', code.test) ))
         code_build_folder = os.path.join(code_root_folder, 'build')
         ensure_folder_exist(code_build_folder)
-        cmake_result = subprocess.call(['cmake', '..'], cwd=code_build_folder)
-        print("called", cmake_result)
-        if cmake_result == 0:
-            make_result = subprocess.call(['make'], cwd=code_build_folder)
-            print("mr", make_result)
-            if make_result == 0:
-                print(code_build_folder)
-                app_result = subprocess.call(['./app'], cwd=code_build_folder)
-                print(app_result)
+        cmake_result = subprocess.check_output(['cmake', '..'], cwd=code_build_folder)
+        make_result = subprocess.check_output(['make'], cwd=code_build_folder)
+        app_result = subprocess.check_output(['./app'], cwd=code_build_folder)
+        print(app_result)
 
 
 
