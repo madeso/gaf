@@ -39,8 +39,9 @@ def main():
         with open(os.path.join(code_root_folder, 'CMakeLists.txt'), 'w') as cmake_file:
             test_cpp_folder = os.path.join(root_folder, 'test-cpp')
             cmake_file.write('''
-            cmake_minimum_required(VERSION 2.8.9)
+            cmake_minimum_required(VERSION 3.1)
             project(gaf)
+            set (CMAKE_CXX_STANDARD 11)
             include_directories(SYSTEM {external}/catch)
             include({root}/gaf.cmake)
             SET(Gaf_CUSTOM_NAME mygaf)
