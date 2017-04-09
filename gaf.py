@@ -316,9 +316,9 @@ def write_cpp(f, out_dir, name):
                 dv = '0'
                 if m.typename == 'float':
                     dv = '0.0f'
-                elif m.typename == 'float':
+                elif m.typename == 'double':
                     dv='0.0'
-                source.append('  {s} {n}({d})\n'.format(s=sep, n=m.name, d=dv))
+                source.append('  {s} {n}({d})\n'.format(s=sep, n=to_cpp_typename(m.name), d=dv))
                 sep = ','
             source.append('{}\n')
             source.append('\n')
