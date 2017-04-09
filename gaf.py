@@ -100,6 +100,24 @@ class TypeList:
         return ty in [x.name for x in self.types]
 
 
+def get_cpp_type_from_stdint(t):
+    if t =='int8':
+        return 'int8_t'
+    if t =='int16':
+        return 'int16_t'
+    if t =='int32':
+        return 'int32_t'
+    if t =='int64':
+        return 'int64_t'
+    if t =='float':
+        return t
+    if t =='double':
+        return t
+    if t =='byte':
+        return 'char'
+    return ''
+
+
 def is_default_type(tn):
     tl = TypeList()
     tl.add_default_types()
@@ -248,6 +266,11 @@ def to_cpp_typename(name):
     return '{}_'.format(name)
 
 
+def merge(iters):
+    for it in iters:
+        yield from it
+
+
 def write_cpp(f, out_dir, name):
     headerguard = name.upper()
 
@@ -255,13 +278,31 @@ def write_cpp(f, out_dir, name):
 
     header_only = False
 
+    unique_types = set(m.typename for m in merge(s.members for s in f.structs))
+    default_types = [t[0] for t in ((t, get_cpp_type_from_stdint(t)) for t in unique_types)
+                     if t[1] != '' and t[0]!=t[1]
+                     ]
+    print('default types in file', default_types)
+
     with open(os.path.join(out_dir, name+'.h'), 'w', encoding='utf-8') as out:
         out.write('#ifndef {}_H\n'.format(headerguard))
         out.write('#define {}_H\n'.format(headerguard))
         out.write('\n')
+        if len(default_types) > 0:
+            out.write('\n')
+            out.write('#include <cstdint>\n')
+            out.write('\n')
+
         if f.package_name != '':
             out.write('namespace {} {{\n'.format(f.package_name))
             out.write('\n')
+
+        if len(default_types) > 0:
+            out.write('\n')
+            for t in default_types:
+                out.write('typedef {ct} {t};\n'.format(t=t, ct=get_cpp_type_from_stdint(t)))
+            out.write('\n')
+
         for s in f.structs:
             out.write('class {} {{\n'.format(s.name))
             out.write(' public:\n')
