@@ -43,8 +43,9 @@ def main():
             project(gaf)
             include_directories(SYSTEM {external}/catch)
             include({root}/gaf.cmake)
+            SET(Gaf_CUSTOM_NAME mygaf)
             GAF_GENERATE_CPP(GAF_SOURCES GAF_HEADERS {root}/examples/{gaf})
-            include_directories({{CMAKE_CURRENT_BINARY_DIR}})
+            include_directories(${{CMAKE_CURRENT_BINARY_DIR}})
             add_executable(app {cpp} ${{GAF_SOURCES}} ${{GAF_HEADERS}})
             '''.format(
                 gaf=code.gaf,

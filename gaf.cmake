@@ -54,11 +54,17 @@ function(GAF_GENERATE_CPP SRCS HDRS)
 
     SET(ABSOLUTE_GAF ${GAF_ROOT_DIR}/gaf.py)
 
+    SET(GAF_EXTRA_ARGS "")
+
+    if(DEFINED Gaf_CUSTOM_NAME)
+        SET(GAF_EXTRA_ARGS ";--name;${Gaf_CUSTOM_NAME}")
+    endif()
+
     add_custom_command(
       OUTPUT "${CMAKE_CURRENT_BINARY_DIR}/${FIL_WE}.cc"
              "${CMAKE_CURRENT_BINARY_DIR}/${FIL_WE}.h"
       COMMAND  ${PYTHON_EXECUTABLE}
-      ARGS ${ABSOLUTE_GAF} gen cpp ${ABS_FIL} ${CMAKE_CURRENT_BINARY_DIR}
+      ARGS ${ABSOLUTE_GAF} gen cpp ${ABS_FIL} ${CMAKE_CURRENT_BINARY_DIR} ${GAF_EXTRA_ARGS}
       DEPENDS ${ABS_FIL} ${ABSOLUTE_GAF} ${PYTHON_EXECUTABLE}
       COMMENT "Running C++ GAF compiler on ${FIL}"
       VERBATIM)
