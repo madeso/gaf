@@ -41,7 +41,7 @@ function(GAF_GENERATE_CPP SRCS HDRS)
   set(${HDRS})
   foreach(FIL ${ARGN})
     get_filename_component(ABS_FIL ${FIL} ABSOLUTE)
-    get_filename_component(FIL_WE ${FIL} NAME_WE)
+    get_filename_component(FIL_WE ${FIL} NAME)
     if(NOT GAF_GENERATE_CPP_APPEND_PATH)
       get_filename_component(FIL_DIR ${FIL} DIRECTORY)
       if(FIL_DIR)
@@ -49,20 +49,22 @@ function(GAF_GENERATE_CPP SRCS HDRS)
       endif()
     endif()
 
-    list(APPEND ${SRCS} "${CMAKE_CURRENT_BINARY_DIR}/${FIL_WE}.cc")
-    list(APPEND ${HDRS} "${CMAKE_CURRENT_BINARY_DIR}/${FIL_WE}.h")
-
-    SET(ABSOLUTE_GAF ${GAF_ROOT_DIR}/gaf.py)
-
     SET(GAF_EXTRA_ARGS "")
+    SET(FIL_NAME ${FIL_WE})
 
     if(DEFINED Gaf_CUSTOM_NAME)
         SET(GAF_EXTRA_ARGS ";--name;${Gaf_CUSTOM_NAME}")
+        SET(FIL_NAME ${Gaf_CUSTOM_NAME})
     endif()
 
+    list(APPEND ${SRCS} "${CMAKE_CURRENT_BINARY_DIR}/${FIL_NAME}.cc")
+    list(APPEND ${HDRS} "${CMAKE_CURRENT_BINARY_DIR}/${FIL_NAME}.h")
+
+    SET(ABSOLUTE_GAF ${GAF_ROOT_DIR}/gaf.py)
+
     add_custom_command(
-      OUTPUT "${CMAKE_CURRENT_BINARY_DIR}/${FIL_WE}.cc"
-             "${CMAKE_CURRENT_BINARY_DIR}/${FIL_WE}.h"
+      OUTPUT "${CMAKE_CURRENT_BINARY_DIR}/${FIL_NAME}.cc"
+             "${CMAKE_CURRENT_BINARY_DIR}/${FIL_NAME}.h"
       COMMAND  ${PYTHON_EXECUTABLE}
       ARGS ${ABSOLUTE_GAF} gen cpp ${ABS_FIL} ${CMAKE_CURRENT_BINARY_DIR} ${GAF_EXTRA_ARGS}
       DEPENDS ${ABS_FIL} ${ABSOLUTE_GAF} ${PYTHON_EXECUTABLE}
