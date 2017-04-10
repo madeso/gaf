@@ -6,6 +6,11 @@ import sys
 import subprocess
 import shutil
 
+
+def eprint(*args, **kwargs):
+    print(*args, file=sys.stderr, **kwargs)
+
+
 def ensure_folder_exist(directory):
     if not os.path.exists(directory):
         os.makedirs(directory)
@@ -72,7 +77,7 @@ def main():
             ensure_folder_exist(code_run_folder)
             app_result = subprocess.check_output(['../app'], stderr=subprocess.STDOUT, universal_newlines=True, cwd=code_run_folder)
         except subprocess.CalledProcessError as exc:
-            print("Status : FAIL", exc.returncode, exc.output)
+            eprint("Status : FAIL", exc.returncode, exc.output)
             if len(cmake_result)>0:
                 print('CMake result:')
                 print(cmake_result)
