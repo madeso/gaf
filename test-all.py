@@ -77,7 +77,9 @@ def main():
             ensure_folder_exist(code_run_folder)
             app_result = subprocess.check_output(['../app'], stderr=subprocess.STDOUT, universal_newlines=True, cwd=code_run_folder)
         except subprocess.CalledProcessError as exc:
-            eprint("Status : FAIL", exc.returncode, exc.output)
+            eprint('Status: FAIL')
+            eprint('Error code: {}'.format(exc.returncode))
+            eprint(exc.output)
             if len(cmake_result)>0:
                 print('CMake result:')
                 print(cmake_result)
@@ -91,7 +93,12 @@ def main():
                 print(app_result)
                 print()
             errors += 1
-    sys.exit(1 if errors > 0 else 0)
+    if errors > 0:
+        print('{} error(s) detected'.format(errors))
+        sys.exit(1)
+    else:
+        print('No error detected. Have a nice day :)')
+        sys.exit(0)
 
 
 
