@@ -36,11 +36,20 @@ def main():
 
     ensure_folder_exist(build_folder)
 
-    code_examples = [Code('onestruct')]
+    code_examples = [
+        Code('comments1', test = 'onestruct.cc'),
+        Code('comments2', test = 'onestruct.cc'),
+        Code('comments3', test = 'onestruct.cc'),
+        Code('onestruct')
+    ]
 
     errors = 0
 
     for code in code_examples:
+        print()
+        print('----------------------------------------------------------------')
+        print('--- {}'.format(code.name))
+        print('----------------------------------------------------------------')
         code_root_folder = os.path.join(build_folder, code.name)
         remove_folder(code_root_folder)
         ensure_folder_exist(code_root_folder)
@@ -93,6 +102,8 @@ def main():
                 print(app_result)
                 print()
             errors += 1
+    print()
+    print()
     if errors > 0:
         print('{} error(s) detected'.format(errors))
         sys.exit(1)
