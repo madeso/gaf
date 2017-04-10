@@ -8,7 +8,7 @@ TEST_CASE("constructor") {
   REQUIRE(foo.GetWorld() == 0.0f);
 }
 
-TEST_CASE("constructor") {
+TEST_CASE("setter") {
   Foo foo;
   foo.SetHello(42);
   foo.SetWorld(4.2f);
