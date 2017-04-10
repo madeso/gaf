@@ -2,6 +2,7 @@
 # GAF test, please ignore
 
 import os
+import sys
 import subprocess
 import shutil
 
@@ -32,6 +33,8 @@ def main():
 
     code_examples = [Code('onestruct')]
 
+    errors = 0
+
     for code in code_examples:
         code_root_folder = os.path.join(build_folder, code.name)
         remove_folder(code_root_folder)
@@ -56,15 +59,35 @@ def main():
             ))
         code_build_folder = os.path.join(code_root_folder, 'build')
         ensure_folder_exist(code_build_folder)
-        print('running cmake')
-        cmake_result = subprocess.check_call(['cmake', '..'], cwd=code_build_folder)
-        print('running make')
-        make_result = subprocess.check_call(['make'], cwd=code_build_folder)
-        print('running code')
-        code_run_folder = os.path.join(code_build_folder, 'run')
-        ensure_folder_exist(code_run_folder)
-        app_result = subprocess.check_output(['../app'], cwd=code_run_folder)
-        print(app_result)
+        cmake_result = ''
+        make_result = ''
+        app_result = ''
+        try:
+            print('running cmake')
+            cmake_result = subprocess.check_output(['cmake', '..'], stderr=subprocess.STDOUT, universal_newlines=True, cwd=code_build_folder)
+            print('running make')
+            make_result = subprocess.check_output(['make'], stderr=subprocess.STDOUT, universal_newlines=True, cwd=code_build_folder)
+            print('running code')
+            code_run_folder = os.path.join(code_build_folder, 'run')
+            ensure_folder_exist(code_run_folder)
+            app_result = subprocess.check_output(['../app'], stderr=subprocess.STDOUT, universal_newlines=True, cwd=code_run_folder)
+        except subprocess.CalledProcessError as exc:
+            print("Status : FAIL", exc.returncode, exc.output)
+            if len(cmake_result)>0:
+                print('CMake result:')
+                print(cmake_result)
+                print()
+            if len(make_result)>0:
+                print('Make result:')
+                print(make_result)
+                print()
+            if len(app_result) > 0:
+                print('app result:')
+                print(app_result)
+                print()
+            errors += 1
+    sys.exit(1 if errors > 0 else 0)
+
 
 
 if __name__ == "__main__":
