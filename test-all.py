@@ -40,7 +40,9 @@ def main():
         Code('comments1', test = 'onestruct.cc'),
         Code('comments2', test = 'onestruct.cc'),
         Code('comments3', test = 'onestruct.cc'),
-        Code('onestruct')
+        Code('onestruct'),
+        Code('package'),
+        Code('twostructs')
     ]
 
     errors = 0
