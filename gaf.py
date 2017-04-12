@@ -272,7 +272,7 @@ def merge(iters):
 
 
 def write_cpp(f, args, out_dir, name):
-    headerguard = name.upper()
+    headerguard = 'GENERATED_' + name.upper()
 
     source = []
 
