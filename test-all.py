@@ -62,6 +62,7 @@ def main():
             project(gaf)
             set (CMAKE_CXX_STANDARD 11)
             include_directories(SYSTEM {external}/catch)
+            include_directories(SYSTEM {external}/rapidjson-1.1.0/include)
             include({root}/gaf.cmake)
             SET(Gaf_CUSTOM_NAME mygaf)
             GAF_GENERATE_CPP(GAF_SOURCES GAF_HEADERS {root}/examples/{gaf})
