@@ -51,6 +51,21 @@ def print_result(root, cmake_result, make_result, app_result, cmd):
 
 
 def main():
+    code_examples = [
+        Code('comments1', test='onestruct.cc'),
+        Code('comments2', test='onestruct.cc'),
+        Code('comments3', test='onestruct.cc'),
+        Code('onestruct'),
+        Code('package'),
+        Code('twostructs')
+    ]
+
+    import argparse
+    parser = argparse.ArgumentParser(description='test script')
+    parser.add_argument('example', nargs='+', help='the examples to test', choices=['all'] + [c.name for c in code_examples])
+    args = parser.parse_args()
+    if 'all' not in args.example:
+        code_examples = [c for c in code_examples if c.name in args.example]
     root_folder = os.getcwd()
     print('root', root_folder)
 
@@ -58,15 +73,6 @@ def main():
     remove_folder(build_folder)
 
     ensure_folder_exist(build_folder)
-
-    code_examples = [
-        Code('comments1', test = 'onestruct.cc'),
-        Code('comments2', test = 'onestruct.cc'),
-        Code('comments3', test = 'onestruct.cc'),
-        Code('onestruct'),
-        Code('package'),
-        Code('twostructs')
-    ]
 
     errors = 0
 
