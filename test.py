@@ -71,6 +71,7 @@ def all_coderuns():
 
 def main():
     code_examples = [
+        Code('defaultvalues', test='onestruct.cc'),
         Code('comments1', test='onestruct.cc'),
         Code('comments2', test='onestruct.cc'),
         Code('comments3', test='onestruct.cc'),

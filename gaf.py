@@ -205,12 +205,16 @@ def read_single_char(f, ch):
 
 
 class Member:
-    def __init__(self, name, typename):
+    def __init__(self, name, typename, defaultvalue):
         self.name = name
         self.typename = typename
+        self.defaultvalue = defaultvalue
 
     def __str__(self):
-        return '{tn} {n};'.format(n=self.name, tn=self.typename)
+        if self.defaultvalue is None:
+            return '{tn} {n};'.format(n=self.name, tn=self.typename)
+        else:
+            return '{tn} {n} = {dv};'.format(n=self.name, tn=self.typename, dv=self.defaultvalue)
 
 
 class Struct:
@@ -224,6 +228,44 @@ class Struct:
     def __str__(self):
         return 'struct {n} {{\n{mem}\n}}'.format(n=self.name, mem='\n'.join(['  ' + str(x) for x in self.members]))
 
+def read_number(f):
+    ret = ''
+    while peek_char(f)[0] in '0123456789':
+        ret += read_char(f)
+    if len(ret) == 0:
+        f.report_error('Expected number, found {}'.format(peek_char(f)))
+    return ret
+
+def read_default_value_int(f):
+    return read_number(f)
+
+def read_default_value_double(f):
+    dec = read_number(f)
+    read_single_char(f, '.')
+    frac = read_number(f)
+    return '{d}.{f}'.format(d=dec, f=frac)
+
+def read_default_value(f, t):
+    read_spaces(f)
+    if t =='int8':
+        return read_default_value_int(f)
+    if t =='int16':
+        return read_default_value_int(f)
+    if t =='int32':
+        return read_default_value_int(f)
+    if t =='int64':
+        return read_default_value_int(f)
+    if t =='float':
+        fl = read_default_value_double(f)
+        read_single_char(f, 'f')
+        return fl
+    if t =='double':
+        return read_default_value_double(f)
+    if t =='byte':
+        f.report_error('default value for byte is not yet supported')
+        return ''
+    return ''
+
 
 def read_struct(f, tl):
     struct_name = read_ident(f)
@@ -232,11 +274,20 @@ def read_struct(f, tl):
     while peek_char(f) != '}':
         ty = read_ident(f)
         name = read_ident(f)
-        mem = Member(name, ty)
-        # todo: add default value
+        read_spaces(f)
+        ch = peek_char(f)
+        default_value = None
+        if ch == '=':
+            if not is_default_type(ty):
+                f.report_error('structs cant have default values yet')
+            read_char(f)
+            default_value = read_default_value(f, ty)
+        read_spaces(f)
         read_single_char(f, ';')
+        mem = Member(name, ty, default_value)
+
         if tl.is_valid_type(ty) is False:
-            raise f.report_error('Invalid type {t} for member {s}.{m}'.format(t=ty, s=struct_name, m=name))
+            f.report_error('Invalid type {t} for member {s}.{m}'.format(t=ty, s=struct_name, m=name))
         struct.add_member(mem)
         read_spaces(f)
     read_single_char(f, '}')
