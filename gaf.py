@@ -418,6 +418,23 @@ def write_cpp(f, args, out_dir, name):
             source.append('{}\n')
             source.append('\n')
 
+            # reset function
+            out.write('  void Reset();\n')
+            out.write('\n')
+            source.append('void {n}::Reset() {{\n'.format(n=s.name))
+            for m in s.members:
+                if is_default_type(m.typename):
+                    dv = '0'
+                    if m.typename == 'float':
+                        dv = '0.0f'
+                    elif m.typename == 'double':
+                        dv = '0.0'
+                    source.append('  {n} = {d};\n'.format(n=to_cpp_typename(m.name), d=dv))
+                else:
+                    source.append('  {n}.Reset();\n'.format(n=to_cpp_typename(m.name)))
+            source.append('}\n')
+            source.append('\n')
+
             # json
             if write_json:
                 out.write('  bool ReadJsonSource(const char* const source);\n')
