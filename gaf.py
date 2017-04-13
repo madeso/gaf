@@ -313,6 +313,10 @@ def write_cpp(f, args, out_dir, name):
     header_only = args.header_only
     write_json = args.include_json
 
+    print(header_only)
+    if header_only:
+        print('headeronly')
+
     unique_types = set(m.typename for m in merge(s.members for s in f.structs))
     default_types = [t[0] for t in ((t, get_cpp_type_from_stdint(t)) for t in unique_types)
                      if t[1] != '' and t[0]!=t[1]
