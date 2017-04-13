@@ -74,7 +74,9 @@ def main():
 
     ensure_folder_exist(build_folder)
 
-    errors = 0
+    total_errors = 0
+    total_tests = 0
+    total_oks = 0
 
     for code in code_examples:
         for json_test, header_only_test in itertools.product([True, False], [True, False]):
@@ -141,19 +143,21 @@ def main():
                 ensure_folder_exist(code_run_folder)
                 app_result = subprocess.check_output(['../app'], stderr=subprocess.STDOUT, universal_newlines=True, cwd=code_run_folder)
                 print_result(code_root_folder, cmake_result, make_result, app_result, False)
+                total_oks += 1
             except subprocess.CalledProcessError as exc:
                 eprint('Status: FAIL')
                 eprint('Error code: {}'.format(exc.returncode))
                 eprint(exc.output)
                 print_result(code_root_folder, cmake_result, make_result, app_result, False)
-                errors += 1
+                total_errors += 1
+            total_tests += 1
     print()
     print()
-    if errors > 0:
-        print('{} error(s) detected'.format(errors))
+    if total_errors > 0:
+        print('{errs} error(s) detected. {oks} test(s) of {totals} succeeded.'.format(errs=total_errors, oks=total_oks, totals=total_tests))
         sys.exit(1)
     else:
-        print('No error detected. Have a nice day :)')
+        print('Ran {totals} tests. No error detected. Have a nice day :)'.format(totals=total_tests))
         sys.exit(0)
 
 
