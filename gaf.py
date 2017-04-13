@@ -348,9 +348,6 @@ def write_cpp(f, args, out_dir, name):
             out.write('\n')
 
         for s in f.structs:
-            if header_only and write_json:
-                out.write('bool ReadFromJsonValue({}* c, const rapidjson::Value& value);\n'.format(s.name))
-            out.write('\n')
             out.write('class {} {{\n'.format(s.name))
             out.write(' public:\n')
             # default constructor
@@ -418,6 +415,9 @@ def write_cpp(f, args, out_dir, name):
             for m in s.members:
                 out.write('  {tn} {n};\n'.format(n=to_cpp_typename(m.name), tn=m.typename))
             out.write('}}; // class {}\n'.format(s.name))
+            if header_only and write_json:
+                out.write('\n')
+                out.write('bool ReadFromJsonValue({}* c, const rapidjson::Value& value);\n'.format(s.name))
             out.write('\n')
 
         if header_only:
