@@ -349,7 +349,7 @@ def write_cpp(f, args, out_dir, name):
 
         for s in f.structs:
             if header_only and write_json:
-                out.write('bool ReadFromValue({}* c, const rapidjson::Value& value);\n'.format(s.name))
+                out.write('bool ReadFromJsonValue({}* c, const rapidjson::Value& value);\n'.format(s.name))
             out.write('\n')
             out.write('class {} {{\n'.format(s.name))
             out.write(' public:\n')
@@ -372,9 +372,9 @@ def write_cpp(f, args, out_dir, name):
 
             # json
             if write_json:
-                out.write('  bool ParseJson(const char* const source);\n')
+                out.write('  bool ReadJsonSource(const char* const source);\n')
                 out.write('\n')
-                source.append('bool ReadFromValue({}* c, const rapidjson::Value& value) {{\n'.format(s.name))
+                source.append('bool ReadFromJsonValue({}* c, const rapidjson::Value& value) {{\n'.format(s.name))
                 source.append('  if(!value.IsObject()) return false;\n')
                 source.append('  rapidjson::Value::ConstMemberIterator iter;\n')
                 for m in s.members:
@@ -383,16 +383,16 @@ def write_cpp(f, args, out_dir, name):
                     if is_default_type(m.typename):
                         source.append(get_cpp_parse_from_rapidjson(m.typename, to_cpp_set(m.name), '    '))
                     else:
-                        source.append('    if(!ReadFromValue(c->{}(),iter->value)) {{ return false; }}\n'
+                        source.append('    if(!ReadFromJsonValue(c->{}(),iter->value)) {{ return false; }}\n'
                                       .format(to_cpp_get_mod(m.name)))
                         pass
                     source.append('  }\n')
                 source.append('}\n')
                 source.append('\n')
-                source.append('bool {}::ParseJson(const char* const source) {{\n'.format(s.name));
+                source.append('bool {}::ReadJsonSource(const char* const source) {{\n'.format(s.name));
                 source.append('  rapidjson::Document document;\n')
                 source.append('  document.Parse(source);\n')
-                source.append('  return ReadFromValue(this, document);\n')
+                source.append('  return ReadFromJsonValue(this, document);\n')
                 source.append('}\n')
                 source.append('\n')
 
