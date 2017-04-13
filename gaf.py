@@ -124,13 +124,13 @@ def get_cpp_parse_from_rapidjson_helper_int(t, member, indent):
            '{i}  auto gafv = iter->value.GetInt64();\n' \
            '{i}  if(gafv < std::numeric_limits<{t}>::min()) return false;\n' \
            '{i}  if(gafv > std::numeric_limits<{t}>::max()) return false;\n' \
-           '{i}  {m} = static_cast<{t}>(gafv);\n' \
+           '{i}  c->{m}(static_cast<{t}>(gafv));\n' \
            '{i}}}\n'.format(m=member,i=indent, t=t)
 
 
 def get_cpp_parse_from_rapidjson_helper_float(t, member, indent):
     return '{i}if(iter->value.IsDouble()==false) return false; \n' \
-           '{i}{m} = iter->value.GetDouble();\n'.format(m=member,i=indent)
+           '{i}c->{m}(iter->value.GetDouble());\n'.format(m=member,i=indent)
 
 
 def get_cpp_parse_from_rapidjson(t,member, indent):
@@ -142,7 +142,7 @@ def get_cpp_parse_from_rapidjson(t,member, indent):
         return get_cpp_parse_from_rapidjson_helper_int('int32_t', member, indent)
     if t =='int64':
         return '{i}if(iter->value.IsInt64()==false) return false; \n' \
-               '{i}{m} = iter->value.GetInt64();\n'.format(m=member, i=indent, t=t)
+               '{i}c->{m}(iter->value.GetInt64());\n'.format(m=member, i=indent, t=t)
     if t =='float':
         return get_cpp_parse_from_rapidjson_helper_float(t, member, indent)
     if t =='double':
@@ -348,6 +348,9 @@ def write_cpp(f, args, out_dir, name):
             out.write('\n')
 
         for s in f.structs:
+            if header_only and write_json:
+                out.write('bool ReadFromValue({}* c, const rapidjson::Value& value);\n'.format(s.name))
+            out.write('\n')
             out.write('class {} {{\n'.format(s.name))
             out.write(' public:\n')
             # default constructor
@@ -371,20 +374,26 @@ def write_cpp(f, args, out_dir, name):
             if write_json:
                 out.write('  bool ParseJson(const char* const source);\n')
                 out.write('\n')
-                source.append('bool {}::ParseJson(const char* const source) {{\n'.format(s.name));
-                source.append('  rapidjson::Document document;\n');
-                source.append('  document.Parse(source);\n');
-                source.append('  if(!document.IsObject()) return false;\n');
-                source.append('  rapidjson::Value::ConstMemberIterator iter;\n');
+                source.append('bool ReadFromValue({}* c, const rapidjson::Value& value) {{\n'.format(s.name))
+                source.append('  if(!value.IsObject()) return false;\n')
+                source.append('  rapidjson::Value::ConstMemberIterator iter;\n')
                 for m in s.members:
-                    source.append('  iter = document.FindMember("{n}");\n'.format(n=m.name));
-                    source.append('  if(iter != document.MemberEnd()) {\n');
+                    source.append('  iter = value.FindMember("{n}");\n'.format(n=m.name))
+                    source.append('  if(iter != value.MemberEnd()) {\n')
                     if is_default_type(m.typename):
-                        source.append(get_cpp_parse_from_rapidjson(m.typename, to_cpp_typename(m.name), '    '))
+                        source.append(get_cpp_parse_from_rapidjson(m.typename, to_cpp_set(m.name), '    '))
                     else:
+                        source.append('    if(!ReadFromValue(c->{}(),iter->value)) {{ return false; }}\n'
+                                      .format(to_cpp_get_mod(m.name)))
                         pass
-                    source.append('  }\n');
-                source.append('}\n');
+                    source.append('  }\n')
+                source.append('}\n')
+                source.append('\n')
+                source.append('bool {}::ParseJson(const char* const source) {{\n'.format(s.name));
+                source.append('  rapidjson::Document document;\n')
+                source.append('  document.Parse(source);\n')
+                source.append('  return ReadFromValue(this, document);\n')
+                source.append('}\n')
                 source.append('\n')
 
             # member getters and setters
