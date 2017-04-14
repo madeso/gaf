@@ -49,4 +49,13 @@ TEST_CASE("json_basic") {
   REQUIRE(foo.GetWorld() == 2.4f);
 }
 
+TEST_CASE("json_advanced") {
+  Bar bar;
+  const char* const load = bar.ReadJsonSource("{\"bar\": 42, \"foo\": {\"hello\": 12, \"world\": 2.4}}");
+  REQUIRE(load == nullptr);
+  CHECK(bar.GetFoo().GetHello() == 12);
+  CHECK(bar.GetFoo().GetWorld() == 2.4f);
+  CHECK(bar.GetBar() == 42);
+}
+
 #endif
