@@ -518,7 +518,7 @@ def write_cpp(f, args, out_dir, name):
             out.write('}}; // class {}\n'.format(s.name))
             if header_only and write_json:
                 out.write('\n')
-                out.write('bool ReadFromJsonValue({}* c, const rapidjson::Value& value);\n'.format(s.name))
+                out.write('const char* const ReadFromJsonValue({}* c, const rapidjson::Value& value);\n'.format(s.name))
             out.write('\n')
 
         if header_only:
