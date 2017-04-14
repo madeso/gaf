@@ -49,6 +49,20 @@ TEST_CASE("json_basic") {
   REQUIRE(foo.GetWorld() == 2.4f);
 }
 
+TEST_CASE("json_missing_world") {
+  Foo foo;
+  const char* const load = foo.ReadJsonSource(" {\"hello\": 12} ");
+  REQUIRE(load != nullptr);
+}
+
+
+TEST_CASE("json_empty_document") {
+  Foo foo;
+  const char* const load = foo.ReadJsonSource("{}");
+  REQUIRE(load != nullptr);
+}
+
+
 TEST_CASE("json_advanced") {
   Bar bar;
   const char* const load = bar.ReadJsonSource("{\"bar\": 42, \"foo\": {\"hello\": 12, \"world\": 2.4}}");

@@ -478,7 +478,9 @@ def write_cpp(f, args, out_dir, name):
                     else:
                         source.append('   {{  const char* const r = ReadFromJsonValue(c->{}(),iter->value); if(r!=nullptr) {{ return r; }} }}\n'
                                       .format(to_cpp_get_mod(m.name)))
-                        pass
+                    source.append('  }\n')
+                    source.append('  else {\n')
+                    source.append('    return "missing {} in json object";\n'.format(m.name))
                     source.append('  }\n')
                 source.append('  return nullptr;\n')
                 source.append('}\n')
