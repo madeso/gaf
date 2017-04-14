@@ -129,6 +129,7 @@ def main():
                     project(gaf)
                     set (CMAKE_CXX_STANDARD 11)
                     SET(GAF_TEST_HEADER_ONLY {headeronly})
+                    SET(GAF_TEST_JSON {json})
                     CONFIGURE_FILE("{config}" "${{PROJECT_BINARY_DIR}}/config.h")
                     include_directories("${{PROJECT_BINARY_DIR}}")
 
@@ -148,6 +149,7 @@ def main():
                         root=root_folder,
                         coderoot=code_root_folder,
                         headeronly = '1' if run.header_only_test else '0',
+                        json = '1' if run.json_test else '0',
                         gaf_sources = '' if run.header_only_test else '${GAF_SOURCES} '
                     ))
                 code_build_folder = os.path.join(code_root_folder, 'build')

@@ -38,3 +38,15 @@ TEST_CASE("setter") {
   REQUIRE(bar.GetFoo().GetHello() == 13);
   REQUIRE(bar.GetFoo().GetWorld() == 3.7f);
 }
+
+#ifdef GAF_TEST_JSON
+
+TEST_CASE("json_basic") {
+  Foo foo;
+  const bool load = foo.ReadJsonSource(" {\"hello\": 12, \"world\": 2.4} ");
+  REQUIRE(load == true);
+  REQUIRE(foo.GetHello() == 12);
+  REQUIRE(foo.GetWorld() == 2.4f);
+}
+
+#endif
