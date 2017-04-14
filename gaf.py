@@ -210,6 +210,14 @@ class Member:
         self.typename = typename
         self.defaultvalue = defaultvalue
 
+        if self.defaultvalue is None:
+            if is_default_type(self.typename):
+                self.defaultvalue = '0'
+                if self.typename == 'float':
+                    self.defaultvalue = '0.0f'
+                elif self.typename == 'double':
+                    self.defaultvalue = '0.0'
+
     def __str__(self):
         if self.defaultvalue is None:
             return '{tn} {n};'.format(n=self.name, tn=self.typename)
@@ -404,16 +412,11 @@ def write_cpp(f, args, out_dir, name):
             # default constructor
             out.write('  {}();\n'.format(s.name))
             out.write('\n')
-            common_members = [x for x in s.members if is_default_type(x.typename)]
+            common_members = [x for x in s.members if x.defaultvalue is not None]
             source.append('{n}::{n}()\n'.format(n=s.name))
             sep = ':'
             for m in common_members:
-                dv = '0'
-                if m.typename == 'float':
-                    dv = '0.0f'
-                elif m.typename == 'double':
-                    dv='0.0'
-                source.append('  {s} {n}({d})\n'.format(s=sep, n=to_cpp_typename(m.name), d=dv))
+                source.append('  {s} {n}({d})\n'.format(s=sep, n=to_cpp_typename(m.name), d=m.defaultvalue))
                 sep = ','
             source.append('{}\n')
             source.append('\n')
@@ -423,13 +426,8 @@ def write_cpp(f, args, out_dir, name):
             out.write('\n')
             source.append('void {n}::Reset() {{\n'.format(n=s.name))
             for m in s.members:
-                if is_default_type(m.typename):
-                    dv = '0'
-                    if m.typename == 'float':
-                        dv = '0.0f'
-                    elif m.typename == 'double':
-                        dv = '0.0'
-                    source.append('  {n} = {d};\n'.format(n=to_cpp_typename(m.name), d=dv))
+                if m.defaultvalue is not None:
+                    source.append('  {n} = {d};\n'.format(n=to_cpp_typename(m.name), d=m.defaultvalue))
                 else:
                     source.append('  {n}.Reset();\n'.format(n=to_cpp_typename(m.name)))
             source.append('}\n')
