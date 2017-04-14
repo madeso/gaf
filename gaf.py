@@ -118,37 +118,37 @@ def get_cpp_type_from_stdint(t):
     return ''
 
 
-def get_cpp_parse_from_rapidjson_helper_int(t, member, indent):
-    return '{i}if(iter->value.IsInt64()==false) return false; \n' \
+def get_cpp_parse_from_rapidjson_helper_int(t, member, indent, name):
+    return '{i}if(iter->value.IsInt64()==false) return "read value for {n} was not a integer"; \n' \
            '{i}else {{\n' \
            '{i}  auto gafv = iter->value.GetInt64();\n' \
-           '{i}  if(gafv < std::numeric_limits<{t}>::min()) return false;\n' \
-           '{i}  if(gafv > std::numeric_limits<{t}>::max()) return false;\n' \
+           '{i}  if(gafv < std::numeric_limits<{t}>::min()) return "read value for {n} was to low";\n' \
+           '{i}  if(gafv > std::numeric_limits<{t}>::max()) return "read value for {n} was to high";\n' \
            '{i}  c->{m}(static_cast<{t}>(gafv));\n' \
-           '{i}}}\n'.format(m=member,i=indent, t=t)
+           '{i}}}\n'.format(m=member,i=indent, t=t, n=name)
 
 
-def get_cpp_parse_from_rapidjson_helper_float(t, member, indent):
-    return '{i}if(iter->value.IsDouble()==false) return false; \n' \
-           '{i}c->{m}(iter->value.GetDouble());\n'.format(m=member,i=indent)
+def get_cpp_parse_from_rapidjson_helper_float(t, member, indent, name):
+    return '{i}if(iter->value.IsDouble()==false) return "read value for {n} was not a double"; \n' \
+           '{i}c->{m}(iter->value.GetDouble());\n'.format(m=member,i=indent, n=name)
 
 
-def get_cpp_parse_from_rapidjson(t,member, indent):
+def get_cpp_parse_from_rapidjson(t,member, indent, name):
     if t =='int8':
-        return get_cpp_parse_from_rapidjson_helper_int('int8_t', member, indent)
+        return get_cpp_parse_from_rapidjson_helper_int('int8_t', member, indent, name)
     if t =='int16':
-        return get_cpp_parse_from_rapidjson_helper_int('int16_t', member, indent)
+        return get_cpp_parse_from_rapidjson_helper_int('int16_t', member, indent, name)
     if t =='int32':
-        return get_cpp_parse_from_rapidjson_helper_int('int32_t', member, indent)
+        return get_cpp_parse_from_rapidjson_helper_int('int32_t', member, indent, name)
     if t =='int64':
-        return '{i}if(iter->value.IsInt64()==false) return false; \n' \
-               '{i}c->{m}(iter->value.GetInt64());\n'.format(m=member, i=indent, t=t)
+        return '{i}if(iter->value.IsInt64()==false) return "read value for {n} was not a integer"; \n' \
+               '{i}c->{m}(iter->value.GetInt64());\n'.format(m=member, i=indent, t=t, n=name)
     if t =='float':
-        return get_cpp_parse_from_rapidjson_helper_float(t, member, indent)
+        return get_cpp_parse_from_rapidjson_helper_float(t, member, indent, name)
     if t =='double':
-        return get_cpp_parse_from_rapidjson_helper_float(t, member, indent)
+        return get_cpp_parse_from_rapidjson_helper_float(t, member, indent, name)
     if t =='byte':
-        return get_cpp_parse_from_rapidjson_helper_int('char', member, indent)
+        return get_cpp_parse_from_rapidjson_helper_int('char', member, indent, name)
     return ''
 
 
@@ -406,6 +406,36 @@ def write_cpp(f, args, out_dir, name):
                 out.write('typedef {ct} {t};\n'.format(t=t, ct=get_cpp_type_from_stdint(t)))
             out.write('\n')
 
+        if write_json:
+            if header_only:
+                out.write('const char* const JsonToStringError(rapidjson::ParseErrorCode);\n')
+                out.write('\n')
+            source.append('const char* const JsonToStringError(rapidjson::ParseErrorCode err) {\n')
+            source.append('  switch(err) {\n')
+            source.append('  case rapidjson::kParseErrorNone: return nullptr;\n')
+            source.append('  case rapidjson::kParseErrorDocumentEmpty: return "JSON: The document is empty.";\n')
+            source.append('  case rapidjson::kParseErrorDocumentRootNotSingular: return "JSON: The document root must not follow by other values.";\n')
+            source.append('  case rapidjson::kParseErrorValueInvalid: return "JSON: Invalid value.";\n')
+            source.append('  case rapidjson::kParseErrorObjectMissName: return "JSON: Missing name for a object member.";\n')
+            source.append('  case rapidjson::kParseErrorObjectMissColon: return "JSON: Missing a colon after a name of object member.";\n')
+            source.append('  case rapidjson::kParseErrorObjectMissCommaOrCurlyBracket: return "JSON: Missing a comma or } after an object member.";\n')
+            source.append('  case rapidjson::kParseErrorArrayMissCommaOrSquareBracket: return "JSON: Missing a comma or ] after an array element.";\n')
+            source.append('  case rapidjson::kParseErrorStringUnicodeEscapeInvalidHex: return "JSON: Incorrect hex digit after \\\\u escape in string.";\n')
+            source.append('  case rapidjson::kParseErrorStringUnicodeSurrogateInvalid: return "JSON: The surrogate pair in string is invalid.";\n')
+            source.append('  case rapidjson::kParseErrorStringEscapeInvalid: return "JSON: Invalid escape character in string.";\n')
+            source.append('  case rapidjson::kParseErrorStringMissQuotationMark: return "JSON: Missing a closing quotation mark in string.";\n')
+            source.append('  case rapidjson::kParseErrorStringInvalidEncoding: return "JSON: Invalid encoding in string.";\n')
+            source.append('  case rapidjson::kParseErrorNumberTooBig: return "JSON: Number too big to be stored in double.";\n')
+            source.append('  case rapidjson::kParseErrorNumberMissFraction: return "JSON: Miss fraction part in number.";\n')
+            source.append('  case rapidjson::kParseErrorNumberMissExponent: return "JSON: Miss exponent in number.";\n')
+            source.append('  case rapidjson::kParseErrorTermination: return "JSON: Parsing was terminated.";\n')
+            source.append('  case rapidjson::kParseErrorUnspecificSyntaxError: return "JSON: Unspecific syntax error.";\n')
+            source.append('  }\n')
+            source.append('  return "undefined erropr";\n')
+            source.append('}\n')
+            source.append('\n')
+
+
         for s in f.structs:
             out.write('class {} {{\n'.format(s.name))
             out.write(' public:\n')
@@ -435,26 +465,29 @@ def write_cpp(f, args, out_dir, name):
 
             # json
             if write_json:
-                out.write('  bool ReadJsonSource(const char* const source);\n')
+                out.write('  const char* const ReadJsonSource(const char* const source);\n')
                 out.write('\n')
-                source.append('bool ReadFromJsonValue({}* c, const rapidjson::Value& value) {{\n'.format(s.name))
-                source.append('  if(!value.IsObject()) return false;\n')
+                source.append('const char* const ReadFromJsonValue({}* c, const rapidjson::Value& value) {{\n'.format(s.name))
+                source.append('  if(!value.IsObject()) return "tried to read {} but value was not a object";\n'.format(s.name))
                 source.append('  rapidjson::Value::ConstMemberIterator iter;\n')
                 for m in s.members:
                     source.append('  iter = value.FindMember("{n}");\n'.format(n=m.name))
                     source.append('  if(iter != value.MemberEnd()) {\n')
                     if is_default_type(m.typename):
-                        source.append(get_cpp_parse_from_rapidjson(m.typename, to_cpp_set(m.name), '    '))
+                        source.append(get_cpp_parse_from_rapidjson(m.typename, to_cpp_set(m.name), '    ', m.name))
                     else:
-                        source.append('    if(!ReadFromJsonValue(c->{}(),iter->value)) {{ return false; }}\n'
+                        source.append('   {{  const char* const r = ReadFromJsonValue(c->{}(),iter->value); if(r!=nullptr) {{ return r; }} }}\n'
                                       .format(to_cpp_get_mod(m.name)))
                         pass
                     source.append('  }\n')
+                source.append('  return nullptr;\n')
                 source.append('}\n')
                 source.append('\n')
-                source.append('bool {}::ReadJsonSource(const char* const source) {{\n'.format(s.name));
+                source.append('const char* const {}::ReadJsonSource(const char* const source) {{\n'.format(s.name));
                 source.append('  rapidjson::Document document;\n')
                 source.append('  document.Parse(source);\n')
+                source.append('  const char* const err = JsonToStringError(document.GetParseError());\n')
+                source.append('  if(err != nullptr ) {return err;}\n')
                 source.append('  return ReadFromJsonValue(this, document);\n')
                 source.append('}\n')
                 source.append('\n')

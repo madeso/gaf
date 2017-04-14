@@ -43,8 +43,8 @@ TEST_CASE("setter") {
 
 TEST_CASE("json_basic") {
   Foo foo;
-  const bool load = foo.ReadJsonSource(" {\"hello\": 12, \"world\": 2.4} ");
-  REQUIRE(load == true);
+  const char* const load = foo.ReadJsonSource(" {\"hello\": 12, \"world\": 2.4} ");
+  REQUIRE(load == nullptr);
   REQUIRE(foo.GetHello() == 12);
   REQUIRE(foo.GetWorld() == 2.4f);
 }
