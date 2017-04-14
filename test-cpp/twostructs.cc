@@ -39,7 +39,7 @@ TEST_CASE("setter") {
   REQUIRE(bar.GetFoo().GetWorld() == 3.7f);
 }
 
-#ifdef GAF_TEST_JSON
+#if GAF_TEST_JSON
 
 TEST_CASE("json_basic") {
   Foo foo;
