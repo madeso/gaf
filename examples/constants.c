@@ -1,4 +1,4 @@
-const int32 INT = 1;
+const int32 INT = 12;
 const float FLOAT = 3.14;
 
 struct Foo {
