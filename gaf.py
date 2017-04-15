@@ -236,16 +236,52 @@ class Struct:
     def __str__(self):
         return 'struct {n} {{\n{mem}\n}}'.format(n=self.name, mem='\n'.join(['  ' + str(x) for x in self.members]))
 
+
+class Constant:
+    def __init__(self, n, t, v):
+        self.name = n
+        self.type = t
+        self.value = v
+
+
+class File:
+    def __init__(self):
+        self.structs = []
+        self.constants = []
+        self.package_name = ''
+
+    def __str__(self):
+        package_name = ''
+        if len(self.package_name) > 0:
+            package_name = 'package {};\n'.format(self.package_name)
+        return package_name + '\n'.join([str(x) for x in self.structs])
+
+    def add_constant(self, n, t, v):
+        self.constants.append(Constant(n, t, v))
+
+    def find_constant(self, name, ty):
+        for c in self.constants:
+            if c.name == name and c.type == ty:
+                return c
+        return None
+
+
+def is_number(n):
+    return n in '0123456789'
+
+
 def read_number(f):
     ret = ''
-    while peek_char(f)[0] in '0123456789':
+    while is_number(peek_char(f)[0]):
         ret += read_char(f)
     if len(ret) == 0:
         f.report_error('Expected number, found {}'.format(peek_char(f)))
     return ret
 
+
 def read_default_value_int(f):
     return read_number(f)
+
 
 def read_default_value_double(f):
     dec = read_number(f)
@@ -253,8 +289,19 @@ def read_default_value_double(f):
     frac = read_number(f)
     return '{d}.{f}'.format(d=dec, f=frac)
 
-def read_default_value(f, t):
+
+def read_default_value(f, t, fi):
     read_spaces(f)
+
+    p = peek_char(f)
+    if is_ident(True, p):
+        ident = read_ident(f)
+        c = fi.find_constant(ident, t)
+        if c is None:
+            f.report_error('failed to find constant named {n} with a type {t}'.format(n=ident, t=t))
+            return ''
+        return c.value
+
     if t =='int8':
         return read_default_value_int(f)
     if t =='int16':
@@ -275,7 +322,7 @@ def read_default_value(f, t):
     return ''
 
 
-def read_struct(f, tl):
+def read_struct(f, tl, fi):
     struct_name = read_ident(f)
     struct = Struct(struct_name)
     read_single_char(f, '{')
@@ -289,7 +336,7 @@ def read_struct(f, tl):
             if not is_default_type(ty):
                 f.report_error('structs cant have default values yet')
             read_char(f)
-            default_value = read_default_value(f, ty)
+            default_value = read_default_value(f, ty, fi)
         read_spaces(f)
         read_single_char(f, ';')
         mem = Member(name, ty, default_value)
@@ -304,18 +351,6 @@ def read_struct(f, tl):
     return struct
 
 
-class File:
-    def __init__(self):
-        self.structs = []
-        self.package_name = ''
-
-    def __str__(self):
-        package_name = ''
-        if len(self.package_name) > 0:
-            package_name = 'package {};\n'.format(self.package_name)
-        return package_name + '\n'.join([str(x) for x in self.structs])
-
-
 def read_several_structs(f):
     file = File()
     read_spaces(f)
@@ -324,8 +359,16 @@ def read_several_structs(f):
     while peek_char(f) is not None:
         keyword = read_ident(f)
         if keyword == 'struct':
-            s = read_struct(f, tl)
+            s = read_struct(f, tl, file)
             file.structs.append(s)
+        elif keyword == 'const':
+            type = read_ident(f)
+            name = read_ident(f)
+            read_spaces(f)
+            read_single_char(f, '=')
+            val = read_default_value(f, type, file)
+            read_single_char(f, ';')
+            file.add_constant(name, type, val)
         elif keyword == 'package':
             read_spaces(f)
             package_name = read_ident(f)
@@ -337,7 +380,7 @@ def read_several_structs(f):
             read_single_char(f, ';')
             file.package_name = package_name
         else:
-            raise f.report_error('Expected struct, found unknown ident {}'.format(keyword))
+            raise f.report_error('Expected struct, package or const. Found unknown ident {}'.format(keyword))
         read_spaces(f) # place file marker at the next non whitespace or at eof
 
     return file
