@@ -204,19 +204,28 @@ def read_single_char(f, ch):
         raise f.report_error('expecting char {c}, but found {r}'.format(c=ch, r=r))
 
 
+class ArrayData:
+    def __init__(self):
+        self.first_number = None
+        self.second_number = None
+        self.first_type = None
+        self.second_type = None
+
+
 class Member:
-    def __init__(self, name, typename, defaultvalue):
+    def __init__(self, name, typename):
         self.name = name
         self.typename = typename
-        self.defaultvalue = defaultvalue
+        self.defaultvalue = None
+        self.array = None
 
-        if self.defaultvalue is None:
-            if is_default_type(self.typename):
-                self.defaultvalue = '0'
-                if self.typename == 'float':
-                    self.defaultvalue = '0.0f'
-                elif self.typename == 'double':
-                    self.defaultvalue = '0.0'
+        # start with a default value for some built in types
+        if is_default_type(self.typename):
+            self.defaultvalue = '0'
+            if self.typename == 'float':
+                self.defaultvalue = '0.0f'
+            elif self.typename == 'double':
+                self.defaultvalue = '0.0'
 
     def __str__(self):
         if self.defaultvalue is None:
@@ -261,7 +270,10 @@ class File:
 
     def find_constant(self, name, ty):
         for c in self.constants:
-            if c.name == name and c.type == ty:
+            if ty is None:
+                if c.name == name:
+                    return c
+            elif c.name == name and c.type == ty:
                 return c
         return None
 
@@ -331,21 +343,27 @@ def read_struct(f, tl, fi):
         name = read_ident(f)
         read_spaces(f)
         ch = peek_char(f)
+        mem = Member(name, ty)
 
         if ch == '[':
             read_single_char(f, '[')
             read_spaces(f)
             ch = peek_char(f)
 
-            number = None
-            ident = None
-            second_number = None
-            second_ident = None
+            array = ArrayData()
 
             if is_ident(True, ch):
                 ident = read_ident(f)
+                if is_default_type(ident):
+                    array.first_type = ident
+                else:
+                    c = fi.find_constant(ident, None)
+                    if c is None:
+                        f.report_error('the first ident {} is neither a type nor a constant'.format(ident))
+                    else:
+                        array.first_number = c.value
             else:
-                number = read_number(f)
+                array.first_number = read_number(f)
 
             read_spaces(f)
             c = peek_char(f)
@@ -354,28 +372,36 @@ def read_struct(f, tl, fi):
                 read_spaces(f)
                 c = peek_char(f)
                 if is_ident(True, c):
-                    second_ident = read_ident(f)
+                    ident = read_ident(f)
+                    if is_default_type(ident):
+                        array.second_type = ident
+                    else:
+                        constant = fi.find_constant(ident, None)
+                        if constant is None:
+                            f.report_error('the second ident {} is neither a type nor a constant'.format(ident))
+                        else:
+                            array.second_number = constant.value
+
                 elif is_number(c):
-                    second_number = read_number(f)
+                    array.second_number = read_number(f)
                 else:
                     f.report_error('unexpected character in array expression: {}', c)
             read_spaces(f)
             read_single_char(f, ']')
 
-            print(number, ident, second_number, second_ident)
+            mem.array = array
+            mem.defaultvalue = None
 
             read_spaces(f)
             ch = peek_char(f)
 
-        default_value = None
         if ch == '=':
             if not is_default_type(ty):
                 f.report_error('structs cant have default values yet')
             read_char(f)
-            default_value = read_default_value(f, ty, fi)
+            mem.defaultvalue = read_default_value(f, ty, fi)
         read_spaces(f)
         read_single_char(f, ';')
-        mem = Member(name, ty, default_value)
 
         if tl.is_valid_type(ty) is False:
             f.report_error('Invalid type {t} for member {s}.{m}'.format(t=ty, s=struct_name, m=name))
