@@ -210,6 +210,9 @@ class ArrayData:
         self.second_number = None
         self.first_type = None
         self.second_type = None
+        # self.total_size_number = None
+        # self.total_size_type = None
+        # self.current_size = None
 
 
 class Member:
@@ -334,6 +337,52 @@ def read_default_value(f, t, fi):
     return ''
 
 
+def read_array(f, fi):
+    read_single_char(f, '[')
+    read_spaces(f)
+    ch = peek_char(f)
+
+    array = ArrayData()
+
+    if is_ident(True, ch):
+        ident = read_ident(f)
+        if is_default_type(ident):
+            array.first_type = ident
+        else:
+            c = fi.find_constant(ident, None)
+            if c is None:
+                f.report_error('the first ident {} is neither a type nor a constant'.format(ident))
+            else:
+                array.first_number = c.value
+    else:
+        array.first_number = read_number(f)
+
+    read_spaces(f)
+    c = peek_char(f)
+    if c == ',':
+        read_single_char(f, ',')
+        read_spaces(f)
+        c = peek_char(f)
+        if is_ident(True, c):
+            ident = read_ident(f)
+            if is_default_type(ident):
+                array.second_type = ident
+            else:
+                constant = fi.find_constant(ident, None)
+                if constant is None:
+                    f.report_error('the second ident {} is neither a type nor a constant'.format(ident))
+                else:
+                    array.second_number = constant.value
+
+        elif is_number(c):
+            array.second_number = read_number(f)
+        else:
+            f.report_error('unexpected character in array expression: {}', c)
+    read_spaces(f)
+    read_single_char(f, ']')
+
+
+
 def read_struct(f, tl, fi):
     struct_name = read_ident(f)
     struct = Struct(struct_name)
@@ -346,51 +395,10 @@ def read_struct(f, tl, fi):
         mem = Member(name, ty)
 
         if ch == '[':
-            read_single_char(f, '[')
-            read_spaces(f)
-            ch = peek_char(f)
-
-            array = ArrayData()
-
-            if is_ident(True, ch):
-                ident = read_ident(f)
-                if is_default_type(ident):
-                    array.first_type = ident
-                else:
-                    c = fi.find_constant(ident, None)
-                    if c is None:
-                        f.report_error('the first ident {} is neither a type nor a constant'.format(ident))
-                    else:
-                        array.first_number = c.value
-            else:
-                array.first_number = read_number(f)
-
-            read_spaces(f)
-            c = peek_char(f)
-            if c == ',':
-                read_single_char(f, ',')
-                read_spaces(f)
-                c = peek_char(f)
-                if is_ident(True, c):
-                    ident = read_ident(f)
-                    if is_default_type(ident):
-                        array.second_type = ident
-                    else:
-                        constant = fi.find_constant(ident, None)
-                        if constant is None:
-                            f.report_error('the second ident {} is neither a type nor a constant'.format(ident))
-                        else:
-                            array.second_number = constant.value
-
-                elif is_number(c):
-                    array.second_number = read_number(f)
-                else:
-                    f.report_error('unexpected character in array expression: {}', c)
-            read_spaces(f)
-            read_single_char(f, ']')
+            array = read_array(f, fi)
 
             mem.array = array
-            mem.defaultvalue = None
+            # mem.defaultvalue = None
 
             read_spaces(f)
             ch = peek_char(f)
