@@ -206,13 +206,9 @@ def read_single_char(f, ch):
 
 class ArrayData:
     def __init__(self):
-        self.first_number = None
-        self.second_number = None
-        self.first_type = None
-        self.second_type = None
-        # self.total_size_number = None
-        # self.total_size_type = None
-        # self.current_size = None
+        self.total_size_number = None
+        self.total_size_type = None
+        self.current_size = None
 
 
 class Member:
@@ -342,20 +338,23 @@ def read_array(f, fi):
     read_spaces(f)
     ch = peek_char(f)
 
-    array = ArrayData()
+    first_number = None
+    second_number = None
+    first_type = None
+    second_type = None
 
     if is_ident(True, ch):
         ident = read_ident(f)
         if is_default_type(ident):
-            array.first_type = ident
+            first_type = ident
         else:
             c = fi.find_constant(ident, None)
             if c is None:
                 f.report_error('the first ident {} is neither a type nor a constant'.format(ident))
             else:
-                array.first_number = c.value
+                first_number = c.value
     else:
-        array.first_number = read_number(f)
+        first_number = read_number(f)
 
     read_spaces(f)
     c = peek_char(f)
@@ -366,20 +365,37 @@ def read_array(f, fi):
         if is_ident(True, c):
             ident = read_ident(f)
             if is_default_type(ident):
-                array.second_type = ident
+                second_type = ident
             else:
                 constant = fi.find_constant(ident, None)
                 if constant is None:
                     f.report_error('the second ident {} is neither a type nor a constant'.format(ident))
                 else:
-                    array.second_number = constant.value
+                    second_number = constant.value
 
         elif is_number(c):
-            array.second_number = read_number(f)
+            second_number = read_number(f)
         else:
             f.report_error('unexpected character in array expression: {}', c)
     read_spaces(f)
     read_single_char(f, ']')
+
+    array = ArrayData()
+
+    if second_number is None and second_type is None:
+        array.total_size_number = first_number
+        array.total_size_type = first_type
+    elif first_type is not None:
+        array.current_size = first_type
+        array.total_size_number = second_number
+        array.total_size_type = second_type
+    else:
+        if first_number is not None:
+            f.report_error('Current size is always {}'.format(first_number))
+        else:
+            f.report_error('Invalid state')
+
+    return array
 
 
 
