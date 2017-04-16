@@ -331,6 +331,42 @@ def read_struct(f, tl, fi):
         name = read_ident(f)
         read_spaces(f)
         ch = peek_char(f)
+
+        if ch == '[':
+            read_single_char(f, '[')
+            read_spaces(f)
+            ch = peek_char(f)
+
+            number = None
+            ident = None
+            second_number = None
+            second_ident = None
+
+            if is_ident(True, ch):
+                ident = read_ident(f)
+            else:
+                number = read_number(f)
+
+            read_spaces(f)
+            c = peek_char(f)
+            if c == ',':
+                read_single_char(f, ',')
+                read_spaces(f)
+                c = peek_char(f)
+                if is_ident(True, c):
+                    second_ident = read_ident(f)
+                elif is_number(c):
+                    second_number = read_number(f)
+                else:
+                    f.report_error('unexpected character in array expression: {}', c)
+            read_spaces(f)
+            read_single_char(f, ']')
+
+            print(number, ident, second_number, second_ident)
+
+            read_spaces(f)
+            ch = peek_char(f)
+
         default_value = None
         if ch == '=':
             if not is_default_type(ty):
