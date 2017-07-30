@@ -1,6 +1,13 @@
 #!/usr/bin/env python3
 # GAme Format Parser
 
+# todo: structure python code better
+# todo: array
+# todo: enum
+# todo: json read/write
+# todo: toml read/write
+# todo: binary read/write
+
 from enum import Enum
 import enum
 import os
