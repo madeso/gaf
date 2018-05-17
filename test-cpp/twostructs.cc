@@ -10,33 +10,33 @@
 
 TEST_CASE("constructor") {
   const Foo foo;
-  REQUIRE(foo.GetHello() == 0);
-  REQUIRE(foo.GetWorld() == 0.0f);
+  REQUIRE(foo.hello == 0);
+  REQUIRE(foo.world == 0.0f);
 
   const Bar bar;
-  REQUIRE(bar.GetFoo().GetHello() == 0);
-  REQUIRE(bar.GetFoo().GetWorld() == 0.0f);
-  REQUIRE(bar.GetBar() == 0);
+  REQUIRE(bar.foo.hello == 0);
+  REQUIRE(bar.foo.world == 0.0f);
+  REQUIRE(bar.bar == 0);
 }
 
 TEST_CASE("setter") {
   Foo foo;
-  foo.SetHello(42);
-  foo.SetWorld(4.2f);
+  foo.hello = 42;
+  foo.world = 4.2f;
   Bar bar;
-  bar.SetFoo(foo);
-  bar.SetBar(24);
-  foo.SetHello(5);
-  foo.SetWorld(5.5f);
+  bar.foo = foo;
+  bar.bar = 24;
+  foo.hello =5;
+  foo.world = 5.5f;
 
-  REQUIRE(bar.GetFoo().GetHello() == 42);
-  REQUIRE(bar.GetFoo().GetWorld() == 4.2f);
-  REQUIRE(bar.GetBar() == 24);
+  REQUIRE(bar.foo.hello == 42);
+  REQUIRE(bar.foo.world == 4.2f);
+  REQUIRE(bar.bar == 24);
 
-  bar.GetFooPtr()->SetHello(13);
-  bar.GetFooPtr()->SetWorld(3.7f);
-  REQUIRE(bar.GetFoo().GetHello() == 13);
-  REQUIRE(bar.GetFoo().GetWorld() == 3.7f);
+  bar.foo.hello = 13;
+  bar.foo.world = 3.7f;
+  REQUIRE(bar.foo.hello == 13);
+  REQUIRE(bar.foo.world == 3.7f);
 }
 
 #if GAF_TEST_JSON
@@ -45,8 +45,8 @@ TEST_CASE("json_basic") {
   Foo foo;
   const char* const load = foo.ReadJsonSource(" {\"hello\": 12, \"world\": 2.4} ");
   REQUIRE(load == nullptr);
-  REQUIRE(foo.GetHello() == 12);
-  REQUIRE(foo.GetWorld() == 2.4f);
+  REQUIRE(foo.hello == 12);
+  REQUIRE(foo.world == 2.4f);
 }
 
 TEST_CASE("json_missing_world") {
@@ -67,9 +67,9 @@ TEST_CASE("json_advanced") {
   Bar bar;
   const char* const load = bar.ReadJsonSource("{\"bar\": 42, \"foo\": {\"hello\": 12, \"world\": 2.4}}");
   REQUIRE(load == nullptr);
-  CHECK(bar.GetFoo().GetHello() == 12);
-  CHECK(bar.GetFoo().GetWorld() == 2.4f);
-  CHECK(bar.GetBar() == 42);
+  CHECK(bar.foo.hello == 12);
+  CHECK(bar.foo.world == 2.4f);
+  CHECK(bar.bar == 42);
 }
 
 #endif

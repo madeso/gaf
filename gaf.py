@@ -2,7 +2,7 @@
 # GAme Format Parser
 
 # todo: structure python code better
-# todo: remove c++ get and set functions, minimal clean code here!
+# todo: minimal clean code here!
 # todo: array
 # todo: enum
 # todo: json read/write
@@ -174,13 +174,13 @@ def get_cpp_parse_from_rapidjson_helper_int(t: StandardType, member: str, indent
            '{i}  auto gafv = iter->value.GetInt64();\n' \
            '{i}  if(gafv < std::numeric_limits<{t}>::min()) return "read value for {n} was to low";\n' \
            '{i}  if(gafv > std::numeric_limits<{t}>::max()) return "read value for {n} was to high";\n' \
-           '{i}  c->{m}(static_cast<{t}>(gafv));\n' \
+           '{i}  c->{m} = static_cast<{t}>(gafv);\n' \
            '{i}}}\n'.format(m=member, i=indent, t=t.get_cpp_type(), n=name)
 
 
 def get_cpp_parse_from_rapidjson_helper_float(member: str, indent: str, name: str) -> str:
     return '{i}if(iter->value.IsDouble()==false) return "read value for {n} was not a double"; \n' \
-           '{i}c->{m}(iter->value.GetDouble());\n'.format(m=member, i=indent, n=name)
+           '{i}c->{m} = iter->value.GetDouble();\n'.format(m=member, i=indent, n=name)
 
 
 def get_cpp_parse_from_rapidjson(t: StandardType, member: str, indent: str, name: str):
@@ -192,7 +192,7 @@ def get_cpp_parse_from_rapidjson(t: StandardType, member: str, indent: str, name
         return get_cpp_parse_from_rapidjson_helper_int(t, member, indent, name)
     if t == StandardType.int64:
         return '{i}if(iter->value.IsInt64()==false) return "read value for {n} was not a integer"; \n' \
-               '{i}c->{m}(iter->value.GetInt64());\n'.format(m=member, i=indent, t=t, n=name)
+               '{i}c->{m} = iter->value.GetInt64();\n'.format(m=member, i=indent, t=t, n=name)
     if t == StandardType.float:
         return get_cpp_parse_from_rapidjson_helper_float(member, indent, name)
     if t == StandardType.double:
@@ -530,22 +530,6 @@ def read_several_structs(f: CharFile) -> File:
     return file
 
 
-def to_cpp_get(name: str) -> str:
-    return 'Get{}{}'.format(name[0].upper(), name[1:])
-
-
-def to_cpp_get_mod(name: str) -> str:
-    return 'Get{}{}Ptr'.format(name[0].upper(), name[1:])
-
-
-def to_cpp_set(name: str) -> str:
-    return 'Set{}{}'.format(name[0].upper(), name[1:])
-
-
-def to_cpp_typename(name: str) -> str:
-    return '{}_'.format(name)
-
-
 def merge(iters):
     for it in iters:
         yield from it
@@ -617,11 +601,11 @@ def write_json_source_for_cpp(write_json: bool, sources: Out, s: Struct):
             sources.add_source('  iter = value.FindMember("{n}");\n'.format(n=m.name))
             sources.add_source('  if(iter != value.MemberEnd()) {\n')
             if m.typename.standard_type != StandardType.INVALID:
-                sources.add_source(get_cpp_parse_from_rapidjson(m.typename.standard_type, to_cpp_set(m.name), '    ', m.name))
+                sources.add_source(get_cpp_parse_from_rapidjson(m.typename.standard_type, m.name, '    ', m.name))
             else:
                 sources.add_source(
-                    '   {{  const char* const r = ReadFromJsonValue(c->{}(),iter->value); if(r!=nullptr) {{ return r; }} }}\n'
-                    .format(to_cpp_get_mod(m.name)))
+                    '   {{  const char* const r = ReadFromJsonValue(&c->{},iter->value); if(r!=nullptr) {{ return r; }} }}\n'
+                    .format(m.name))
             sources.add_source('  }\n')
             sources.add_source('  else {\n')
             sources.add_source('    return "missing {} in json object";\n'.format(m.name))
@@ -639,38 +623,10 @@ def write_json_source_for_cpp(write_json: bool, sources: Out, s: Struct):
         sources.add_source('\n')
 
 
-def write_setter_and_getter_for_cpp(s: Struct, sources: Out):
-    for m in s.members:
-        if m.typename.standard_type != StandardType.INVALID:
-            sources.add_header('  {tn} {n}() const;\n'.format(n=to_cpp_get(m.name), tn=m.typename.name))
-            sources.add_source(
-                '{tn} {cn}::{n}() const {{ return {v}; }}\n'.format(n=to_cpp_get(m.name), tn=m.typename.name, cn=s.name,
-                                                                    v=to_cpp_typename(m.name)))
-            sources.add_header('  void {n}({tn} {an});\n'.format(n=to_cpp_set(m.name), an=m.name, tn=m.typename.name))
-            sources.add_source(
-                'void {cn}::{n}({tn} {an}) {{ {v} = {an}; }}\n'.format(n=to_cpp_set(m.name), an=m.name, tn=m.typename.name,
-                                                                       cn=s.name, v=to_cpp_typename(m.name)))
-        else:
-            sources.add_header('  const {tn}& {n}() const;\n'.format(n=to_cpp_get(m.name), tn=m.typename.name))
-            sources.add_source(
-                'const {tn}& {cn}::{n}() const {{ return {v}; }}\n'.format(n=to_cpp_get(m.name), tn=m.typename.name,
-                                                                           cn=s.name, v=to_cpp_typename(m.name)))
-            sources.add_header('  {tn}* {n}();\n'.format(n=to_cpp_get_mod(m.name), tn=m.typename.name))
-            sources.add_source(
-                '{tn}* {cn}::{n}() {{ return &{v}; }}\n'.format(n=to_cpp_get_mod(m.name), tn=m.typename.name, cn=s.name,
-                                                                v=to_cpp_typename(m.name)))
-            sources.add_header('  void {n}(const {tn}& {an});\n'.format(n=to_cpp_set(m.name), an=m.name, tn=m.typename.name))
-            sources.add_source('void {cn}::{n}(const {tn}& {an}) {{ {v} = {an}; }}\n'.format(n=to_cpp_set(m.name), an=m.name,
-                                                                                        tn=m.typename.name, cn=s.name,
-                                                                                        v=to_cpp_typename(m.name)))
-        sources.add_header('\n')
-        sources.add_source('\n')
-
-
 def write_member_variables_for_cpp(sources: Out, s: Struct):
-    sources.add_header(' private:\n')
+    sources.add_header(' public:\n')
     for m in s.members:
-        sources.add_header('  {tn} {n};\n'.format(n=to_cpp_typename(m.name), tn=m.typename.name))
+        sources.add_header('  {tn} {n};\n'.format(n=m.name, tn=m.typename.name))
     sources.add_header('}}; // class {}\n'.format(s.name))
 
 
@@ -681,7 +637,7 @@ def write_default_constructor_for_cpp(s: Struct, sources: Out):
     sources.add_source('{n}::{n}()\n'.format(n=s.name))
     sep = ':'
     for m in common_members:
-        sources.add_source('  {s} {n}({d})\n'.format(s=sep, n=to_cpp_typename(m.name), d=m.defaultvalue))
+        sources.add_source('  {s} {n}({d})\n'.format(s=sep, n=m.name, d=m.defaultvalue))
         sep = ','
     sources.add_source('{}\n')
     sources.add_source('\n')
@@ -731,7 +687,6 @@ def generate_cpp(f: File, sources: Out, name: str, header_only: bool, write_json
         write_default_constructor_for_cpp(s, sources)
 
         write_json_source_for_cpp(write_json, sources, s)
-        write_setter_and_getter_for_cpp(s, sources)
         write_member_variables_for_cpp(sources, s)
 
         if header_only and write_json:
