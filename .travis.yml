@@ -1,5 +1,13 @@
 language: cpp
 compiler: clang
 script:
+   - python --version
    - ./test.py all
 dist: trusty
+sudo: false
+addons:
+  apt:
+    sources:
+    - deadsnakes
+    packages:
+    - python3.7
