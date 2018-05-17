@@ -11,6 +11,8 @@
 from enum import Enum
 import enum
 import os
+import typing
+
 
 @enum.unique
 class Language(Enum):
@@ -30,31 +32,31 @@ class CharFile:
         self.index = 0
         self.line = 1
 
-    def read(self):
+    def read(self) -> str:
         c = self.data[self.index]
         self.index += 1
         if c == '\n':
             self.line += 1
         return c
 
-    def peek(self, count):
-        if self.index+count >= len(self.data):
+    def peek(self, count: int) -> typing.Optional[str]:
+        if self.index + count >= len(self.data):
             return None
-        return self.data[self.index+count]
+        return self.data[self.index + count]
 
     def report_error(self, error):
         raise ParseError('{fi}({ln}): {err}'.format(err=error, ln=self.line, fi=self.name))
 
 
-def read_char(f):
+def read_char(f: CharFile) -> str:
     return f.read()
 
 
-def peek_char(f, count=0):
+def peek_char(f: CharFile, count: int = 0) -> typing.Optional[str]:
     return f.peek(count)
 
 
-def is_space(ch):
+def is_space(ch: str) -> bool:
     if ch == ' ':
         return True
     if ch == '\n':
@@ -66,7 +68,7 @@ def is_space(ch):
     return False
 
 
-def is_ident(first, ch):
+def is_ident(first: bool, ch: typing.Optional[str]) -> bool:
     if ch is None:
         return False
     if 'a' <= ch <= 'z':
@@ -91,7 +93,7 @@ class TypeList:
     def __init__(self):
         self.types = []
 
-    def add_type(self, t):
+    def add_type(self, t: Type):
         self.types.append(t)
 
     def add_default_types(self):
@@ -103,73 +105,74 @@ class TypeList:
         self.add_type(Type('double', False))
         self.add_type(Type('byte', False))
 
-    def is_valid_type(self, ty):
+    def is_valid_type(self, ty: str) -> bool:
         return ty in [x.name for x in self.types]
 
 
-def get_cpp_type_from_stdint(t):
-    if t =='int8':
+def get_cpp_type_from_stdint(t: str) -> str:
+    if t == 'int8':
         return 'int8_t'
-    if t =='int16':
+    if t == 'int16':
         return 'int16_t'
-    if t =='int32':
+    if t == 'int32':
         return 'int32_t'
-    if t =='int64':
+    if t == 'int64':
         return 'int64_t'
-    if t =='float':
+    if t == 'float':
         return t
-    if t =='double':
+    if t == 'double':
         return t
-    if t =='byte':
+    if t == 'byte':
         return 'char'
     return ''
 
 
-def get_cpp_parse_from_rapidjson_helper_int(t, member, indent, name):
+def get_cpp_parse_from_rapidjson_helper_int(t: str, member: str, indent: str, name: str) -> str:
     return '{i}if(iter->value.IsInt64()==false) return "read value for {n} was not a integer"; \n' \
            '{i}else {{\n' \
            '{i}  auto gafv = iter->value.GetInt64();\n' \
            '{i}  if(gafv < std::numeric_limits<{t}>::min()) return "read value for {n} was to low";\n' \
            '{i}  if(gafv > std::numeric_limits<{t}>::max()) return "read value for {n} was to high";\n' \
            '{i}  c->{m}(static_cast<{t}>(gafv));\n' \
-           '{i}}}\n'.format(m=member,i=indent, t=t, n=name)
+           '{i}}}\n'.format(m=member, i=indent, t=t, n=name)
 
 
-def get_cpp_parse_from_rapidjson_helper_float(t, member, indent, name):
+def get_cpp_parse_from_rapidjson_helper_float(t: str, member: str, indent: str, name: str) -> str:
     return '{i}if(iter->value.IsDouble()==false) return "read value for {n} was not a double"; \n' \
-           '{i}c->{m}(iter->value.GetDouble());\n'.format(m=member,i=indent, n=name)
+           '{i}c->{m}(iter->value.GetDouble());\n'.format(m=member, i=indent, n=name)
 
 
-def get_cpp_parse_from_rapidjson(t,member, indent, name):
-    if t =='int8':
+def get_cpp_parse_from_rapidjson(t: str, member: str, indent: str, name: str):
+    if t == 'int8':
         return get_cpp_parse_from_rapidjson_helper_int('int8_t', member, indent, name)
-    if t =='int16':
+    if t == 'int16':
         return get_cpp_parse_from_rapidjson_helper_int('int16_t', member, indent, name)
-    if t =='int32':
+    if t == 'int32':
         return get_cpp_parse_from_rapidjson_helper_int('int32_t', member, indent, name)
-    if t =='int64':
+    if t == 'int64':
         return '{i}if(iter->value.IsInt64()==false) return "read value for {n} was not a integer"; \n' \
                '{i}c->{m}(iter->value.GetInt64());\n'.format(m=member, i=indent, t=t, n=name)
-    if t =='float':
+    if t == 'float':
         return get_cpp_parse_from_rapidjson_helper_float(t, member, indent, name)
-    if t =='double':
+    if t == 'double':
         return get_cpp_parse_from_rapidjson_helper_float(t, member, indent, name)
-    if t =='byte':
+    if t == 'byte':
         return get_cpp_parse_from_rapidjson_helper_int('char', member, indent, name)
     return ''
 
 
-def is_default_type(tn):
+def is_default_type(tn: str) -> bool:
     tl = TypeList()
     tl.add_default_types()
     return tl.is_valid_type(tn)
 
-def read_white_spaces(f):
+
+def read_white_spaces(f: CharFile):
     while is_space(peek_char(f)):
         read_char(f)
 
 
-def read_spaces(f):
+def read_spaces(f: CharFile):
     while True:
         read_white_spaces(f)
         if peek_char(f, 0) == '/' and peek_char(f, 1) == '/':
@@ -180,7 +183,7 @@ def read_spaces(f):
             star = read_char(f)
             assert slash == '/'
             assert star == '*'
-            while peek_char(f, 0) != '*' or peek_char(f, 1)!='/':
+            while peek_char(f, 0) != '*' or peek_char(f, 1) != '/':
                 read_char(f)
             star = read_char(f)
             slash = read_char(f)
@@ -190,7 +193,7 @@ def read_spaces(f):
             return
 
 
-def read_ident(f):
+def read_ident(f: CharFile) -> str:
     read_spaces(f)
     ident = ''
     first = True
@@ -202,7 +205,7 @@ def read_ident(f):
     return ident
 
 
-def read_single_char(f, ch):
+def read_single_char(f: CharFile, ch: str):
     read_spaces(f)
     r = read_char(f)
     if r == ch:
@@ -219,7 +222,7 @@ class ArrayData:
 
 
 class Member:
-    def __init__(self, name, typename):
+    def __init__(self, name: str, typename: str):
         self.name = name
         self.typename = typename
         self.defaultvalue = None
@@ -241,11 +244,11 @@ class Member:
 
 
 class Struct:
-    def __init__(self, name):
+    def __init__(self, name: str):
         self.name = name
         self.members = []
 
-    def add_member(self, member):
+    def add_member(self, member: Member):
         self.members.append(member)
 
     def __str__(self):
@@ -253,7 +256,7 @@ class Struct:
 
 
 class Constant:
-    def __init__(self, n, t, v):
+    def __init__(self, n: str, t: str, v: str):
         self.name = n
         self.type = t
         self.value = v
@@ -271,10 +274,10 @@ class File:
             package_name = 'package {};\n'.format(self.package_name)
         return package_name + '\n'.join([str(x) for x in self.structs])
 
-    def add_constant(self, n, t, v):
+    def add_constant(self, n: str, t: str, v: str):
         self.constants.append(Constant(n, t, v))
 
-    def find_constant(self, name, ty):
+    def find_constant(self, name: str, ty: typing.Optional[str]) -> typing.Optional[Constant]:
         for c in self.constants:
             if ty is None:
                 if c.name == name:
@@ -284,11 +287,11 @@ class File:
         return None
 
 
-def is_number(n):
+def is_number(n: str) -> bool:
     return n in '0123456789'
 
 
-def read_number(f):
+def read_number(f: CharFile) -> str:
     ret = ''
     while is_number(peek_char(f)[0]):
         ret += read_char(f)
@@ -297,18 +300,18 @@ def read_number(f):
     return ret
 
 
-def read_default_value_int(f):
+def read_default_value_int(f: CharFile) -> str:
     return read_number(f)
 
 
-def read_default_value_double(f):
+def read_default_value_double(f: CharFile) -> str:
     dec = read_number(f)
     read_single_char(f, '.')
     frac = read_number(f)
     return '{d}.{f}'.format(d=dec, f=frac)
 
 
-def read_default_value(f, t, fi):
+def read_default_value(f: CharFile, t: str, fi: File) -> str:
     read_spaces(f)
 
     p = peek_char(f)
@@ -320,27 +323,27 @@ def read_default_value(f, t, fi):
             return ''
         return c.value
 
-    if t =='int8':
+    if t == 'int8':
         return read_default_value_int(f)
-    if t =='int16':
+    if t == 'int16':
         return read_default_value_int(f)
-    if t =='int32':
+    if t == 'int32':
         return read_default_value_int(f)
-    if t =='int64':
+    if t == 'int64':
         return read_default_value_int(f)
-    if t =='float':
+    if t == 'float':
         fl = read_default_value_double(f)
         read_single_char(f, 'f')
         return fl
-    if t =='double':
+    if t == 'double':
         return read_default_value_double(f)
-    if t =='byte':
+    if t == 'byte':
         f.report_error('default value for byte is not yet supported')
         return ''
     return ''
 
 
-def read_array(f, fi):
+def read_array(f: CharFile, fi: File) -> ArrayData:
     read_single_char(f, '[')
     read_spaces(f)
     ch = peek_char(f)
@@ -405,8 +408,7 @@ def read_array(f, fi):
     return array
 
 
-
-def read_struct(f, tl, fi):
+def read_struct(f: CharFile, tl: TypeList, fi: File) -> Struct:
     struct_name = read_ident(f)
     struct = Struct(struct_name)
     read_single_char(f, '{')
@@ -443,7 +445,7 @@ def read_struct(f, tl, fi):
     return struct
 
 
-def read_several_structs(f):
+def read_several_structs(f: CharFile) -> File:
     file = File()
     read_spaces(f)
     tl = TypeList()
@@ -465,7 +467,8 @@ def read_several_structs(f):
             read_spaces(f)
             package_name = read_ident(f)
             if len(file.package_name) > 0:
-                f.report_error('tried to change package name from {old} to {new}'.format(old=file.package_name, new=package_name))
+                f.report_error(
+                    'tried to change package name from {old} to {new}'.format(old=file.package_name, new=package_name))
             if len(file.structs) > 0:
                 f.report_error('cant change package name after adding structs')
             read_spaces(f)
@@ -473,24 +476,24 @@ def read_several_structs(f):
             file.package_name = package_name
         else:
             raise f.report_error('Expected struct, package or const. Found unknown ident {}'.format(keyword))
-        read_spaces(f) # place file marker at the next non whitespace or at eof
+        read_spaces(f)  # place file marker at the next non whitespace or at eof
 
     return file
 
 
-def to_cpp_get(name):
+def to_cpp_get(name: str) -> str:
     return 'Get{}{}'.format(name[0].upper(), name[1:])
 
 
-def to_cpp_get_mod(name):
+def to_cpp_get_mod(name: str) -> str:
     return 'Get{}{}Ptr'.format(name[0].upper(), name[1:])
 
 
-def to_cpp_set(name):
+def to_cpp_set(name: str) -> str:
     return 'Set{}{}'.format(name[0].upper(), name[1:])
 
 
-def to_cpp_typename(name):
+def to_cpp_typename(name: str) -> str:
     return '{}_'.format(name)
 
 
@@ -499,7 +502,7 @@ def merge(iters):
         yield from it
 
 
-def add_json_to_string_for_cpp(write_json, header_only, out, source):
+def add_json_to_string_for_cpp(write_json: bool, header_only: bool, out, source: typing.List[str]):
     if write_json:
         if header_only:
             out.write('const char* const JsonToStringError(rapidjson::ParseErrorCode);\n')
@@ -508,19 +511,31 @@ def add_json_to_string_for_cpp(write_json, header_only, out, source):
         source.append('  switch(err) {\n')
         source.append('  case rapidjson::kParseErrorNone: return nullptr;\n')
         source.append('  case rapidjson::kParseErrorDocumentEmpty: return "JSON: The document is empty.";\n')
-        source.append('  case rapidjson::kParseErrorDocumentRootNotSingular: return "JSON: The document root must not follow by other values.";\n')
+        source.append(
+            '  case rapidjson::kParseErrorDocumentRootNotSingular: return "JSON: The document root must not follow by other values.";\n')
         source.append('  case rapidjson::kParseErrorValueInvalid: return "JSON: Invalid value.";\n')
-        source.append('  case rapidjson::kParseErrorObjectMissName: return "JSON: Missing name for a object member.";\n')
-        source.append('  case rapidjson::kParseErrorObjectMissColon: return "JSON: Missing a colon after a name of object member.";\n')
-        source.append('  case rapidjson::kParseErrorObjectMissCommaOrCurlyBracket: return "JSON: Missing a comma or } after an object member.";\n')
-        source.append('  case rapidjson::kParseErrorArrayMissCommaOrSquareBracket: return "JSON: Missing a comma or ] after an array element.";\n')
-        source.append('  case rapidjson::kParseErrorStringUnicodeEscapeInvalidHex: return "JSON: Incorrect hex digit after \\\\u escape in string.";\n')
-        source.append('  case rapidjson::kParseErrorStringUnicodeSurrogateInvalid: return "JSON: The surrogate pair in string is invalid.";\n')
-        source.append('  case rapidjson::kParseErrorStringEscapeInvalid: return "JSON: Invalid escape character in string.";\n')
-        source.append('  case rapidjson::kParseErrorStringMissQuotationMark: return "JSON: Missing a closing quotation mark in string.";\n')
-        source.append('  case rapidjson::kParseErrorStringInvalidEncoding: return "JSON: Invalid encoding in string.";\n')
-        source.append('  case rapidjson::kParseErrorNumberTooBig: return "JSON: Number too big to be stored in double.";\n')
-        source.append('  case rapidjson::kParseErrorNumberMissFraction: return "JSON: Miss fraction part in number.";\n')
+        source.append(
+            '  case rapidjson::kParseErrorObjectMissName: return "JSON: Missing name for a object member.";\n')
+        source.append(
+            '  case rapidjson::kParseErrorObjectMissColon: return "JSON: Missing a colon after a name of object member.";\n')
+        source.append(
+            '  case rapidjson::kParseErrorObjectMissCommaOrCurlyBracket: return "JSON: Missing a comma or } after an object member.";\n')
+        source.append(
+            '  case rapidjson::kParseErrorArrayMissCommaOrSquareBracket: return "JSON: Missing a comma or ] after an array element.";\n')
+        source.append(
+            '  case rapidjson::kParseErrorStringUnicodeEscapeInvalidHex: return "JSON: Incorrect hex digit after \\\\u escape in string.";\n')
+        source.append(
+            '  case rapidjson::kParseErrorStringUnicodeSurrogateInvalid: return "JSON: The surrogate pair in string is invalid.";\n')
+        source.append(
+            '  case rapidjson::kParseErrorStringEscapeInvalid: return "JSON: Invalid escape character in string.";\n')
+        source.append(
+            '  case rapidjson::kParseErrorStringMissQuotationMark: return "JSON: Missing a closing quotation mark in string.";\n')
+        source.append(
+            '  case rapidjson::kParseErrorStringInvalidEncoding: return "JSON: Invalid encoding in string.";\n')
+        source.append(
+            '  case rapidjson::kParseErrorNumberTooBig: return "JSON: Number too big to be stored in double.";\n')
+        source.append(
+            '  case rapidjson::kParseErrorNumberMissFraction: return "JSON: Miss fraction part in number.";\n')
         source.append('  case rapidjson::kParseErrorNumberMissExponent: return "JSON: Miss exponent in number.";\n')
         source.append('  case rapidjson::kParseErrorTermination: return "JSON: Parsing was terminated.";\n')
         source.append('  case rapidjson::kParseErrorUnspecificSyntaxError: return "JSON: Unspecific syntax error.";\n')
@@ -530,7 +545,7 @@ def add_json_to_string_for_cpp(write_json, header_only, out, source):
         source.append('\n')
 
 
-def write_reset_function_for_cpp(out, source, s):
+def write_reset_function_for_cpp(out, source: typing.List[str], s: Struct):
     out.write('  void Reset();\n')
     out.write('\n')
     source.append('void {n}::Reset() {{\n'.format(n=s.name))
@@ -542,7 +557,8 @@ def write_reset_function_for_cpp(out, source, s):
     source.append('}\n')
     source.append('\n')
 
-def write_json_source_for_cpp(write_json, source, out, s):
+
+def write_json_source_for_cpp(write_json: bool, source: typing.List[str], out, s: Struct):
     if write_json:
         out.write('  const char* const ReadJsonSource(const char* const source);\n')
         out.write('\n')
@@ -555,8 +571,9 @@ def write_json_source_for_cpp(write_json, source, out, s):
             if is_default_type(m.typename):
                 source.append(get_cpp_parse_from_rapidjson(m.typename, to_cpp_set(m.name), '    ', m.name))
             else:
-                source.append('   {{  const char* const r = ReadFromJsonValue(c->{}(),iter->value); if(r!=nullptr) {{ return r; }} }}\n'
-                              .format(to_cpp_get_mod(m.name)))
+                source.append(
+                    '   {{  const char* const r = ReadFromJsonValue(c->{}(),iter->value); if(r!=nullptr) {{ return r; }} }}\n'
+                    .format(to_cpp_get_mod(m.name)))
             source.append('  }\n')
             source.append('  else {\n')
             source.append('    return "missing {} in json object";\n'.format(m.name))
@@ -574,32 +591,42 @@ def write_json_source_for_cpp(write_json, source, out, s):
         source.append('\n')
 
 
-def write_setter_and_getter_for_cpp(s, source, out):
+def write_setter_and_getter_for_cpp(s: Struct, source: typing.List[str], out):
     for m in s.members:
         if is_default_type(m.typename):
             out.write('  {tn} {n}() const;\n'.format(n=to_cpp_get(m.name), tn=m.typename))
-            source.append('{tn} {cn}::{n}() const {{ return {v}; }}\n'.format(n=to_cpp_get(m.name), tn=m.typename, cn=s.name, v=to_cpp_typename(m.name)))
+            source.append(
+                '{tn} {cn}::{n}() const {{ return {v}; }}\n'.format(n=to_cpp_get(m.name), tn=m.typename, cn=s.name,
+                                                                    v=to_cpp_typename(m.name)))
             out.write('  void {n}({tn} {an});\n'.format(n=to_cpp_set(m.name), an=m.name, tn=m.typename))
-            source.append('void {cn}::{n}({tn} {an}) {{ {v} = {an}; }}\n'.format(n=to_cpp_set(m.name), an=m.name, tn=m.typename, cn=s.name, v=to_cpp_typename(m.name)))
+            source.append(
+                'void {cn}::{n}({tn} {an}) {{ {v} = {an}; }}\n'.format(n=to_cpp_set(m.name), an=m.name, tn=m.typename,
+                                                                       cn=s.name, v=to_cpp_typename(m.name)))
         else:
             out.write('  const {tn}& {n}() const;\n'.format(n=to_cpp_get(m.name), tn=m.typename))
-            source.append('const {tn}& {cn}::{n}() const {{ return {v}; }}\n'.format(n=to_cpp_get(m.name), tn=m.typename, cn=s.name, v=to_cpp_typename(m.name)))
+            source.append(
+                'const {tn}& {cn}::{n}() const {{ return {v}; }}\n'.format(n=to_cpp_get(m.name), tn=m.typename,
+                                                                           cn=s.name, v=to_cpp_typename(m.name)))
             out.write('  {tn}* {n}();\n'.format(n=to_cpp_get_mod(m.name), tn=m.typename))
-            source.append('{tn}* {cn}::{n}() {{ return &{v}; }}\n'.format(n=to_cpp_get_mod(m.name), tn=m.typename, cn=s.name, v=to_cpp_typename(m.name)))
+            source.append(
+                '{tn}* {cn}::{n}() {{ return &{v}; }}\n'.format(n=to_cpp_get_mod(m.name), tn=m.typename, cn=s.name,
+                                                                v=to_cpp_typename(m.name)))
             out.write('  void {n}(const {tn}& {an});\n'.format(n=to_cpp_set(m.name), an=m.name, tn=m.typename))
-            source.append('void {cn}::{n}(const {tn}& {an}) {{ {v} = {an}; }}\n'.format(n=to_cpp_set(m.name), an=m.name, tn=m.typename, cn=s.name, v=to_cpp_typename(m.name)))
+            source.append('void {cn}::{n}(const {tn}& {an}) {{ {v} = {an}; }}\n'.format(n=to_cpp_set(m.name), an=m.name,
+                                                                                        tn=m.typename, cn=s.name,
+                                                                                        v=to_cpp_typename(m.name)))
         out.write('\n')
         source.append('\n')
 
 
-def write_member_variables_for_cpp(out, s):
+def write_member_variables_for_cpp(out, s: Struct):
     out.write(' private:\n')
     for m in s.members:
         out.write('  {tn} {n};\n'.format(n=to_cpp_typename(m.name), tn=m.typename))
     out.write('}}; // class {}\n'.format(s.name))
 
 
-def write_default_constructor_for_cpp(s, out, source):
+def write_default_constructor_for_cpp(s: Struct, out, source: typing.List[str]):
     out.write('  {}();\n'.format(s.name))
     out.write('\n')
     common_members = [x for x in s.members if x.defaultvalue is not None]
@@ -612,7 +639,7 @@ def write_default_constructor_for_cpp(s, out, source):
     source.append('\n')
 
 
-def write_cpp(f, args, out_dir, name):
+def write_cpp(f: File, args, out_dir: str, name: str):
     headerguard = 'GENERATED_' + name.upper()
 
     source = []
@@ -622,10 +649,10 @@ def write_cpp(f, args, out_dir, name):
 
     unique_types = set(m.typename for m in merge(s.members for s in f.structs))
     default_types = [t[0] for t in ((t, get_cpp_type_from_stdint(t)) for t in unique_types)
-                     if t[1] != '' and t[0]!=t[1]
+                     if t[1] != '' and t[0] != t[1]
                      ]
 
-    with open(os.path.join(out_dir, name+'.h'), 'w', encoding='utf-8') as out:
+    with open(os.path.join(out_dir, name + '.h'), 'w', encoding='utf-8') as out:
         out.write('#ifndef {}_H\n'.format(headerguard))
         out.write('#define {}_H\n'.format(headerguard))
         out.write('\n')
@@ -679,8 +706,8 @@ def write_cpp(f, args, out_dir, name):
         out.write('\n')
         out.write('#endif  // {}_H\n'.format(headerguard))
 
-    if header_only == False:
-        with open(os.path.join(out_dir, name+'.cc'), 'w', encoding='utf-8') as out:
+    if not header_only:
+        with open(os.path.join(out_dir, name + '.cc'), 'w', encoding='utf-8') as out:
             out.write('#include "{}.h"\n'.format(name))
             out.write('\n')
             out.write('#include <limits>\n')
@@ -711,7 +738,8 @@ def on_generate_command(args):
             print(p.message)
             return
     if args.language == Language.CPP:
-        write_cpp(s, args, args.output_folder, os.path.splitext(os.path.basename(file.name))[0] if args.name is None else args.name)
+        write_cpp(s, args, args.output_folder,
+                  os.path.splitext(os.path.basename(file.name))[0] if args.name is None else args.name)
     else:
         raise ParseError('unhandled language {}'.format(args.language))
 
@@ -755,14 +783,17 @@ def main():
     parser.set_defaults(func=None)
     sub = parser.add_subparsers(help='sub-command help')
 
-    gen_parser = sub.add_parser('generate', help='generate a game format parser', aliases=['gen'], fromfile_prefix_chars='@')
+    gen_parser = sub.add_parser('generate', help='generate a game format parser', aliases=['gen'],
+                                fromfile_prefix_chars='@')
     gen_parser.add_argument('language', type=EnumType(Language), help='the language')
     gen_parser.add_argument('input', type=argparse.FileType('r'), help='the source gaf file')
     gen_parser.add_argument('output_folder', help='the output directory')
     gen_parser.add_argument('--debug', action='store_const', const=True, default=False, help='debug gaf')
     gen_parser.add_argument('--name', help='use this name instead of the autogenerated name')
-    gen_parser.add_argument('--header-only', action='store_const', const=True, default=False, help='header only implementation')
-    gen_parser.add_argument('--include-json', action='store_const', const=True, default=False, help='include rapid json implementation')
+    gen_parser.add_argument('--header-only', action='store_const', const=True, default=False,
+                            help='header only implementation')
+    gen_parser.add_argument('--include-json', action='store_const', const=True, default=False,
+                            help='include rapid json implementation')
     gen_parser.set_defaults(func=on_generate_command)
 
     dis_parser = sub.add_parser('display', help='generate a game format parser', aliases=['disp', 'print', 'prn'])
