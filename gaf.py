@@ -269,15 +269,6 @@ class Member:
         self.defaultvalue = None
         self.array = None
 
-        # start with a default value for some built in types
-        # todo: remove this hack, we should use c++ default values
-        if self.typename.standard_type is not StandardType.INVALID:
-            self.defaultvalue = '0'
-            if self.typename == 'float':
-                self.defaultvalue = '0.0f'
-            elif self.typename == 'double':
-                self.defaultvalue = '0.0'
-
     def __str__(self):
         if self.defaultvalue is None:
             return '{tn} {n};'.format(n=self.name, tn=self.typename.name)
@@ -615,19 +606,6 @@ def add_json_to_string_for_cpp(write_json: bool, header_only: bool, sources: Out
         sources.add_source('\n')
 
 
-def write_reset_function_for_cpp(sources: Out, s: Struct):
-    sources.add_header('  void Reset();\n')
-    sources.add_header('\n')
-    sources.add_source('void {n}::Reset() {{\n'.format(n=s.name))
-    for m in s.members:
-        if m.defaultvalue is not None:
-            sources.add_source('  {n} = {d};\n'.format(n=to_cpp_typename(m.name), d=m.defaultvalue))
-        else:
-            sources.add_source('  {n}.Reset();\n'.format(n=to_cpp_typename(m.name)))
-    sources.add_source('}\n')
-    sources.add_source('\n')
-
-
 def write_json_source_for_cpp(write_json: bool, sources: Out, s: Struct):
     if write_json:
         sources.add_header('  const char* const ReadJsonSource(const char* const source);\n')
@@ -752,7 +730,6 @@ def generate_cpp(f: File, sources: Out, name: str, header_only: bool, write_json
         sources.add_header(' public:\n')
         write_default_constructor_for_cpp(s, sources)
 
-        write_reset_function_for_cpp(sources, s)
         write_json_source_for_cpp(write_json, sources, s)
         write_setter_and_getter_for_cpp(s, sources)
         write_member_variables_for_cpp(sources, s)
