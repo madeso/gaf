@@ -1,7 +1,7 @@
 language: cpp
 compiler: clang
 script:
-   - python --version
+   - python3 --version
    - ./test.py all
 dist: trusty
 sudo: false
