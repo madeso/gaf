@@ -2,6 +2,7 @@
 # GAme Format Parser
 
 # todo: structure python code better
+# todo: remove c++ get and set functions, minimal clean code here!
 # todo: array
 # todo: enum
 # todo: json read/write
@@ -17,6 +18,53 @@ import typing
 @enum.unique
 class Language(Enum):
     CPP = object()
+
+
+@enum.unique
+class StandardType(Enum):
+    int8 = object()
+    int16 = object()
+    int32 = object()
+    int64 = object()
+    float = object()
+    double = object()
+    byte = object()
+    INVALID = object()
+
+    def get_cpp_type(self) -> str:
+        if self == StandardType.int8:
+            return 'int8_t'
+        if self == StandardType.int16:
+            return 'int16_t'
+        if self == StandardType.int32:
+            return 'int32_t'
+        if self == StandardType.int64:
+            return 'int64_t'
+        if self == StandardType.float:
+            return 'float'
+        if self == StandardType.double:
+            return 'double'
+        if self == StandardType.byte:
+            return 'char'
+        return ''
+
+
+def parse_standard_type(t: str) -> StandardType:
+    if t == 'int8':
+        return StandardType.int8
+    if t == 'int16':
+        return StandardType.int16
+    if t == 'int32':
+        return StandardType.int32
+    if t == 'int64':
+        return StandardType.int64
+    if t == 'float':
+        return StandardType.float
+    if t == 'double':
+        return StandardType.double
+    if t == 'byte':
+        return StandardType.byte
+    return StandardType.INVALID
 
 
 class ParseError(Exception):
@@ -84,80 +132,73 @@ def is_ident(first: bool, ch: typing.Optional[str]) -> bool:
 
 
 class Type:
-    def __init__(self, name, cpp_passing):
+    def __init__(self, standard_type: StandardType, name: str, pass_as_value: bool):
         self.name = name
-        self.cpp_passing = cpp_passing
+        self.standard_type = standard_type
+        self.pass_as_value = pass_as_value
+
+    def get_cpp_type(self) -> str:
+        if self.standard_type == StandardType.INVALID:
+            return self.name
+        else:
+            return self.standard_type.get_cpp_type()
 
 
 class TypeList:
     def __init__(self):
-        self.types = []
+        self.types = dict()
 
     def add_type(self, t: Type):
-        self.types.append(t)
+        # todo: handle duplicate defined types
+        self.types[t.name] = t
 
     def add_default_types(self):
-        self.add_type(Type('int8', False))
-        self.add_type(Type('int16', False))
-        self.add_type(Type('int32', False))
-        self.add_type(Type('int64', False))
-        self.add_type(Type('float', False))
-        self.add_type(Type('double', False))
-        self.add_type(Type('byte', False))
+        self.add_type(Type(StandardType.int8, 'int8', True))
+        self.add_type(Type(StandardType.int16, 'int16', True))
+        self.add_type(Type(StandardType.int32, 'int32', True))
+        self.add_type(Type(StandardType.int64, 'int64', True))
+        self.add_type(Type(StandardType.float, 'float', True))
+        self.add_type(Type(StandardType.double, 'double', True))
+        self.add_type(Type(StandardType.byte, 'byte', True))
 
-    def is_valid_type(self, ty: str) -> bool:
-        return ty in [x.name for x in self.types]
+    def is_valid_type(self, name: str) -> bool:
+        return name in self.types
 
-
-def get_cpp_type_from_stdint(t: str) -> str:
-    if t == 'int8':
-        return 'int8_t'
-    if t == 'int16':
-        return 'int16_t'
-    if t == 'int32':
-        return 'int32_t'
-    if t == 'int64':
-        return 'int64_t'
-    if t == 'float':
-        return t
-    if t == 'double':
-        return t
-    if t == 'byte':
-        return 'char'
-    return ''
+    def get_type(self, name: str) -> Type:
+        return self.types[name]
 
 
-def get_cpp_parse_from_rapidjson_helper_int(t: str, member: str, indent: str, name: str) -> str:
+def get_cpp_parse_from_rapidjson_helper_int(t: StandardType, member: str, indent: str, name: str) -> str:
     return '{i}if(iter->value.IsInt64()==false) return "read value for {n} was not a integer"; \n' \
            '{i}else {{\n' \
            '{i}  auto gafv = iter->value.GetInt64();\n' \
            '{i}  if(gafv < std::numeric_limits<{t}>::min()) return "read value for {n} was to low";\n' \
            '{i}  if(gafv > std::numeric_limits<{t}>::max()) return "read value for {n} was to high";\n' \
            '{i}  c->{m}(static_cast<{t}>(gafv));\n' \
-           '{i}}}\n'.format(m=member, i=indent, t=t, n=name)
+           '{i}}}\n'.format(m=member, i=indent, t=t.get_cpp_type(), n=name)
 
 
-def get_cpp_parse_from_rapidjson_helper_float(t: str, member: str, indent: str, name: str) -> str:
+def get_cpp_parse_from_rapidjson_helper_float(member: str, indent: str, name: str) -> str:
     return '{i}if(iter->value.IsDouble()==false) return "read value for {n} was not a double"; \n' \
            '{i}c->{m}(iter->value.GetDouble());\n'.format(m=member, i=indent, n=name)
 
 
-def get_cpp_parse_from_rapidjson(t: str, member: str, indent: str, name: str):
-    if t == 'int8':
-        return get_cpp_parse_from_rapidjson_helper_int('int8_t', member, indent, name)
-    if t == 'int16':
-        return get_cpp_parse_from_rapidjson_helper_int('int16_t', member, indent, name)
-    if t == 'int32':
-        return get_cpp_parse_from_rapidjson_helper_int('int32_t', member, indent, name)
-    if t == 'int64':
+def get_cpp_parse_from_rapidjson(t: StandardType, member: str, indent: str, name: str):
+    if t == StandardType.int8:
+        return get_cpp_parse_from_rapidjson_helper_int(t, member, indent, name)
+    if t == StandardType.int16:
+        return get_cpp_parse_from_rapidjson_helper_int(t, member, indent, name)
+    if t == StandardType.int32:
+        return get_cpp_parse_from_rapidjson_helper_int(t, member, indent, name)
+    if t == StandardType.int64:
         return '{i}if(iter->value.IsInt64()==false) return "read value for {n} was not a integer"; \n' \
                '{i}c->{m}(iter->value.GetInt64());\n'.format(m=member, i=indent, t=t, n=name)
-    if t == 'float':
-        return get_cpp_parse_from_rapidjson_helper_float(t, member, indent, name)
-    if t == 'double':
-        return get_cpp_parse_from_rapidjson_helper_float(t, member, indent, name)
-    if t == 'byte':
-        return get_cpp_parse_from_rapidjson_helper_int('char', member, indent, name)
+    if t == StandardType.float:
+        return get_cpp_parse_from_rapidjson_helper_float(member, indent, name)
+    if t == StandardType.double:
+        return get_cpp_parse_from_rapidjson_helper_float(member, indent, name)
+    if t == StandardType.byte:
+        return get_cpp_parse_from_rapidjson_helper_int(t, member, indent, name)
     return ''
 
 
@@ -222,14 +263,15 @@ class ArrayData:
 
 
 class Member:
-    def __init__(self, name: str, typename: str):
+    def __init__(self, name: str, typename: Type):
         self.name = name
         self.typename = typename
         self.defaultvalue = None
         self.array = None
 
         # start with a default value for some built in types
-        if is_default_type(self.typename):
+        # todo: remove this hack, we should use c++ default values
+        if self.typename.standard_type is not StandardType.INVALID:
             self.defaultvalue = '0'
             if self.typename == 'float':
                 self.defaultvalue = '0.0f'
@@ -238,15 +280,19 @@ class Member:
 
     def __str__(self):
         if self.defaultvalue is None:
-            return '{tn} {n};'.format(n=self.name, tn=self.typename)
+            return '{tn} {n};'.format(n=self.name, tn=self.typename.name)
         else:
-            return '{tn} {n} = {dv};'.format(n=self.name, tn=self.typename, dv=self.defaultvalue)
+            return '{tn} {n} = {dv};'.format(n=self.name, tn=self.typename.name, dv=self.defaultvalue)
+
+
+def empty_member_list() -> typing.List[Member]:
+    return []
 
 
 class Struct:
     def __init__(self, name: str):
         self.name = name
-        self.members = []
+        self.members = empty_member_list()
 
     def add_member(self, member: Member):
         self.members.append(member)
@@ -255,17 +301,25 @@ class Struct:
         return 'struct {n} {{\n{mem}\n}}'.format(n=self.name, mem='\n'.join(['  ' + str(x) for x in self.members]))
 
 
+def empty_struct_list() -> typing.List[Struct]:
+    return []
+
+
 class Constant:
-    def __init__(self, n: str, t: str, v: str):
+    def __init__(self, n: str, t: Type, v: str):
         self.name = n
         self.type = t
         self.value = v
 
 
+def empty_constant_list() -> typing.List[Constant]:
+    return []
+
+
 class File:
     def __init__(self):
-        self.structs = []
-        self.constants = []
+        self.structs = empty_struct_list()
+        self.constants = empty_constant_list()
         self.package_name = ''
 
     def __str__(self):
@@ -274,10 +328,10 @@ class File:
             package_name = 'package {};\n'.format(self.package_name)
         return package_name + '\n'.join([str(x) for x in self.structs])
 
-    def add_constant(self, n: str, t: str, v: str):
+    def add_constant(self, n: str, t: Type, v: str):
         self.constants.append(Constant(n, t, v))
 
-    def find_constant(self, name: str, ty: typing.Optional[str]) -> typing.Optional[Constant]:
+    def find_constant(self, name: str, ty: typing.Optional[Type]) -> typing.Optional[Constant]:
         for c in self.constants:
             if ty is None:
                 if c.name == name:
@@ -311,7 +365,7 @@ def read_default_value_double(f: CharFile) -> str:
     return '{d}.{f}'.format(d=dec, f=frac)
 
 
-def read_default_value(f: CharFile, t: str, fi: File) -> str:
+def read_default_value(f: CharFile, t: Type, fi: File) -> str:
     read_spaces(f)
 
     p = peek_char(f)
@@ -323,21 +377,21 @@ def read_default_value(f: CharFile, t: str, fi: File) -> str:
             return ''
         return c.value
 
-    if t == 'int8':
+    if t.standard_type == StandardType.int8:
         return read_default_value_int(f)
-    if t == 'int16':
+    if t.standard_type == StandardType.int16:
         return read_default_value_int(f)
-    if t == 'int32':
+    if t.standard_type == StandardType.int32:
         return read_default_value_int(f)
-    if t == 'int64':
+    if t.standard_type == StandardType.int64:
         return read_default_value_int(f)
-    if t == 'float':
+    if t.standard_type == StandardType.float:
         fl = read_default_value_double(f)
         read_single_char(f, 'f')
         return fl
-    if t == 'double':
+    if t.standard_type == StandardType.double:
         return read_default_value_double(f)
-    if t == 'byte':
+    if t.standard_type == StandardType.byte:
         f.report_error('default value for byte is not yet supported')
         return ''
     return ''
@@ -386,7 +440,7 @@ def read_array(f: CharFile, fi: File) -> ArrayData:
         elif is_number(c):
             second_number = read_number(f)
         else:
-            f.report_error('unexpected character in array expression: {}', c)
+            f.report_error('unexpected character in array expression: {}'.format(c))
     read_spaces(f)
     read_single_char(f, ']')
 
@@ -408,7 +462,7 @@ def read_array(f: CharFile, fi: File) -> ArrayData:
     return array
 
 
-def read_struct(f: CharFile, tl: TypeList, fi: File) -> Struct:
+def read_struct(f: CharFile, type_list: TypeList, fi: File) -> Struct:
     struct_name = read_ident(f)
     struct = Struct(struct_name)
     read_single_char(f, '{')
@@ -417,7 +471,10 @@ def read_struct(f: CharFile, tl: TypeList, fi: File) -> Struct:
         name = read_ident(f)
         read_spaces(f)
         ch = peek_char(f)
-        mem = Member(name, ty)
+        if type_list.is_valid_type(ty) is False:
+            f.report_error('Invalid type {t} for member {s}.{m}'.format(t=ty, s=struct_name, m=name))
+        valid_type = type_list.get_type(ty) if type_list.is_valid_type(ty) else StandardType.int32
+        mem = Member(name, valid_type)
 
         if ch == '[':
             array = read_array(f, fi)
@@ -431,16 +488,14 @@ def read_struct(f: CharFile, tl: TypeList, fi: File) -> Struct:
             if not is_default_type(ty):
                 f.report_error('structs cant have default values yet')
             read_char(f)
-            mem.defaultvalue = read_default_value(f, ty, fi)
+            mem.defaultvalue = read_default_value(f, valid_type, fi)
         read_spaces(f)
         read_single_char(f, ';')
 
-        if tl.is_valid_type(ty) is False:
-            f.report_error('Invalid type {t} for member {s}.{m}'.format(t=ty, s=struct_name, m=name))
         struct.add_member(mem)
         read_spaces(f)
     read_single_char(f, '}')
-    tl.add_type(Type(struct_name, True))
+    type_list.add_type(Type(StandardType.INVALID, struct_name, False))
 
     return struct
 
@@ -448,21 +503,24 @@ def read_struct(f: CharFile, tl: TypeList, fi: File) -> Struct:
 def read_several_structs(f: CharFile) -> File:
     file = File()
     read_spaces(f)
-    tl = TypeList()
-    tl.add_default_types()
+    type_list = TypeList()
+    type_list.add_default_types()
     while peek_char(f) is not None:
         keyword = read_ident(f)
         if keyword == 'struct':
-            s = read_struct(f, tl, file)
+            s = read_struct(f, type_list, file)
             file.structs.append(s)
         elif keyword == 'const':
-            type = read_ident(f)
+            ty = read_ident(f)
             name = read_ident(f)
             read_spaces(f)
             read_single_char(f, '=')
-            val = read_default_value(f, type, file)
+            if type_list.is_valid_type(ty) is False:
+                f.report_error('Invalid type {t} for const {m}'.format(t=ty, m=name))
+            valid_type = type_list.get_type(ty) if type_list.is_valid_type(ty) else StandardType.int32
+            val = read_default_value(f, valid_type, file)
             read_single_char(f, ';')
-            file.add_constant(name, type, val)
+            file.add_constant(name, valid_type, val)
         elif keyword == 'package':
             read_spaces(f)
             package_name = read_ident(f)
@@ -580,8 +638,8 @@ def write_json_source_for_cpp(write_json: bool, sources: Out, s: Struct):
         for m in s.members:
             sources.add_source('  iter = value.FindMember("{n}");\n'.format(n=m.name))
             sources.add_source('  if(iter != value.MemberEnd()) {\n')
-            if is_default_type(m.typename):
-                sources.add_source(get_cpp_parse_from_rapidjson(m.typename, to_cpp_set(m.name), '    ', m.name))
+            if m.typename.standard_type != StandardType.INVALID:
+                sources.add_source(get_cpp_parse_from_rapidjson(m.typename.standard_type, to_cpp_set(m.name), '    ', m.name))
             else:
                 sources.add_source(
                     '   {{  const char* const r = ReadFromJsonValue(c->{}(),iter->value); if(r!=nullptr) {{ return r; }} }}\n'
@@ -605,27 +663,27 @@ def write_json_source_for_cpp(write_json: bool, sources: Out, s: Struct):
 
 def write_setter_and_getter_for_cpp(s: Struct, sources: Out):
     for m in s.members:
-        if is_default_type(m.typename):
-            sources.add_header('  {tn} {n}() const;\n'.format(n=to_cpp_get(m.name), tn=m.typename))
+        if m.typename.standard_type != StandardType.INVALID:
+            sources.add_header('  {tn} {n}() const;\n'.format(n=to_cpp_get(m.name), tn=m.typename.name))
             sources.add_source(
-                '{tn} {cn}::{n}() const {{ return {v}; }}\n'.format(n=to_cpp_get(m.name), tn=m.typename, cn=s.name,
+                '{tn} {cn}::{n}() const {{ return {v}; }}\n'.format(n=to_cpp_get(m.name), tn=m.typename.name, cn=s.name,
                                                                     v=to_cpp_typename(m.name)))
-            sources.add_header('  void {n}({tn} {an});\n'.format(n=to_cpp_set(m.name), an=m.name, tn=m.typename))
+            sources.add_header('  void {n}({tn} {an});\n'.format(n=to_cpp_set(m.name), an=m.name, tn=m.typename.name))
             sources.add_source(
-                'void {cn}::{n}({tn} {an}) {{ {v} = {an}; }}\n'.format(n=to_cpp_set(m.name), an=m.name, tn=m.typename,
+                'void {cn}::{n}({tn} {an}) {{ {v} = {an}; }}\n'.format(n=to_cpp_set(m.name), an=m.name, tn=m.typename.name,
                                                                        cn=s.name, v=to_cpp_typename(m.name)))
         else:
-            sources.add_header('  const {tn}& {n}() const;\n'.format(n=to_cpp_get(m.name), tn=m.typename))
+            sources.add_header('  const {tn}& {n}() const;\n'.format(n=to_cpp_get(m.name), tn=m.typename.name))
             sources.add_source(
-                'const {tn}& {cn}::{n}() const {{ return {v}; }}\n'.format(n=to_cpp_get(m.name), tn=m.typename,
+                'const {tn}& {cn}::{n}() const {{ return {v}; }}\n'.format(n=to_cpp_get(m.name), tn=m.typename.name,
                                                                            cn=s.name, v=to_cpp_typename(m.name)))
-            sources.add_header('  {tn}* {n}();\n'.format(n=to_cpp_get_mod(m.name), tn=m.typename))
+            sources.add_header('  {tn}* {n}();\n'.format(n=to_cpp_get_mod(m.name), tn=m.typename.name))
             sources.add_source(
-                '{tn}* {cn}::{n}() {{ return &{v}; }}\n'.format(n=to_cpp_get_mod(m.name), tn=m.typename, cn=s.name,
+                '{tn}* {cn}::{n}() {{ return &{v}; }}\n'.format(n=to_cpp_get_mod(m.name), tn=m.typename.name, cn=s.name,
                                                                 v=to_cpp_typename(m.name)))
-            sources.add_header('  void {n}(const {tn}& {an});\n'.format(n=to_cpp_set(m.name), an=m.name, tn=m.typename))
+            sources.add_header('  void {n}(const {tn}& {an});\n'.format(n=to_cpp_set(m.name), an=m.name, tn=m.typename.name))
             sources.add_source('void {cn}::{n}(const {tn}& {an}) {{ {v} = {an}; }}\n'.format(n=to_cpp_set(m.name), an=m.name,
-                                                                                        tn=m.typename, cn=s.name,
+                                                                                        tn=m.typename.name, cn=s.name,
                                                                                         v=to_cpp_typename(m.name)))
         sources.add_header('\n')
         sources.add_source('\n')
@@ -634,7 +692,7 @@ def write_setter_and_getter_for_cpp(s: Struct, sources: Out):
 def write_member_variables_for_cpp(sources: Out, s: Struct):
     sources.add_header(' private:\n')
     for m in s.members:
-        sources.add_header('  {tn} {n};\n'.format(n=to_cpp_typename(m.name), tn=m.typename))
+        sources.add_header('  {tn} {n};\n'.format(n=to_cpp_typename(m.name), tn=m.typename.name))
     sources.add_header('}}; // class {}\n'.format(s.name))
 
 
@@ -651,12 +709,17 @@ def write_default_constructor_for_cpp(s: Struct, sources: Out):
     sources.add_source('\n')
 
 
+def get_unique_types(f: File) -> typing.Set[Type]:
+    return set(m.typename for m in merge(s.members for s in f.structs))
+
+
 def generate_cpp(f: File, sources: Out, name: str, header_only: bool, write_json: bool):
     headerguard = 'GENERATED_' + name.upper()
 
-    unique_types = set(m.typename for m in merge(s.members for s in f.structs))
-    default_types = [t[0] for t in ((t, get_cpp_type_from_stdint(t)) for t in unique_types)
-                     if t[1] != '' and t[0] != t[1]
+    # get all standard types used for typedefing later on...
+    unique_types = get_unique_types(f)
+    default_types = [t for t in unique_types
+                     if t.standard_type.get_cpp_type() != '' and t.name != t.get_cpp_type()
                      ]
 
     sources.add_header('#ifndef {}_H\n'.format(headerguard))
@@ -679,7 +742,7 @@ def generate_cpp(f: File, sources: Out, name: str, header_only: bool, write_json
     if len(default_types) > 0:
         sources.add_header('\n')
         for t in default_types:
-            sources.add_header('typedef {ct} {t};\n'.format(t=t, ct=get_cpp_type_from_stdint(t)))
+            sources.add_header('typedef {ct} {t};\n'.format(t=t.name, ct=t.get_cpp_type()))
         sources.add_header('\n')
 
     add_json_to_string_for_cpp(write_json, header_only, sources)
