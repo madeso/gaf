@@ -502,229 +502,248 @@ def merge(iters):
         yield from it
 
 
-def add_json_to_string_for_cpp(write_json: bool, header_only: bool, out, source: typing.List[str]):
+class Out:
+    def __init__(self):
+        self.header = []
+        self.source = []
+
+    def add_source(self, line: str):
+        self.source.append(line)
+
+    def add_header(self, line: str):
+        self.header.append(line)
+
+
+def add_json_to_string_for_cpp(write_json: bool, header_only: bool, sources: Out):
     if write_json:
         if header_only:
-            out.write('const char* const JsonToStringError(rapidjson::ParseErrorCode);\n')
-            out.write('\n')
-        source.append('const char* const JsonToStringError(rapidjson::ParseErrorCode err) {\n')
-        source.append('  switch(err) {\n')
-        source.append('  case rapidjson::kParseErrorNone: return nullptr;\n')
-        source.append('  case rapidjson::kParseErrorDocumentEmpty: return "JSON: The document is empty.";\n')
-        source.append(
+            sources.add_header('const char* const JsonToStringError(rapidjson::ParseErrorCode);\n')
+            sources.add_header('\n')
+        sources.add_source('const char* const JsonToStringError(rapidjson::ParseErrorCode err) {\n')
+        sources.add_source('  switch(err) {\n')
+        sources.add_source('  case rapidjson::kParseErrorNone: return nullptr;\n')
+        sources.add_source('  case rapidjson::kParseErrorDocumentEmpty: return "JSON: The document is empty.";\n')
+        sources.add_source(
             '  case rapidjson::kParseErrorDocumentRootNotSingular: return "JSON: The document root must not follow by other values.";\n')
-        source.append('  case rapidjson::kParseErrorValueInvalid: return "JSON: Invalid value.";\n')
-        source.append(
+        sources.add_source('  case rapidjson::kParseErrorValueInvalid: return "JSON: Invalid value.";\n')
+        sources.add_source(
             '  case rapidjson::kParseErrorObjectMissName: return "JSON: Missing name for a object member.";\n')
-        source.append(
+        sources.add_source(
             '  case rapidjson::kParseErrorObjectMissColon: return "JSON: Missing a colon after a name of object member.";\n')
-        source.append(
+        sources.add_source(
             '  case rapidjson::kParseErrorObjectMissCommaOrCurlyBracket: return "JSON: Missing a comma or } after an object member.";\n')
-        source.append(
+        sources.add_source(
             '  case rapidjson::kParseErrorArrayMissCommaOrSquareBracket: return "JSON: Missing a comma or ] after an array element.";\n')
-        source.append(
+        sources.add_source(
             '  case rapidjson::kParseErrorStringUnicodeEscapeInvalidHex: return "JSON: Incorrect hex digit after \\\\u escape in string.";\n')
-        source.append(
+        sources.add_source(
             '  case rapidjson::kParseErrorStringUnicodeSurrogateInvalid: return "JSON: The surrogate pair in string is invalid.";\n')
-        source.append(
+        sources.add_source(
             '  case rapidjson::kParseErrorStringEscapeInvalid: return "JSON: Invalid escape character in string.";\n')
-        source.append(
+        sources.add_source(
             '  case rapidjson::kParseErrorStringMissQuotationMark: return "JSON: Missing a closing quotation mark in string.";\n')
-        source.append(
+        sources.add_source(
             '  case rapidjson::kParseErrorStringInvalidEncoding: return "JSON: Invalid encoding in string.";\n')
-        source.append(
+        sources.add_source(
             '  case rapidjson::kParseErrorNumberTooBig: return "JSON: Number too big to be stored in double.";\n')
-        source.append(
+        sources.add_source(
             '  case rapidjson::kParseErrorNumberMissFraction: return "JSON: Miss fraction part in number.";\n')
-        source.append('  case rapidjson::kParseErrorNumberMissExponent: return "JSON: Miss exponent in number.";\n')
-        source.append('  case rapidjson::kParseErrorTermination: return "JSON: Parsing was terminated.";\n')
-        source.append('  case rapidjson::kParseErrorUnspecificSyntaxError: return "JSON: Unspecific syntax error.";\n')
-        source.append('  }\n')
-        source.append('  return "undefined erropr";\n')
-        source.append('}\n')
-        source.append('\n')
+        sources.add_source('  case rapidjson::kParseErrorNumberMissExponent: return "JSON: Miss exponent in number.";\n')
+        sources.add_source('  case rapidjson::kParseErrorTermination: return "JSON: Parsing was terminated.";\n')
+        sources.add_source('  case rapidjson::kParseErrorUnspecificSyntaxError: return "JSON: Unspecific syntax error.";\n')
+        sources.add_source('  }\n')
+        sources.add_source('  return "undefined erropr";\n')
+        sources.add_source('}\n')
+        sources.add_source('\n')
 
 
-def write_reset_function_for_cpp(out, source: typing.List[str], s: Struct):
-    out.write('  void Reset();\n')
-    out.write('\n')
-    source.append('void {n}::Reset() {{\n'.format(n=s.name))
+def write_reset_function_for_cpp(sources: Out, s: Struct):
+    sources.add_header('  void Reset();\n')
+    sources.add_header('\n')
+    sources.add_source('void {n}::Reset() {{\n'.format(n=s.name))
     for m in s.members:
         if m.defaultvalue is not None:
-            source.append('  {n} = {d};\n'.format(n=to_cpp_typename(m.name), d=m.defaultvalue))
+            sources.add_source('  {n} = {d};\n'.format(n=to_cpp_typename(m.name), d=m.defaultvalue))
         else:
-            source.append('  {n}.Reset();\n'.format(n=to_cpp_typename(m.name)))
-    source.append('}\n')
-    source.append('\n')
+            sources.add_source('  {n}.Reset();\n'.format(n=to_cpp_typename(m.name)))
+    sources.add_source('}\n')
+    sources.add_source('\n')
 
 
-def write_json_source_for_cpp(write_json: bool, source: typing.List[str], out, s: Struct):
+def write_json_source_for_cpp(write_json: bool, sources: Out, s: Struct):
     if write_json:
-        out.write('  const char* const ReadJsonSource(const char* const source);\n')
-        out.write('\n')
-        source.append('const char* const ReadFromJsonValue({}* c, const rapidjson::Value& value) {{\n'.format(s.name))
-        source.append('  if(!value.IsObject()) return "tried to read {} but value was not a object";\n'.format(s.name))
-        source.append('  rapidjson::Value::ConstMemberIterator iter;\n')
+        sources.add_header('  const char* const ReadJsonSource(const char* const source);\n')
+        sources.add_header('\n')
+        sources.add_source('const char* const ReadFromJsonValue({}* c, const rapidjson::Value& value) {{\n'.format(s.name))
+        sources.add_source('  if(!value.IsObject()) return "tried to read {} but value was not a object";\n'.format(s.name))
+        sources.add_source('  rapidjson::Value::ConstMemberIterator iter;\n')
         for m in s.members:
-            source.append('  iter = value.FindMember("{n}");\n'.format(n=m.name))
-            source.append('  if(iter != value.MemberEnd()) {\n')
+            sources.add_source('  iter = value.FindMember("{n}");\n'.format(n=m.name))
+            sources.add_source('  if(iter != value.MemberEnd()) {\n')
             if is_default_type(m.typename):
-                source.append(get_cpp_parse_from_rapidjson(m.typename, to_cpp_set(m.name), '    ', m.name))
+                sources.add_source(get_cpp_parse_from_rapidjson(m.typename, to_cpp_set(m.name), '    ', m.name))
             else:
-                source.append(
+                sources.add_source(
                     '   {{  const char* const r = ReadFromJsonValue(c->{}(),iter->value); if(r!=nullptr) {{ return r; }} }}\n'
                     .format(to_cpp_get_mod(m.name)))
-            source.append('  }\n')
-            source.append('  else {\n')
-            source.append('    return "missing {} in json object";\n'.format(m.name))
-            source.append('  }\n')
-        source.append('  return nullptr;\n')
-        source.append('}\n')
-        source.append('\n')
-        source.append('const char* const {}::ReadJsonSource(const char* const source) {{\n'.format(s.name))
-        source.append('  rapidjson::Document document;\n')
-        source.append('  document.Parse(source);\n')
-        source.append('  const char* const err = JsonToStringError(document.GetParseError());\n')
-        source.append('  if(err != nullptr ) {return err;}\n')
-        source.append('  return ReadFromJsonValue(this, document);\n')
-        source.append('}\n')
-        source.append('\n')
+            sources.add_source('  }\n')
+            sources.add_source('  else {\n')
+            sources.add_source('    return "missing {} in json object";\n'.format(m.name))
+            sources.add_source('  }\n')
+        sources.add_source('  return nullptr;\n')
+        sources.add_source('}\n')
+        sources.add_source('\n')
+        sources.add_source('const char* const {}::ReadJsonSource(const char* const source) {{\n'.format(s.name))
+        sources.add_source('  rapidjson::Document document;\n')
+        sources.add_source('  document.Parse(source);\n')
+        sources.add_source('  const char* const err = JsonToStringError(document.GetParseError());\n')
+        sources.add_source('  if(err != nullptr ) {return err;}\n')
+        sources.add_source('  return ReadFromJsonValue(this, document);\n')
+        sources.add_source('}\n')
+        sources.add_source('\n')
 
 
-def write_setter_and_getter_for_cpp(s: Struct, source: typing.List[str], out):
+def write_setter_and_getter_for_cpp(s: Struct, sources: Out):
     for m in s.members:
         if is_default_type(m.typename):
-            out.write('  {tn} {n}() const;\n'.format(n=to_cpp_get(m.name), tn=m.typename))
-            source.append(
+            sources.add_header('  {tn} {n}() const;\n'.format(n=to_cpp_get(m.name), tn=m.typename))
+            sources.add_source(
                 '{tn} {cn}::{n}() const {{ return {v}; }}\n'.format(n=to_cpp_get(m.name), tn=m.typename, cn=s.name,
                                                                     v=to_cpp_typename(m.name)))
-            out.write('  void {n}({tn} {an});\n'.format(n=to_cpp_set(m.name), an=m.name, tn=m.typename))
-            source.append(
+            sources.add_header('  void {n}({tn} {an});\n'.format(n=to_cpp_set(m.name), an=m.name, tn=m.typename))
+            sources.add_source(
                 'void {cn}::{n}({tn} {an}) {{ {v} = {an}; }}\n'.format(n=to_cpp_set(m.name), an=m.name, tn=m.typename,
                                                                        cn=s.name, v=to_cpp_typename(m.name)))
         else:
-            out.write('  const {tn}& {n}() const;\n'.format(n=to_cpp_get(m.name), tn=m.typename))
-            source.append(
+            sources.add_header('  const {tn}& {n}() const;\n'.format(n=to_cpp_get(m.name), tn=m.typename))
+            sources.add_source(
                 'const {tn}& {cn}::{n}() const {{ return {v}; }}\n'.format(n=to_cpp_get(m.name), tn=m.typename,
                                                                            cn=s.name, v=to_cpp_typename(m.name)))
-            out.write('  {tn}* {n}();\n'.format(n=to_cpp_get_mod(m.name), tn=m.typename))
-            source.append(
+            sources.add_header('  {tn}* {n}();\n'.format(n=to_cpp_get_mod(m.name), tn=m.typename))
+            sources.add_source(
                 '{tn}* {cn}::{n}() {{ return &{v}; }}\n'.format(n=to_cpp_get_mod(m.name), tn=m.typename, cn=s.name,
                                                                 v=to_cpp_typename(m.name)))
-            out.write('  void {n}(const {tn}& {an});\n'.format(n=to_cpp_set(m.name), an=m.name, tn=m.typename))
-            source.append('void {cn}::{n}(const {tn}& {an}) {{ {v} = {an}; }}\n'.format(n=to_cpp_set(m.name), an=m.name,
+            sources.add_header('  void {n}(const {tn}& {an});\n'.format(n=to_cpp_set(m.name), an=m.name, tn=m.typename))
+            sources.add_source('void {cn}::{n}(const {tn}& {an}) {{ {v} = {an}; }}\n'.format(n=to_cpp_set(m.name), an=m.name,
                                                                                         tn=m.typename, cn=s.name,
                                                                                         v=to_cpp_typename(m.name)))
-        out.write('\n')
-        source.append('\n')
+        sources.add_header('\n')
+        sources.add_source('\n')
 
 
-def write_member_variables_for_cpp(out, s: Struct):
-    out.write(' private:\n')
+def write_member_variables_for_cpp(sources: Out, s: Struct):
+    sources.add_header(' private:\n')
     for m in s.members:
-        out.write('  {tn} {n};\n'.format(n=to_cpp_typename(m.name), tn=m.typename))
-    out.write('}}; // class {}\n'.format(s.name))
+        sources.add_header('  {tn} {n};\n'.format(n=to_cpp_typename(m.name), tn=m.typename))
+    sources.add_header('}}; // class {}\n'.format(s.name))
 
 
-def write_default_constructor_for_cpp(s: Struct, out, source: typing.List[str]):
-    out.write('  {}();\n'.format(s.name))
-    out.write('\n')
+def write_default_constructor_for_cpp(s: Struct, sources: Out):
+    sources.add_header('  {}();\n'.format(s.name))
+    sources.add_header('\n')
     common_members = [x for x in s.members if x.defaultvalue is not None]
-    source.append('{n}::{n}()\n'.format(n=s.name))
+    sources.add_source('{n}::{n}()\n'.format(n=s.name))
     sep = ':'
     for m in common_members:
-        source.append('  {s} {n}({d})\n'.format(s=sep, n=to_cpp_typename(m.name), d=m.defaultvalue))
+        sources.add_source('  {s} {n}({d})\n'.format(s=sep, n=to_cpp_typename(m.name), d=m.defaultvalue))
         sep = ','
-    source.append('{}\n')
-    source.append('\n')
+    sources.add_source('{}\n')
+    sources.add_source('\n')
 
 
-def write_cpp(f: File, args, out_dir: str, name: str):
+def generate_cpp(f: File, sources: Out, name: str, header_only: bool, write_json: bool):
     headerguard = 'GENERATED_' + name.upper()
-
-    source = []
-
-    header_only = args.header_only
-    write_json = args.include_json
 
     unique_types = set(m.typename for m in merge(s.members for s in f.structs))
     default_types = [t[0] for t in ((t, get_cpp_type_from_stdint(t)) for t in unique_types)
                      if t[1] != '' and t[0] != t[1]
                      ]
 
+    sources.add_header('#ifndef {}_H\n'.format(headerguard))
+    sources.add_header('#define {}_H\n'.format(headerguard))
+    sources.add_header('\n')
+    if len(default_types) > 0:
+        sources.add_header('\n')
+        sources.add_header('#include <cstdint>\n')
+        sources.add_header('\n')
+
+    if write_json and header_only:
+        sources.add_header('#include <limits>\n')
+        sources.add_header('#include "rapidjson/document.h"\n')
+        sources.add_header('\n')
+
+    if f.package_name != '':
+        sources.add_header('namespace {} {{\n'.format(f.package_name))
+        sources.add_header('\n')
+
+    if len(default_types) > 0:
+        sources.add_header('\n')
+        for t in default_types:
+            sources.add_header('typedef {ct} {t};\n'.format(t=t, ct=get_cpp_type_from_stdint(t)))
+        sources.add_header('\n')
+
+    add_json_to_string_for_cpp(write_json, header_only, sources)
+
+    for s in f.structs:
+        sources.add_header('class {} {{\n'.format(s.name))
+        sources.add_header(' public:\n')
+        write_default_constructor_for_cpp(s, sources)
+
+        write_reset_function_for_cpp(sources, s)
+        write_json_source_for_cpp(write_json, sources, s)
+        write_setter_and_getter_for_cpp(s, sources)
+        write_member_variables_for_cpp(sources, s)
+
+        if header_only and write_json:
+            sources.add_header('\n')
+            sources.add_header('const char* const ReadFromJsonValue({}* c, const rapidjson::Value& value);\n'.format(s.name))
+        sources.add_header('\n')
+
+    if header_only:
+        sources.add_header('#ifdef {}_IMPLEMENTATION\n'.format(headerguard))
+        sources.add_header('\n')
+        for s in sources.source:
+            sources.add_header(s)
+        sources.add_header('#endif // {}_IMPLEMENTATION\n'.format(headerguard))
+
+    if f.package_name != '':
+        sources.add_header('}} // namespace {}\n'.format(f.package_name))
+        sources.add_header('\n')
+    sources.add_header('\n')
+    sources.add_header('#endif  // {}_H\n'.format(headerguard))
+
+
+def write_cpp(f: File, args, out_dir: str, name: str):
+    header_only = args.header_only
+    write_json = args.include_json
+
+    sources = Out()
+    generate_cpp(f, sources, name, header_only, write_json)
+
     with open(os.path.join(out_dir, name + '.h'), 'w', encoding='utf-8') as out:
-        out.write('#ifndef {}_H\n'.format(headerguard))
-        out.write('#define {}_H\n'.format(headerguard))
-        out.write('\n')
-        if len(default_types) > 0:
-            out.write('\n')
-            out.write('#include <cstdint>\n')
-            out.write('\n')
-
-        if write_json and header_only:
-            out.write('#include <limits>\n')
-            out.write('#include "rapidjson/document.h"\n')
-            out.write('\n')
-
-        if f.package_name != '':
-            out.write('namespace {} {{\n'.format(f.package_name))
-            out.write('\n')
-
-        if len(default_types) > 0:
-            out.write('\n')
-            for t in default_types:
-                out.write('typedef {ct} {t};\n'.format(t=t, ct=get_cpp_type_from_stdint(t)))
-            out.write('\n')
-
-        add_json_to_string_for_cpp(write_json, header_only, out, source)
-
-        for s in f.structs:
-            out.write('class {} {{\n'.format(s.name))
-            out.write(' public:\n')
-            write_default_constructor_for_cpp(s, out, source)
-
-            write_reset_function_for_cpp(out, source, s)
-            write_json_source_for_cpp(write_json, source, out, s)
-            write_setter_and_getter_for_cpp(s, source, out)
-            write_member_variables_for_cpp(out, s)
-
-            if header_only and write_json:
-                out.write('\n')
-                out.write('const char* const ReadFromJsonValue({}* c, const rapidjson::Value& value);\n'.format(s.name))
-            out.write('\n')
-
-        if header_only:
-            out.write('#ifdef {}_IMPLEMENTATION\n'.format(headerguard))
-            out.write('\n')
-            for s in source:
-                out.write(s)
-            out.write('#endif // {}_IMPLEMENTATION\n'.format(headerguard))
-
-        if f.package_name != '':
-            out.write('}} // namespace {}\n'.format(f.package_name))
-            out.write('\n')
-        out.write('\n')
-        out.write('#endif  // {}_H\n'.format(headerguard))
+        for s in sources.header:
+            out.write(s)
 
     if not header_only:
         with open(os.path.join(out_dir, name + '.cc'), 'w', encoding='utf-8') as out:
-            out.write('#include "{}.h"\n'.format(name))
-            out.write('\n')
-            out.write('#include <limits>\n')
-            if write_json:
-                out.write('#include "rapidjson/document.h"\n')
-            out.write('\n')
-
-            if f.package_name != '':
-                out.write('namespace {} {{\n'.format(f.package_name))
+            with open(os.path.join(out_dir, name + '.cc'), 'w', encoding='utf-8') as out:
+                out.write('#include "{}.h"\n'.format(name))
+                out.write('\n')
+                out.write('#include <limits>\n')
+                if write_json:
+                    out.write('#include "rapidjson/document.h"\n')
                 out.write('\n')
 
-            for s in source:
-                out.write(s)
+                if f.package_name != '':
+                    out.write('namespace {} {{\n'.format(f.package_name))
+                    out.write('\n')
 
-            if f.package_name != '':
-                out.write('}} // namespace {}\n'.format(f.package_name))
-                out.write('\n')
+                for s in sources.source:
+                    out.write(s)
+
+                if f.package_name != '':
+                    out.write('}} // namespace {}\n'.format(f.package_name))
+                    out.write('\n')
 
 
 def on_generate_command(args):
