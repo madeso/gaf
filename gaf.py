@@ -118,10 +118,12 @@ def is_ident(first: bool, ch: typing.Optional[str]) -> bool:
 
 
 class Type:
-    def __init__(self, standard_type: StandardType, name: str, pass_as_value: bool):
+    def __init__(self, standard_type: StandardType, name: str, pass_as_value: bool,
+                 default_value: typing.Optional[str]=None):
         self.name = name
         self.standard_type = standard_type
         self.pass_as_value = pass_as_value
+        self.default_value = default_value
 
     def get_cpp_type(self) -> str:
         if self.standard_type == StandardType.INVALID:
@@ -139,13 +141,13 @@ class TypeList:
         self.types[t.name] = t
 
     def add_default_types(self):
-        self.add_type(Type(StandardType.int8, 'int8', True))
-        self.add_type(Type(StandardType.int16, 'int16', True))
-        self.add_type(Type(StandardType.int32, 'int32', True))
-        self.add_type(Type(StandardType.int64, 'int64', True))
-        self.add_type(Type(StandardType.float, 'float', True))
-        self.add_type(Type(StandardType.double, 'double', True))
-        self.add_type(Type(StandardType.byte, 'byte', True))
+        self.add_type(Type(StandardType.int8, 'int8', True, '0'))
+        self.add_type(Type(StandardType.int16, 'int16', True, '0'))
+        self.add_type(Type(StandardType.int32, 'int32', True, '0'))
+        self.add_type(Type(StandardType.int64, 'int64', True, '0'))
+        self.add_type(Type(StandardType.float, 'float', True, '0.0f'))
+        self.add_type(Type(StandardType.double, 'double', True, '0.0'))
+        self.add_type(Type(StandardType.byte, 'byte', True, '0'))
 
     def is_valid_type(self, name: str) -> bool:
         return name in self.types
@@ -252,7 +254,7 @@ class Member:
     def __init__(self, name: str, typename: Type):
         self.name = name
         self.typename = typename
-        self.defaultvalue = None
+        self.defaultvalue = typename.default_value
         self.array = None
 
     def __str__(self):
