@@ -2,7 +2,7 @@
 
 import typing
 
-from gaf_types import StandardType, is_default_type, ArrayData, Struct, TypeList, File, Type, Member
+from gaf_types import StandardType, is_default_type, Struct, TypeList, File, Type, Member
 
 
 class ParseError(Exception):
@@ -172,71 +172,6 @@ def read_default_value(f: CharFile, t: Type, fi: File) -> str:
     return ''
 
 
-def read_array(f: CharFile, fi: File) -> ArrayData:
-    read_single_char(f, '[')
-    read_spaces(f)
-    ch = peek_char(f)
-
-    first_number = None
-    second_number = None
-    first_type = None
-    second_type = None
-
-    if is_ident(True, ch):
-        ident = read_ident(f)
-        if is_default_type(ident):
-            first_type = ident
-        else:
-            c = fi.find_constant(ident, None)
-            if c is None:
-                f.report_error('the first ident {} is neither a type nor a constant'.format(ident))
-            else:
-                first_number = c.value
-    else:
-        first_number = read_number(f)
-
-    read_spaces(f)
-    c = peek_char(f)
-    if c == ',':
-        read_single_char(f, ',')
-        read_spaces(f)
-        c = peek_char(f)
-        if is_ident(True, c):
-            ident = read_ident(f)
-            if is_default_type(ident):
-                second_type = ident
-            else:
-                constant = fi.find_constant(ident, None)
-                if constant is None:
-                    f.report_error('the second ident {} is neither a type nor a constant'.format(ident))
-                else:
-                    second_number = constant.value
-
-        elif is_number(c):
-            second_number = read_number(f)
-        else:
-            f.report_error('unexpected character in array expression: {}'.format(c))
-    read_spaces(f)
-    read_single_char(f, ']')
-
-    array = ArrayData()
-
-    if second_number is None and second_type is None:
-        array.total_size_number = first_number
-        array.total_size_type = first_type
-    elif first_type is not None:
-        array.current_size = first_type
-        array.total_size_number = second_number
-        array.total_size_type = second_type
-    else:
-        if first_number is not None:
-            f.report_error('Current size is always {}'.format(first_number))
-        else:
-            f.report_error('Invalid state')
-
-    return array
-
-
 def read_struct(f: CharFile, type_list: TypeList, fi: File) -> Struct:
     struct_name = read_ident(f)
     struct = Struct(struct_name)
@@ -250,14 +185,6 @@ def read_struct(f: CharFile, type_list: TypeList, fi: File) -> Struct:
             f.report_error('Invalid type {t} for member {s}.{m}'.format(t=ty, s=struct_name, m=name))
         valid_type = type_list.get_type(ty) if type_list.is_valid_type(ty) else StandardType.int32
         mem = Member(name, valid_type)
-
-        if ch == '[':
-            array = read_array(f, fi)
-
-            mem.array = array
-
-            read_spaces(f)
-            ch = peek_char(f)
 
         if ch == '=':
             if not is_default_type(ty):

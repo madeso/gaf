@@ -79,20 +79,11 @@ def is_default_type(tn: str) -> bool:
     return tl.is_valid_type(tn)
 
 
-# todo: remove
-class ArrayData:
-    def __init__(self):
-        self.total_size_number = None
-        self.total_size_type = None
-        self.current_size = None
-
-
 class Member:
     def __init__(self, name: str, typename: Type):
         self.name = name
         self.typename = typename
         self.defaultvalue = typename.default_value
-        self.array = None
 
     def __str__(self):
         if self.defaultvalue is None:
