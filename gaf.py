@@ -1,13 +1,15 @@
 #!/usr/bin/env python3
 # GAme Format Parser
 
-# todo: structure python code better
-# todo: remove parse from json source, let the user spcify how to read... templates?
+# todo: GENERAL: structure python code better
+
 # todo: dont specify constructor if no default values are defined
+# todo: verify that the user can specify other json documents than the default
 # todo: string
 # todo: array
 # todo: enum
 # todo: imgui api/extensions
+# todo: allow place "extensions" in other files
 # todo: json read/write
 # todo: toml read/write
 # todo: binary read/write
@@ -532,53 +534,8 @@ class Out:
         self.header.append(line)
 
 
-def add_json_to_string_for_cpp(write_json: bool, header_only: bool, sources: Out):
-    if write_json:
-        if header_only:
-            sources.add_header('const char* const JsonToStringError(rapidjson::ParseErrorCode);\n')
-            sources.add_header('\n')
-        sources.add_source('const char* const JsonToStringError(rapidjson::ParseErrorCode err) {\n')
-        sources.add_source('  switch(err) {\n')
-        sources.add_source('  case rapidjson::kParseErrorNone: return nullptr;\n')
-        sources.add_source('  case rapidjson::kParseErrorDocumentEmpty: return "JSON: The document is empty.";\n')
-        sources.add_source(
-            '  case rapidjson::kParseErrorDocumentRootNotSingular: return "JSON: The document root must not follow by other values.";\n')
-        sources.add_source('  case rapidjson::kParseErrorValueInvalid: return "JSON: Invalid value.";\n')
-        sources.add_source(
-            '  case rapidjson::kParseErrorObjectMissName: return "JSON: Missing name for a object member.";\n')
-        sources.add_source(
-            '  case rapidjson::kParseErrorObjectMissColon: return "JSON: Missing a colon after a name of object member.";\n')
-        sources.add_source(
-            '  case rapidjson::kParseErrorObjectMissCommaOrCurlyBracket: return "JSON: Missing a comma or } after an object member.";\n')
-        sources.add_source(
-            '  case rapidjson::kParseErrorArrayMissCommaOrSquareBracket: return "JSON: Missing a comma or ] after an array element.";\n')
-        sources.add_source(
-            '  case rapidjson::kParseErrorStringUnicodeEscapeInvalidHex: return "JSON: Incorrect hex digit after \\\\u escape in string.";\n')
-        sources.add_source(
-            '  case rapidjson::kParseErrorStringUnicodeSurrogateInvalid: return "JSON: The surrogate pair in string is invalid.";\n')
-        sources.add_source(
-            '  case rapidjson::kParseErrorStringEscapeInvalid: return "JSON: Invalid escape character in string.";\n')
-        sources.add_source(
-            '  case rapidjson::kParseErrorStringMissQuotationMark: return "JSON: Missing a closing quotation mark in string.";\n')
-        sources.add_source(
-            '  case rapidjson::kParseErrorStringInvalidEncoding: return "JSON: Invalid encoding in string.";\n')
-        sources.add_source(
-            '  case rapidjson::kParseErrorNumberTooBig: return "JSON: Number too big to be stored in double.";\n')
-        sources.add_source(
-            '  case rapidjson::kParseErrorNumberMissFraction: return "JSON: Miss fraction part in number.";\n')
-        sources.add_source('  case rapidjson::kParseErrorNumberMissExponent: return "JSON: Miss exponent in number.";\n')
-        sources.add_source('  case rapidjson::kParseErrorTermination: return "JSON: Parsing was terminated.";\n')
-        sources.add_source('  case rapidjson::kParseErrorUnspecificSyntaxError: return "JSON: Unspecific syntax error.";\n')
-        sources.add_source('  }\n')
-        sources.add_source('  return "undefined erropr";\n')
-        sources.add_source('}\n')
-        sources.add_source('\n')
-
-
 def write_json_source_for_cpp(write_json: bool, sources: Out, s: Struct):
     if write_json:
-        sources.add_header('  const char* const ReadJsonSource(const char* const source);\n')
-        sources.add_header('\n')
         sources.add_source('const char* const ReadFromJsonValue({}* c, const rapidjson::Value& value) {{\n'.format(s.name))
         sources.add_source('  if(!value.IsObject()) return "tried to read {} but value was not a object";\n'.format(s.name))
         sources.add_source('  rapidjson::Value::ConstMemberIterator iter;\n')
@@ -598,18 +555,10 @@ def write_json_source_for_cpp(write_json: bool, sources: Out, s: Struct):
         sources.add_source('  return nullptr;\n')
         sources.add_source('}\n')
         sources.add_source('\n')
-        sources.add_source('const char* const {}::ReadJsonSource(const char* const source) {{\n'.format(s.name))
-        sources.add_source('  rapidjson::Document document;\n')
-        sources.add_source('  document.Parse(source);\n')
-        sources.add_source('  const char* const err = JsonToStringError(document.GetParseError());\n')
-        sources.add_source('  if(err != nullptr ) {return err;}\n')
-        sources.add_source('  return ReadFromJsonValue(this, document);\n')
-        sources.add_source('}\n')
-        sources.add_source('\n')
 
 
 def write_member_variables_for_cpp(sources: Out, s: Struct):
-    sources.add_header(' public:\n')
+    # sources.add_header(' public:\n')
     for m in s.members:
         sources.add_header('  {tn} {n};\n'.format(n=m.name, tn=m.typename.name))
     sources.add_header('}}; // class {}\n'.format(s.name))
@@ -663,8 +612,6 @@ def generate_cpp(f: File, sources: Out, name: str, header_only: bool, write_json
         for t in default_types:
             sources.add_header('typedef {ct} {t};\n'.format(t=t.name, ct=t.get_cpp_type()))
         sources.add_header('\n')
-
-    add_json_to_string_for_cpp(write_json, header_only, sources)
 
     for s in f.structs:
         sources.add_header('class {} {{\n'.format(s.name))
