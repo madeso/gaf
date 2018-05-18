@@ -535,7 +535,7 @@ class Out:
 
 def write_json_source_for_cpp(write_json: bool, sources: Out, s: Struct):
     if write_json:
-        sources.add_source('const char* const ReadFromJsonValue({}* c, const rapidjson::Value& value) {{\n'.format(s.name))
+        sources.add_source('const char* ReadFromJsonValue({}* c, const rapidjson::Value& value) {{\n'.format(s.name))
         sources.add_source('  if(!value.IsObject()) return "tried to read {} but value was not a object";\n'.format(s.name))
         sources.add_source('  rapidjson::Value::ConstMemberIterator iter;\n')
         for m in s.members:
@@ -623,7 +623,7 @@ def generate_cpp(f: File, sources: Out, name: str, header_only: bool, write_json
 
         if header_only and write_json:
             sources.add_header('\n')
-            sources.add_header('const char* const ReadFromJsonValue({}* c, const rapidjson::Value& value);\n'.format(s.name))
+            sources.add_header('const char* ReadFromJsonValue({}* c, const rapidjson::Value& value);\n'.format(s.name))
         sources.add_header('\n')
 
     if header_only:
