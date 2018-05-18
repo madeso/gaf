@@ -2,6 +2,7 @@
 # GAme Format Parser
 
 # todo: GENERAL: structure python code better
+# todo: update travis and others to get more system configs
 
 # todo: verify that the user can specify other json documents than the default
 # todo: string
