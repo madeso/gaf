@@ -9,9 +9,9 @@
 #include "mygaf.h"
 
 TEST_CASE("constructor") {
-  const Foo foo;
-  REQUIRE(foo.hello == 0);
-  REQUIRE(foo.world == 0.0f);
+  Foo foo;
+  CHECK(foo.hello == 0);
+  CHECK(foo.world == Approx(0.0f));
 }
 
 TEST_CASE("setter") {
