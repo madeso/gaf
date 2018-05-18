@@ -3,7 +3,6 @@
 
 # todo: GENERAL: structure python code better
 
-# todo: dont specify constructor if no default values are defined
 # todo: verify that the user can specify other json documents than the default
 # todo: string
 # todo: array
@@ -565,16 +564,17 @@ def write_member_variables_for_cpp(sources: Out, s: Struct):
 
 
 def write_default_constructor_for_cpp(s: Struct, sources: Out):
-    sources.add_header('  {}();\n'.format(s.name))
-    sources.add_header('\n')
     common_members = [x for x in s.members if x.defaultvalue is not None]
-    sources.add_source('{n}::{n}()\n'.format(n=s.name))
-    sep = ':'
-    for m in common_members:
-        sources.add_source('  {s} {n}({d})\n'.format(s=sep, n=m.name, d=m.defaultvalue))
-        sep = ','
-    sources.add_source('{}\n')
-    sources.add_source('\n')
+    if len(common_members)>0:
+        sources.add_header('  {}();\n'.format(s.name))
+        sources.add_header('\n')
+        sources.add_source('{n}::{n}()\n'.format(n=s.name))
+        sep = ':'
+        for m in common_members:
+            sources.add_source('  {s} {n}({d})\n'.format(s=sep, n=m.name, d=m.defaultvalue))
+            sep = ','
+        sources.add_source('{}\n')
+        sources.add_source('\n')
 
 
 def get_unique_types(f: File) -> typing.Set[Type]:
