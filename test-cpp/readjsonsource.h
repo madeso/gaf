@@ -3,8 +3,10 @@
 
 #if GAF_TEST_JSON
 
+#include "rapidjson/document.h"
+
 template<typename T>
-const char* const ReadJsonSource(T* t, const char* const source) {
+const char* ReadJsonSource(T* t, const char* const source) {
   rapidjson::Document document;
   document.Parse(source);
   const auto err = document.GetParseError();

@@ -605,6 +605,11 @@ def generate_cpp(f: File, sources: Out, name: str, header_only: bool, write_json
         sources.add_header('#include "rapidjson/document.h"\n')
         sources.add_header('\n')
 
+    if write_json and not header_only:
+        # todo: forward decalre rapidjson::Value
+        sources.add_header('#include "rapidjson/document.h"\n')
+        sources.add_header('\n')
+
     if f.package_name != '':
         sources.add_header('namespace {} {{\n'.format(f.package_name))
         sources.add_header('\n')
@@ -623,7 +628,7 @@ def generate_cpp(f: File, sources: Out, name: str, header_only: bool, write_json
         write_json_source_for_cpp(write_json, sources, s)
         write_member_variables_for_cpp(sources, s)
 
-        if header_only and write_json:
+        if write_json:
             sources.add_header('\n')
             sources.add_header('const char* ReadFromJsonValue({}* c, const rapidjson::Value& value);\n'.format(s.name))
         sources.add_header('\n')
