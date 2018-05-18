@@ -14,6 +14,7 @@ class StandardType(Enum):
     float = object()
     double = object()
     byte = object()
+    string = object()
     INVALID = object()
 
     def get_cpp_type(self) -> str:
@@ -31,6 +32,8 @@ class StandardType(Enum):
             return 'double'
         if self == StandardType.byte:
             return 'char'
+        if self == StandardType.string:
+            return 'std::string'
         return ''
 
 
@@ -65,6 +68,7 @@ class TypeList:
         self.add_type(Type(StandardType.float, 'float', True, '0.0f'))
         self.add_type(Type(StandardType.double, 'double', True, '0.0'))
         self.add_type(Type(StandardType.byte, 'byte', True, '0'))
+        self.add_type(Type(StandardType.string, 'string', False))
 
     def is_valid_type(self, name: str) -> bool:
         return name in self.types
