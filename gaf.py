@@ -2,9 +2,12 @@
 # GAme Format Parser
 
 # todo: structure python code better
-# todo: minimal clean code here!
+# todo: remove parse from json source, let the user spcify how to read... templates?
+# todo: dont specify constructor if no default values are defined
+# todo: string
 # todo: array
 # todo: enum
+# todo: imgui api/extensions
 # todo: json read/write
 # todo: toml read/write
 # todo: binary read/write
@@ -47,24 +50,6 @@ class StandardType(Enum):
         if self == StandardType.byte:
             return 'char'
         return ''
-
-
-def parse_standard_type(t: str) -> StandardType:
-    if t == 'int8':
-        return StandardType.int8
-    if t == 'int16':
-        return StandardType.int16
-    if t == 'int32':
-        return StandardType.int32
-    if t == 'int64':
-        return StandardType.int64
-    if t == 'float':
-        return StandardType.float
-    if t == 'double':
-        return StandardType.double
-    if t == 'byte':
-        return StandardType.byte
-    return StandardType.INVALID
 
 
 class ParseError(Exception):
@@ -721,24 +706,23 @@ def write_cpp(f: File, args, out_dir: str, name: str):
 
     if not header_only:
         with open(os.path.join(out_dir, name + '.cc'), 'w', encoding='utf-8') as out:
-            with open(os.path.join(out_dir, name + '.cc'), 'w', encoding='utf-8') as out:
-                out.write('#include "{}.h"\n'.format(name))
+            out.write('#include "{}.h"\n'.format(name))
+            out.write('\n')
+            out.write('#include <limits>\n')
+            if write_json:
+                out.write('#include "rapidjson/document.h"\n')
+            out.write('\n')
+
+            if f.package_name != '':
+                out.write('namespace {} {{\n'.format(f.package_name))
                 out.write('\n')
-                out.write('#include <limits>\n')
-                if write_json:
-                    out.write('#include "rapidjson/document.h"\n')
+
+            for s in sources.source:
+                out.write(s)
+
+            if f.package_name != '':
+                out.write('}} // namespace {}\n'.format(f.package_name))
                 out.write('\n')
-
-                if f.package_name != '':
-                    out.write('namespace {} {{\n'.format(f.package_name))
-                    out.write('\n')
-
-                for s in sources.source:
-                    out.write(s)
-
-                if f.package_name != '':
-                    out.write('}} // namespace {}\n'.format(f.package_name))
-                    out.write('\n')
 
 
 def on_generate_command(args):
