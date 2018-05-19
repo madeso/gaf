@@ -4,7 +4,6 @@
 # todo: GENERAL: structure python code better
 # todo: update travis and others to get more system configs
 
-# todo: verify that the user can specify other json documents than the default, like differnt loading flags
 # todo: array
 # todo: enum
 # todo: imgui api/extensions
