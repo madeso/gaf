@@ -5,7 +5,7 @@ struct Foo {
 
 struct Bar {
   Foo foo;
-  int8 bar;
+  string bar;
 }
 
 
