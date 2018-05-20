@@ -10,11 +10,11 @@
 #include "readjsonsource.h"
 
 TEST_CASE("constructor") {
-  const Foo foo;
+  Foo foo;
   REQUIRE(foo.hello == 0);
   REQUIRE(foo.world == 0.0f);
 
-  const Bar bar;
+  Bar bar;
   REQUIRE(bar.foo.hello == 0);
   REQUIRE(bar.foo.world == 0.0f);
   REQUIRE(bar.bar == "");
