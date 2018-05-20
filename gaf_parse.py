@@ -179,16 +179,28 @@ def read_struct(f: CharFile, type_list: TypeList, fi: File) -> Struct:
     while peek_char(f) != '}':
         ty = read_ident(f)
         name = read_ident(f)
-        read_spaces(f)
-        ch = peek_char(f)
         if type_list.is_valid_type(ty) is False:
             f.report_error('Invalid type {t} for member {s}.{m}'.format(t=ty, s=struct_name, m=name))
         valid_type = type_list.get_type(ty) if type_list.is_valid_type(ty) else StandardType.int32
         mem = Member(name, valid_type)
 
+        read_spaces(f)
+        ch = peek_char(f)
+
+        if ch == '[':
+            read_char(f)
+            read_spaces(f)
+            read_single_char(f, ']')
+            mem.is_dynamic_array = True
+
+            read_spaces(f)
+            ch = peek_char(f)
+
         if ch == '=':
             if not is_default_type(ty):
                 f.report_error('structs cant have default values yet')
+            if mem.is_dynamic_array:
+                f.report_error('dynamic arrays cant have default values yet')
             read_char(f)
             mem.defaultvalue = read_default_value(f, valid_type, fi)
         read_spaces(f)

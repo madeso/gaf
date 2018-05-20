@@ -88,6 +88,7 @@ class Member:
         self.name = name
         self.typename = typename
         self.defaultvalue = typename.default_value
+        self.is_dynamic_array = False
 
     def __str__(self):
         if self.defaultvalue is None:

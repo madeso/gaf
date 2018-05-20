@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 import os
 
-from gaf_types import StandardType, Struct, get_unique_types, File
+from gaf_types import StandardType, Struct, get_unique_types, File, Member
 
 
 class Out:
@@ -16,46 +16,102 @@ class Out:
         self.header.append(line)
 
 
-def get_cpp_parse_from_rapidjson_helper_int(sources: Out, t: StandardType, member: str, indent: str, name: str) -> None:
-    line = '{i}if(iter->value.IsInt64()==false) return "read value for {n} was not a integer"; \n' \
-           '{i}else {{\n' \
-           '{i}  auto gafv = iter->value.GetInt64();\n' \
-           '{i}  if(gafv < std::numeric_limits<{t}>::min()) return "read value for {n} was to low";\n' \
-           '{i}  if(gafv > std::numeric_limits<{t}>::max()) return "read value for {n} was to high";\n' \
-           '{i}  c->{m} = static_cast<{t}>(gafv);\n' \
-           '{i}}}\n'.format(m=member, i=indent, t=t.get_cpp_type(), n=name)
+class VarValue:
+    def __init__(self, variable: str, value: str):
+        self.variable = variable
+        self.value = value
+
+
+def get_cpp_parse_from_rapidjson_helper_int(sources: Out, t: StandardType, member: str, indent: str, name: str, json: str) -> VarValue:
+    line = '{i}if({j}.IsInt64()==false) return "read value for {n} was not a integer"; \n' \
+           '{i}auto gafv = {j}.GetInt64();\n' \
+           '{i}if(gafv < std::numeric_limits<{t}>::min()) return "read value for {n} was to low";\n' \
+           '{i}if(gafv > std::numeric_limits<{t}>::max()) return "read value for {n} was to high";\n'\
+        .format(m=member, i=indent, t=t.get_cpp_type(), n=name, j=json)
     sources.add_source(line)
+    var = 'c->{m}'.format(m=member)
+    val = 'static_cast<{t}>(gafv)'.format(t=t.get_cpp_type())
+    return VarValue(variable=var, value=val)
 
 
-def get_cpp_parse_from_rapidjson_helper_float(sources: Out, member: str, indent: str, name: str) -> None:
-    line = '{i}if(iter->value.IsDouble()==false) return "read value for {n} was not a double"; \n' \
-           '{i}c->{m} = iter->value.GetDouble();\n'.format(m=member, i=indent, n=name)
+def get_cpp_parse_from_rapidjson_helper_float(sources: Out, member: str, indent: str, name: str, json: str) -> VarValue:
+    line = '{i}if({j}.IsDouble()==false) return "read value for {n} was not a double"; \n'\
+        .format(m=member, i=indent, n=name, j=json)
     sources.add_source(line)
+    var = 'c->{m}'.format(m=member)
+    val = '{}.GetDouble()'.format(json)
+    return VarValue(variable=var, value=val)
 
 
-def get_cpp_parse_from_rapidjson(sources: Out, t: StandardType, member: str, indent: str, name: str) -> None:
+def get_cpp_parse_from_rapidjson_base(sources: Out, t: StandardType, member: str, indent: str, name: str, json: str) -> VarValue:
     if t == StandardType.int8:
-        get_cpp_parse_from_rapidjson_helper_int(sources, t, member, indent, name)
+        return get_cpp_parse_from_rapidjson_helper_int(sources, t, member, indent, name, json)
     elif t == StandardType.int16:
-        get_cpp_parse_from_rapidjson_helper_int(sources, t, member, indent, name)
+        return get_cpp_parse_from_rapidjson_helper_int(sources, t, member, indent, name, json)
     elif t == StandardType.int32:
-        get_cpp_parse_from_rapidjson_helper_int(sources, t, member, indent, name)
+        return get_cpp_parse_from_rapidjson_helper_int(sources, t, member, indent, name, json)
     elif t == StandardType.int64:
-        line = '{i}if(iter->value.IsInt64()==false) return "read value for {n} was not a integer"; \n' \
-               '{i}c->{m} = iter->value.GetInt64();\n'.format(m=member, i=indent, t=t, n=name)
+        line = '{i}if({j}.IsInt64()==false) return "read value for {n} was not a integer"; \n'\
+            .format(m=member, i=indent, t=t, n=name, j=json)
+        var = 'c->{m}'.format(m=member)
+        val = '{}.GetInt64()'.format(json)
         sources.add_source(line)
+        return VarValue(variable=var, value=val)
     elif t == StandardType.float:
-        get_cpp_parse_from_rapidjson_helper_float(sources, member, indent, name)
+        return get_cpp_parse_from_rapidjson_helper_float(sources, member, indent, name, json)
     elif t == StandardType.double:
-        get_cpp_parse_from_rapidjson_helper_float(sources, member, indent, name)
+        return get_cpp_parse_from_rapidjson_helper_float(sources, member, indent, name, json)
     elif t == StandardType.byte:
-        get_cpp_parse_from_rapidjson_helper_int(sources, t, member, indent, name)
+        return get_cpp_parse_from_rapidjson_helper_int(sources, t, member, indent, name, json)
     elif t == StandardType.string:
-        line = '{i}if(iter->value.IsString()==false) return "read value for {n} was not a string"; \n' \
-               '{i}c->{m} = iter->value.GetString();\n'.format(m=member, i=indent, t=t, n=name)
+        line = '{i}if({j}.IsString()==false) return "read value for {n} was not a string"; \n'\
+            .format(m=member, i=indent, t=t, n=name, j=json)
+        var = 'c->{m}'.format(m=member)
+        val = '{}.GetString()'.format(json)
         sources.add_source(line)
+        return VarValue(variable=var, value=val)
     else:
         print('BUG: No type specified')
+        return VarValue(variable=member, value='bug_unhandled_std_type')
+
+
+def get_cpp_parse_from_rapidjson(sources: Out, t: StandardType, member: str, indent: str, name: str, member_type: Member) -> None:
+    if member_type.is_dynamic_array:
+        line = '{i}const rapidjson::Value& arr = iter->value;\n' \
+               '{i}if(!arr.IsArray()) return "tried to read {name} but value was not a array";\n' \
+               '{i}for (rapidjson::SizeType i=0; i<arr.Size(); i++)\n' \
+               '{i}{{\n' \
+            .format(i=indent, name=name)
+        sources.add_source(line)
+        vv = get_cpp_parse_from_rapidjson_base(sources, t, member, indent + '  ', name, 'arr[i]')
+        sources.add_source('{i}  {var}.push_back({val});\n'.format(i=indent, var=vv.variable, val=vv.value))
+        sources.add_source('{}}}\n'.format(indent))
+    else:
+        vv = get_cpp_parse_from_rapidjson_base(sources, t, member, indent, name, 'iter->value')
+        sources.add_source('{i}{var} = {val};\n'.format(i=indent, var=vv.variable, val=vv.value))
+
+
+def write_json_member(m: Member, sources: Out, indent):
+    if m.typename.standard_type != StandardType.INVALID:
+        get_cpp_parse_from_rapidjson(sources, m.typename.standard_type, m.name, indent, m.name, m)
+    else:
+        if m.is_dynamic_array:
+            line = '{i}const rapidjson::Value& arr = iter->value;\n' \
+                   '{i}if(!arr.IsArray()) return "tried to read {name} but value was not a array";\n' \
+                   '{i}for (rapidjson::SizeType i=0; i<arr.Size(); i++)\n' \
+                   '{i}{{\n' \
+                   '{i}  const char* const r = ReadFromJsonValue(&c->{name},arr[i]);\n' \
+                   '{i}  if(r!=nullptr) {{ return r; }}\n' \
+                   '{i}}}\n'\
+                .format(i=indent, name=m.name)
+            sources.add_source(line)
+        else:
+            sources.add_source('{i}const char* const r = ReadFromJsonValue(&c->{name},iter->value);\n'
+                               '{i}if(r!=nullptr)\n'
+                               '{i}{{\n'
+                               '{i}  return r;\n'
+                               '{i}}}\n'
+                               .format(i=indent, name=m.name))
 
 
 def write_json_source_for_cpp(write_json: bool, sources: Out, s: Struct):
@@ -66,12 +122,7 @@ def write_json_source_for_cpp(write_json: bool, sources: Out, s: Struct):
         for m in s.members:
             sources.add_source('  iter = value.FindMember("{n}");\n'.format(n=m.name))
             sources.add_source('  if(iter != value.MemberEnd()) {\n')
-            if m.typename.standard_type != StandardType.INVALID:
-                get_cpp_parse_from_rapidjson(sources, m.typename.standard_type, m.name, '    ', m.name)
-            else:
-                sources.add_source(
-                    '   {{  const char* const r = ReadFromJsonValue(&c->{},iter->value); if(r!=nullptr) {{ return r; }} }}\n'
-                    .format(m.name))
+            write_json_member(m, sources, '    ')
             sources.add_source('  }\n')
             sources.add_source('  else {\n')
             sources.add_source('    return "missing {} in json object";\n'.format(m.name))
