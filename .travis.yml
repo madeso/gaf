@@ -1,14 +1,18 @@
-language: cpp
-
-compiler: clang
+language: generic
+os: linux
+dist: trusty
+sudo: false
 
 script:
-   - python3 --version
-   - ./test.py all
+  - $CXX --version
+  - python3 --version
+  - ./test.py all
 
-dist: trusty
-
-sudo: false
+# https://github.com/travis-ci/travis-ci/issues/3668#issuecomment-279276549
+install:
+  - mkdir -p latest-symlinks
+  - ln -s /usr/bin/python3.5 latest-symlinks/python3
+  - export PATH=$PWD/latest-symlinks:$PATH
 
 addons:
   apt:
@@ -18,8 +22,19 @@ addons:
     packages:
     - python3.5
 
-# https://github.com/travis-ci/travis-ci/issues/3668#issuecomment-279276549
-install:
-   - mkdir -p latest-symlinks
-   - ln -s /usr/bin/python3.5 latest-symlinks/python3
-   - export PATH=$PWD/latest-symlinks:$PATH
+
+# testing matrix
+# somewhat stolen from https://github.com/taocpp/PEGTL/blob/master/.travis.yml
+# and from here https://stackoverflow.com/questions/29312015/building-with-more-than-one-version-of-a-compiler
+matrix:
+  include:
+    # gcc
+    - compiler: gcc
+      env:
+        - CXX=g++-4.8
+    # clang
+    - dist: precise
+      compiler: clang
+      env:
+        - CXX=clang++
+
