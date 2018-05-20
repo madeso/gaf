@@ -29,26 +29,13 @@ def remove_folder(d):
         shutil.rmtree(d)
 
 
-def print_result(root, cmake_result, make_result, app_result, cmd):
+def print_result(root, cmake_result, make_result, app_result):
     with open(os.path.join(root, 'cmake_result.txt'), 'w') as f:
         f.write(cmake_result)
     with open(os.path.join(root, 'make_result.txt'), 'w') as f:
         f.write(make_result)
     with open(os.path.join(root, 'app_result.txt'), 'w') as f:
         f.write(app_result)
-    if cmd:
-        if len(cmake_result) > 0:
-            print('CMake result:')
-            print(cmake_result)
-            print()
-        if len(make_result) > 0:
-            print('Make result:')
-            print(make_result)
-            print()
-        if len(app_result) > 0:
-            print('app result:')
-            print(app_result)
-            print()
 
 
 class CodeRun:
@@ -174,13 +161,13 @@ def main():
                     code_run_folder = os.path.join(code_build_folder, 'run')
                     ensure_folder_exist(code_run_folder)
                     app_result = subprocess.check_output(['../app'], stderr=subprocess.STDOUT, universal_newlines=True, cwd=code_run_folder)
-                    print_result(code_root_folder, cmake_result, make_result, app_result, False)
+                    print_result(code_root_folder, cmake_result, make_result, app_result)
                     total_oks += 1
                 except subprocess.CalledProcessError as exc:
                     eprint('Status: FAIL')
                     eprint('Error code: {}'.format(exc.returncode))
                     eprint(exc.output)
-                    print_result(code_root_folder, cmake_result, make_result, app_result, False)
+                    print_result(code_root_folder, cmake_result, make_result, app_result)
                     total_errors += 1
                 total_tests += 1
     print()
