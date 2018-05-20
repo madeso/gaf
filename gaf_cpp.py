@@ -100,10 +100,12 @@ def write_json_member(m: Member, sources: Out, indent):
                    '{i}if(!arr.IsArray()) return "tried to read {name} but value was not a array";\n' \
                    '{i}for (rapidjson::SizeType i=0; i<arr.Size(); i++)\n' \
                    '{i}{{\n' \
-                   '{i}  const char* const r = ReadFromJsonValue(&c->{name},arr[i]);\n' \
+                   '{i}  {type} temp;\n' \
+                   '{i}  const char* const r = ReadFromJsonValue(&temp,arr[i]);\n' \
                    '{i}  if(r!=nullptr) {{ return r; }}\n' \
+                   '{i}  c->{name}.push_back(temp);\n' \
                    '{i}}}\n'\
-                .format(i=indent, name=m.name)
+                .format(i=indent, name=m.name, type=m.typename.name)
             sources.add_source(line)
         else:
             sources.add_source('{i}const char* const r = ReadFromJsonValue(&c->{name},iter->value);\n'
@@ -135,7 +137,10 @@ def write_json_source_for_cpp(write_json: bool, sources: Out, s: Struct):
 def write_member_variables_for_cpp(sources: Out, s: Struct):
     # sources.add_header(' public:\n')
     for m in s.members:
-        sources.add_header('  {tn} {n};\n'.format(n=m.name, tn=m.typename.name))
+        if m.is_dynamic_array:
+            sources.add_header('  std::vector<{tn}> {n};\n'.format(n=m.name, tn=m.typename.name))
+        else:
+            sources.add_header('  {tn} {n};\n'.format(n=m.name, tn=m.typename.name))
     sources.add_header('}}; // class {}\n'.format(s.name))
 
 
@@ -163,15 +168,23 @@ def generate_cpp(f: File, sources: Out, name: str, header_only: bool, write_json
                      ]
 
     has_string = StandardType.string in [t.standard_type for t in unique_types]
+    has_dynamic_arrays = any(m for s in f.structs for m in s.members if m.is_dynamic_array)
 
     sources.add_header('#ifndef {}_H\n'.format(headerguard))
     sources.add_header('#define {}_H\n'.format(headerguard))
     sources.add_header('\n')
+
+    added_include = False
     if len(default_types) > 0:
-        sources.add_header('\n')
+        added_include = True
         sources.add_header('#include <cstdint>\n')
-        if has_string:
-            sources.add_header('#include <string>\n')
+    if has_string:
+        added_include = True
+        sources.add_header('#include <string>\n')
+    if has_dynamic_arrays:
+        added_include = True
+        sources.add_header('#include <vector>\n')
+    if added_include:
         sources.add_header('\n')
 
     if write_json and header_only:

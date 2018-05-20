@@ -78,7 +78,8 @@ def main():
         Code('comments3', test='onestruct.cc'),
         Code('onestruct'),
         Code('package'),
-        Code('twostructs')
+        Code('twostructs'),
+        Code('arrays')
     ]
 
     import argparse

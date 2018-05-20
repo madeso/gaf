@@ -4,7 +4,6 @@
 # todo: GENERAL: structure python code better
 # todo: update travis and others to get more system configs
 
-# todo: array
 # todo: enum
 # todo: imgui api/extensions
 # todo: allow place "extensions" in other files
