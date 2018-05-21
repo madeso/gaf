@@ -18,11 +18,11 @@ struct Vector : public std::vector<T>
 };
 
 TEST_CASE("constructor") {
-  const Basic basic;
+  Basic basic;
   REQUIRE(basic.some_ints.size() == 0);
   REQUIRE(basic.some_strings.size() == 0);
 
-  const Advanced advanced;
+  Advanced advanced;
   REQUIRE(advanced.basics.size() == 0);
 }
 
