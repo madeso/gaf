@@ -192,6 +192,7 @@ def read_struct(f: CharFile, type_list: TypeList, fi: File) -> Struct:
             read_spaces(f)
             read_single_char(f, ']')
             mem.is_dynamic_array = True
+            mem.defaultvalue = None
 
             read_spaces(f)
             ch = peek_char(f)
