@@ -58,5 +58,6 @@ Not much, I agree. By opting in to additional features you will get:
 Get a modern version of python (3.5 or better)
 either use gaf.py directly or use gaf.cmake like the protobuf cmake
 
-  GAF_GENERATE_CPP(GAF_SOURCES GAF_HEADERS path/to/my.gaf)
+    GAF_GENERATE_CPP(GAF_SOURCES GAF_HEADERS path/to/my.gaf)
+
 
