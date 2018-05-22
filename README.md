@@ -11,29 +11,33 @@ In short gaf is a "**GA**me **F**ormat" file definition like google protobuf but
 
 Given the following gaf definition:
 
-    struct Basic {
-      int32 hello;
-      float world;
-    }
+```C++
+struct Basic {
+  int32 hello;
+  float world;
+}
 
-    struct Advanced {
-      Basic basics[];
-    }
+struct Advanced {
+  Basic basics[];
+}
+```
 
 Gaf will generate:
 
-    class Basic {
-     public:
-      Basic();
+```C++
+class Basic {
+ public:
+  Basic();
 
-      int32_t hello;
-      float world;
-    };
+  int32_t hello;
+  float world;
+};
 
-    class Advanced {
-     public:
-      std::vector<Basic> basics;
-    };
+class Advanced {
+ public:
+  std::vector<Basic> basics;
+};
+```
 
 Not much, I agree. By opting in to additional features you will get:
 
@@ -58,6 +62,8 @@ Not much, I agree. By opting in to additional features you will get:
 Get a modern version of python (3.5 or better)
 either use gaf.py directly or use gaf.cmake like the protobuf cmake
 
-    GAF_GENERATE_CPP(GAF_SOURCES GAF_HEADERS path/to/my.gaf)
+```CMake
+GAF_GENERATE_CPP(GAF_SOURCES GAF_HEADERS path/to/my.gaf)
+```
 
 
