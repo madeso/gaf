@@ -18,6 +18,7 @@ script:
       brew install python3
       export PATH=/usr/local/share/python:$PATH
       source ~/.bash_profile
+      python --version
     fi
   - cd ${TRAVIS_BUILD_DIR}
   - $CXX --version
