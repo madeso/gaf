@@ -38,11 +38,11 @@ class StandardType(Enum):
 
 
 class Type:
-    def __init__(self, standard_type: StandardType, name: str, pass_as_value: bool,
+    def __init__(self, standard_type: StandardType, name: str, is_int: bool,
                  default_value: typing.Optional[str]=None):
         self.name = name
         self.standard_type = standard_type
-        self.pass_as_value = pass_as_value
+        self.is_int = is_int
         self.default_value = default_value
 
     def get_cpp_type(self) -> str:
@@ -65,9 +65,10 @@ class TypeList:
         self.add_type(Type(StandardType.int16, 'int16', True, '0'))
         self.add_type(Type(StandardType.int32, 'int32', True, '0'))
         self.add_type(Type(StandardType.int64, 'int64', True, '0'))
-        self.add_type(Type(StandardType.float, 'float', True, '0.0f'))
-        self.add_type(Type(StandardType.double, 'double', True, '0.0'))
         self.add_type(Type(StandardType.byte, 'byte', True, '0'))
+
+        self.add_type(Type(StandardType.float, 'float', False, '0.0f'))
+        self.add_type(Type(StandardType.double, 'double', False, '0.0'))
         self.add_type(Type(StandardType.string, 'string', False))
 
     def is_valid_type(self, name: str) -> bool:
@@ -117,6 +118,25 @@ def empty_struct_list() -> typing.List[Struct]:
     return []
 
 
+def empty_string_list() -> typing.List[str]:
+    return []
+
+
+def empty_type() -> typing.Optional[Type]:
+    return None
+
+
+class Enum:
+    def __init__(self, name: str):
+        self.name = name
+        self.values = empty_string_list()
+        self.type = empty_type()
+
+
+def empty_enum_list() -> typing.List[Enum]:
+    return []
+
+
 class Constant:
     def __init__(self, n: str, t: Type, v: str):
         self.name = n
@@ -131,6 +151,7 @@ def empty_constant_list() -> typing.List[Constant]:
 class File:
     def __init__(self):
         self.structs = empty_struct_list()
+        self.enums = empty_enum_list()
         self.constants = empty_constant_list()
         self.package_name = ''
 

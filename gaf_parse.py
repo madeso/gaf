@@ -2,7 +2,7 @@
 
 import typing
 
-from gaf_types import StandardType, is_default_type, Struct, TypeList, File, Type, Member
+from gaf_types import StandardType, is_default_type, Struct, TypeList, File, Type, Member, Enum
 
 
 class ParseError(Exception):
@@ -215,6 +215,44 @@ def read_struct(f: CharFile, type_list: TypeList, fi: File) -> Struct:
     return struct
 
 
+def read_enum(f: CharFile, type_list: TypeList) -> Enum:
+    enum_name = read_ident(f)
+    e = Enum(enum_name)
+
+    read_spaces(f)
+    if peek_char(f) == ':':
+        read_char(f)
+        type_name = read_ident(f)
+        if not type_list.is_valid_type(type_name):
+            f.report_error('{enum} has a invalid type for size type: {type}'.format(type=type_name, enum=enum_name))
+        t = type_list.get_type(type_name)
+        if not t.is_int:
+            f.report_error('{enum} has a non-int for size type: {type}'.format(type=type_name, enum=enum_name))
+        e.type = t
+
+    read_spaces(f)
+    read_single_char(f, '{')
+    while peek_char(f) != '}':
+        name = read_ident(f)
+
+        if name in e.values:
+            f.report_error('{prop} already specifed in {enum}'.format(prop=name, enum=enum_name))
+
+        e.values.append(name)
+
+        read_spaces(f)
+        ch = peek_char(f)
+
+        if ch == ',':
+            read_char(f)
+            read_spaces(f)
+    read_single_char(f, '}')
+
+    type_list.add_type(Type(StandardType.INVALID, enum_name, False))
+
+    return e
+
+
 def read_several_structs(f: CharFile) -> File:
     file = File()
     read_spaces(f)
@@ -225,6 +263,9 @@ def read_several_structs(f: CharFile) -> File:
         if keyword == 'struct':
             s = read_struct(f, type_list, file)
             file.structs.append(s)
+        elif keyword == 'enum':
+            e = read_enum(f, type_list)
+            file.enums.append(e)
         elif keyword == 'const':
             ty = read_ident(f)
             name = read_ident(f)
@@ -248,7 +289,7 @@ def read_several_structs(f: CharFile) -> File:
             read_single_char(f, ';')
             file.package_name = package_name
         else:
-            raise f.report_error('Expected struct, package or const. Found unknown ident {}'.format(keyword))
+            raise f.report_error('Expected struct, enum, package or const. Found unknown ident {}'.format(keyword))
         read_spaces(f)  # place file marker at the next non whitespace or at eof
 
     return file

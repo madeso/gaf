@@ -4,7 +4,7 @@ enum Happiness {
 
 // unless specified, type defaults to something like int32
 enum Project : byte {
-    PROTOBUF, GAF, OTHER
+    Protobuf, Gaf, Other
 }
 
 struct Person {

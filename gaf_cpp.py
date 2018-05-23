@@ -207,6 +207,16 @@ def generate_cpp(f: File, sources: Out, name: str, header_only: bool, write_json
             sources.add_header('typedef {ct} {t};\n'.format(t=t.name, ct=t.get_cpp_type()))
         sources.add_header('\n')
 
+    for e in f.enums:
+        sources.add_header('enum class {} {{\n'.format(e.name))
+        for i, v in enumerate(e.values, start=1):
+            last = i == len(e.values)
+            comma = '' if last else ','
+            sources.add_header('  {v}{c}\n'.format(v=v, c=comma))
+
+        sources.add_header('}} // enum {}\n'.format(e.name))
+        sources.add_header('\n')
+
     for s in f.structs:
         sources.add_header('class {} {{\n'.format(s.name))
         sources.add_header(' public:\n')
