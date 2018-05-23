@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 import os
 
-from gaf_types import StandardType, Struct, get_unique_types, File, Member
+from gaf_types import StandardType, Struct, get_unique_types, File, Member, OutputOptions
 
 
 class Out:
@@ -158,7 +158,7 @@ def write_default_constructor_for_cpp(s: Struct, sources: Out):
         sources.add_source('\n')
 
 
-def generate_cpp(f: File, sources: Out, name: str, header_only: bool, write_json: bool):
+def generate_cpp(f: File, sources: Out, name: str, opt: OutputOptions):
     headerguard = 'GENERATED_' + name.upper()
 
     # get all standard types used for typedefing later on...
@@ -187,12 +187,12 @@ def generate_cpp(f: File, sources: Out, name: str, header_only: bool, write_json
     if added_include:
         sources.add_header('\n')
 
-    if write_json and header_only:
+    if opt.write_json and opt.header_only:
         sources.add_header('#include <limits>\n')
         sources.add_header('#include "rapidjson/document.h"\n')
         sources.add_header('\n')
 
-    if write_json and not header_only:
+    if opt.write_json and not opt.header_only:
         # todo: forward decalre rapidjson::Value
         sources.add_header('#include "rapidjson/document.h"\n')
         sources.add_header('\n')
@@ -222,15 +222,15 @@ def generate_cpp(f: File, sources: Out, name: str, header_only: bool, write_json
         sources.add_header(' public:\n')
         write_default_constructor_for_cpp(s, sources)
 
-        write_json_source_for_cpp(write_json, sources, s)
+        write_json_source_for_cpp(opt.write_json, sources, s)
         write_member_variables_for_cpp(sources, s)
 
-        if write_json:
+        if opt.write_json:
             sources.add_header('\n')
             sources.add_header('const char* ReadFromJsonValue({}* c, const rapidjson::Value& value);\n'.format(s.name))
         sources.add_header('\n')
 
-    if header_only:
+    if opt.header_only:
         sources.add_header('#ifdef {}_IMPLEMENTATION\n'.format(headerguard))
         sources.add_header('\n')
         for s in sources.source:
@@ -245,22 +245,21 @@ def generate_cpp(f: File, sources: Out, name: str, header_only: bool, write_json
 
 
 def write_cpp(f: File, args, out_dir: str, name: str):
-    header_only = args.header_only
-    write_json = args.include_json
+    opt = OutputOptions(header_only=args.header_only, write_json=args.include_json)
 
     sources = Out()
-    generate_cpp(f, sources, name, header_only, write_json)
+    generate_cpp(f, sources, name, opt)
 
     with open(os.path.join(out_dir, name + '.h'), 'w', encoding='utf-8') as out:
         for s in sources.header:
             out.write(s)
 
-    if not header_only:
+    if not opt.header_only:
         with open(os.path.join(out_dir, name + '.cc'), 'w', encoding='utf-8') as out:
             out.write('#include "{}.h"\n'.format(name))
             out.write('\n')
             out.write('#include <limits>\n')
-            if write_json:
+            if opt.write_json:
                 out.write('#include "rapidjson/document.h"\n')
             out.write('\n')
 
