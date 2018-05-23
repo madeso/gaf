@@ -1,12 +1,11 @@
 #!/usr/bin/env python3
 
 import enum
-from enum import Enum
 import typing
 
 
 @enum.unique
-class StandardType(Enum):
+class StandardType(enum.Enum):
     int8 = object()
     int16 = object()
     int32 = object()
@@ -183,7 +182,16 @@ def get_unique_types(f: File) -> typing.Set[Type]:
     return set(m.typename for m in merge(s.members for s in f.structs))
 
 
+@enum.unique
+class CppEnumStyle(enum.Enum):
+    EnumClass = object()
+    NamespaceEnum = object()
+    PrefixEnum = object()
+
+
 class OutputOptions:
     def __init__(self, header_only: bool, write_json: bool):
         self.header_only = header_only
         self.write_json = write_json
+        # todo: this needs to come from the args
+        self.enum_style = CppEnumStyle.EnumClass

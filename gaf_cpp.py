@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 import os
 
-from gaf_types import StandardType, Struct, get_unique_types, File, Member, OutputOptions
+from gaf_types import StandardType, Struct, get_unique_types, File, Member, OutputOptions, CppEnumStyle, Enum
 
 
 class Out:
@@ -146,7 +146,7 @@ def write_member_variables_for_cpp(sources: Out, s: Struct):
 
 def write_default_constructor_for_cpp(s: Struct, sources: Out):
     common_members = [x for x in s.members if x.defaultvalue is not None]
-    if len(common_members)>0:
+    if len(common_members) > 0:
         sources.add_header('  {}();\n'.format(s.name))
         sources.add_header('\n')
         sources.add_source('{n}::{n}()\n'.format(n=s.name))
@@ -156,6 +156,14 @@ def write_default_constructor_for_cpp(s: Struct, sources: Out):
             sep = ','
         sources.add_source('{}\n')
         sources.add_source('\n')
+
+
+def iterate_enum(e: Enum, sources: Out, prefix_prop: bool=False):
+    prefix = '{}_'.format(e.name) if prefix_prop else ''
+    for i, v in enumerate(e.values, start=1):
+        last = i == len(e.values)
+        comma = '' if last else ','
+        sources.add_header('  {p}{v}{c}\n'.format(p=prefix, v=v, c=comma))
 
 
 def generate_cpp(f: File, sources: Out, name: str, opt: OutputOptions):
@@ -208,13 +216,21 @@ def generate_cpp(f: File, sources: Out, name: str, opt: OutputOptions):
         sources.add_header('\n')
 
     for e in f.enums:
-        sources.add_header('enum class {} {{\n'.format(e.name))
-        for i, v in enumerate(e.values, start=1):
-            last = i == len(e.values)
-            comma = '' if last else ','
-            sources.add_header('  {v}{c}\n'.format(v=v, c=comma))
+        if opt.enum_style == CppEnumStyle.EnumClass:
+            sources.add_header('enum class {} {{\n'.format(e.name))
+            iterate_enum(e, sources)
+            sources.add_header('}}; // enum {}\n'.format(e.name))
+        elif opt.enum_style == CppEnumStyle.NamespaceEnum:
+            sources.add_header('namespace {} {{ enum Type {{\n'.format(e.name))
+            iterate_enum(e, sources)
+            sources.add_header('}}; }} // namespace enum {}\n'.format(e.name))
+        elif opt.enum_style == CppEnumStyle.PrefixEnum:
+            sources.add_header('enum {} {{\n'.format(e.name))
+            iterate_enum(e, sources, True)
+            sources.add_header('}}; // enum {}\n'.format(e.name))
+        else:
+            sources.add_header('code generation failed, unhandled enum style {}'.format(opt.enum_style))
 
-        sources.add_header('}} // enum {}\n'.format(e.name))
         sources.add_header('\n')
 
     for s in f.structs:
