@@ -248,7 +248,7 @@ def read_enum(f: CharFile, type_list: TypeList) -> Enum:
             read_spaces(f)
     read_single_char(f, '}')
 
-    type_list.add_type(Type(StandardType.INVALID, enum_name, False))
+    type_list.add_type(Type(StandardType.INVALID, enum_name, is_int=False, is_enum=True))
 
     return e
 

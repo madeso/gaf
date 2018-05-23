@@ -134,13 +134,17 @@ def write_json_source_for_cpp(write_json: bool, sources: Out, s: Struct):
         sources.add_source('\n')
 
 
-def write_member_variables_for_cpp(sources: Out, s: Struct):
+def write_member_variables_for_cpp(sources: Out, s: Struct, opt: OutputOptions):
     # sources.add_header(' public:\n')
     for m in s.members:
+
+        # m.typename.is_enum
+        type_name = '{}::Type'.format(m.typename.name)\
+            if m.typename.is_enum and opt.enum_style == CppEnumStyle.NamespaceEnum else m.typename.name
         if m.is_dynamic_array:
-            sources.add_header('  std::vector<{tn}> {n};\n'.format(n=m.name, tn=m.typename.name))
+            sources.add_header('  std::vector<{tn}> {n};\n'.format(n=m.name, tn=type_name))
         else:
-            sources.add_header('  {tn} {n};\n'.format(n=m.name, tn=m.typename.name))
+            sources.add_header('  {tn} {n};\n'.format(n=m.name, tn=type_name))
     sources.add_header('}}; // class {}\n'.format(s.name))
 
 
@@ -239,7 +243,7 @@ def generate_cpp(f: File, sources: Out, name: str, opt: OutputOptions):
         write_default_constructor_for_cpp(s, sources)
 
         write_json_source_for_cpp(opt.write_json, sources, s)
-        write_member_variables_for_cpp(sources, s)
+        write_member_variables_for_cpp(sources, s, opt)
 
         if opt.write_json:
             sources.add_header('\n')
@@ -260,9 +264,7 @@ def generate_cpp(f: File, sources: Out, name: str, opt: OutputOptions):
     sources.add_header('#endif  // {}_H\n'.format(headerguard))
 
 
-def write_cpp(f: File, args, out_dir: str, name: str):
-    opt = OutputOptions(header_only=args.header_only, write_json=args.include_json)
-
+def write_cpp(f: File, opt: OutputOptions, out_dir: str, name: str):
     sources = Out()
     generate_cpp(f, sources, name, opt)
 

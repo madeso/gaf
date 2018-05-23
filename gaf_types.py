@@ -38,11 +38,12 @@ class StandardType(enum.Enum):
 
 class Type:
     def __init__(self, standard_type: StandardType, name: str, is_int: bool,
-                 default_value: typing.Optional[str]=None):
+                 default_value: typing.Optional[str]=None, is_enum: bool = False):
         self.name = name
         self.standard_type = standard_type
         self.is_int = is_int
         self.default_value = default_value
+        self.is_enum = is_enum
 
     def get_cpp_type(self) -> str:
         if self.standard_type == StandardType.INVALID:
@@ -190,8 +191,8 @@ class CppEnumStyle(enum.Enum):
 
 
 class OutputOptions:
-    def __init__(self, header_only: bool, write_json: bool):
+    def __init__(self, header_only: bool, write_json: bool, enum_style: CppEnumStyle):
         self.header_only = header_only
         self.write_json = write_json
         # todo: this needs to come from the args
-        self.enum_style = CppEnumStyle.EnumClass
+        self.enum_style = enum_style
