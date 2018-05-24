@@ -148,7 +148,7 @@ def write_member_variables_for_cpp(sources: Out, s: Struct, opt: OutputOptions):
     sources.add_header('}}; // class {}\n'.format(s.name))
 
 
-def write_default_constructor_for_cpp(s: Struct, sources: Out):
+def write_default_constructor_for_cpp(s: Struct, sources: Out, opt: OutputOptions):
     common_members = [x for x in s.members if x.defaultvalue is not None]
     if len(common_members) > 0:
         sources.add_header('  {}();\n'.format(s.name))
@@ -156,7 +156,11 @@ def write_default_constructor_for_cpp(s: Struct, sources: Out):
         sources.add_source('{n}::{n}()\n'.format(n=s.name))
         sep = ':'
         for m in common_members:
-            sources.add_source('  {s} {n}({d})\n'.format(s=sep, n=m.name, d=m.defaultvalue))
+            default_value = m.defaultvalue
+            if m.typename.is_enum:
+                default_value = '{t}{colon}{v}'.format(t=m.typename.name, v=m.defaultvalue,
+                                                       colon='_' if opt.enum_style == CppEnumStyle.PrefixEnum else '::')
+            sources.add_source('  {s} {n}({d})\n'.format(s=sep, n=m.name, d=default_value))
             sep = ','
         sources.add_source('{}\n')
         sources.add_source('\n')
@@ -168,6 +172,20 @@ def iterate_enum(e: Enum, sources: Out, prefix_prop: bool=False):
         last = i == len(e.values)
         comma = '' if last else ','
         sources.add_header('  {p}{v}{c}\n'.format(p=prefix, v=v, c=comma))
+
+
+def add_enum_json_function(e: Enum, sources: Out, prefix_prop: bool=False, type_enum: bool=False):
+    enum_type = '{}::Type'.format(e.name) if type_enum else e.name
+    value_prefix = '{}_'.format(e.name) if prefix_prop else '{}::'.format(e.name)
+    sources.add_header('  const char* ReadFromJsonValue({t}* c, const rapidjson::Value& value);\n'.format(t=enum_type))
+    sources.add_source('  const char* ReadFromJsonValue({t}* c, const rapidjson::Value& value)\n'.format(t=enum_type))
+    sources.add_source('  {{\n')
+    sources.add_source('    if(value.IsString()==false) return "read value for {e} was not a string";\n'.format(e=e.name))
+    for v in e.values:
+        sources.add_source('    if(strcmp(value.GetString(), "{v}")==0) {{ *c = {p}{v}; return nullptr;}}\n'.format(p=value_prefix, v=v))
+    sources.add_source('    return "read string for {e} was not valud";\n'.format(e=e.name))
+    sources.add_source('  }}\n')
+    sources.add_source('  \n')
 
 
 def generate_cpp(f: File, sources: Out, name: str, opt: OutputOptions):
@@ -193,6 +211,11 @@ def generate_cpp(f: File, sources: Out, name: str, opt: OutputOptions):
     if has_string:
         added_include = True
         sources.add_header('#include <string>\n')
+    if len(f.enums) > 0 and opt.write_json:
+        if opt.header_only:
+            sources.add_header('#include <cstring>\n')
+        else:
+            sources.add_source('#include <cstring>\n')
     if has_dynamic_arrays:
         added_include = True
         sources.add_header('#include <vector>\n')
@@ -224,14 +247,17 @@ def generate_cpp(f: File, sources: Out, name: str, opt: OutputOptions):
             sources.add_header('enum class {} {{\n'.format(e.name))
             iterate_enum(e, sources)
             sources.add_header('}}; // enum {}\n'.format(e.name))
+            add_enum_json_function(e, sources)
         elif opt.enum_style == CppEnumStyle.NamespaceEnum:
             sources.add_header('namespace {} {{ enum Type {{\n'.format(e.name))
             iterate_enum(e, sources)
             sources.add_header('}}; }} // namespace enum {}\n'.format(e.name))
+            add_enum_json_function(e, sources, type_enum=True)
         elif opt.enum_style == CppEnumStyle.PrefixEnum:
             sources.add_header('enum {} {{\n'.format(e.name))
             iterate_enum(e, sources, True)
             sources.add_header('}}; // enum {}\n'.format(e.name))
+            add_enum_json_function(e, sources, prefix_prop=True)
         else:
             sources.add_header('code generation failed, unhandled enum style {}'.format(opt.enum_style))
 
@@ -240,7 +266,7 @@ def generate_cpp(f: File, sources: Out, name: str, opt: OutputOptions):
     for s in f.structs:
         sources.add_header('class {} {{\n'.format(s.name))
         sources.add_header(' public:\n')
-        write_default_constructor_for_cpp(s, sources)
+        write_default_constructor_for_cpp(s, sources, opt)
 
         write_json_source_for_cpp(opt.write_json, sources, s)
         write_member_variables_for_cpp(sources, s, opt)
