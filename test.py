@@ -18,10 +18,11 @@ def ensure_folder_exist(directory):
 
 
 class Code:
-    def __init__(self, name, gaf=None, test=None):
+    def __init__(self, name, gaf=None, test=None, use_enum: bool = False):
         self.name = name
         self.gaf = gaf if gaf is not None else name+'.c'
         self.test = test if test is not None else name+'.cc'
+        self.use_enum = use_enum
 
 
 def remove_folder(d):
@@ -66,7 +67,8 @@ def main():
         Code('onestruct'),
         Code('package'),
         Code('twostructs'),
-        Code('arrays')
+        Code('arrays'),
+        Code('enum', use_enum=True)
     ]
 
     import argparse
@@ -92,84 +94,99 @@ def main():
 
     for code in code_examples:
         for run in coderuns:
-            if args.only is None or run.codename in args.only:
-                codename = code.name
-                if len(run.codename):
-                    codename += '_' + run.codename
+            enum_values = ['EnumClass', 'NamespaceEnum', 'PrefixEnum'] if code.use_enum else ['PrefixEnum']
+            for ev in enum_values:
+                if args.only is None or run.codename in args.only:
+                    codename = code.name
+                    if len(run.codename):
+                        codename += '_' + run.codename
 
-                print()
-                print('----------------------------------------------------------------')
-                print('--- {}'.format(codename))
-                print('----------------------------------------------------------------')
-                code_root_folder = os.path.join(build_folder, codename)
+                    if code.use_enum:
+                        codename += '_' + ev
 
-                remove_folder(code_root_folder)
-                ensure_folder_exist(code_root_folder)
-                with open(os.path.join(code_root_folder, 'cmdlineargs.txt'), 'w') as cmd:
-                    if run.json_test:
-                        cmd.write('--include-json\n')
-                    if run.header_only_test:
-                        cmd.write('--header-only\n')
+                    print()
+                    print('----------------------------------------------------------------')
+                    print('--- {}'.format(codename))
+                    print('----------------------------------------------------------------')
+                    code_root_folder = os.path.join(build_folder, codename)
 
-                with open(os.path.join(code_root_folder, 'CMakeLists.txt'), 'w') as cmake_file:
-                    test_cpp_folder = os.path.join(root_folder, 'test-cpp')
-                    cmake_file.write('''
-                    cmake_minimum_required(VERSION 3.1)
-                    project(gaf)
-                    set (CMAKE_CXX_STANDARD 11)
-                    set(CMAKE_CXX_STANDARD_REQUIRED ON)
-                    if (MSVC)
-                      add_compile_options(/W4)
-                    else()
-                      add_compile_options(-Wall -Wextra -Wpedantic)
-                    endif()
-                    SET(GAF_TEST_HEADER_ONLY {headeronly})
-                    SET(GAF_TEST_JSON {json})
-                    CONFIGURE_FILE("{config}" "${{PROJECT_BINARY_DIR}}/config.h")
-                    include_directories("${{PROJECT_BINARY_DIR}}")
+                    remove_folder(code_root_folder)
+                    ensure_folder_exist(code_root_folder)
+                    with open(os.path.join(code_root_folder, 'cmdlineargs.txt'), 'w') as cmd:
+                        if run.json_test:
+                            cmd.write('--include-json\n')
+                        if run.header_only_test:
+                            cmd.write('--header-only\n')
 
-                    include_directories(SYSTEM {external}/catch)
-                    include_directories(SYSTEM {external}/rapidjson-1.1.0/include)
-                    include({root}/gaf.cmake)
-                    SET(Gaf_CUSTOM_NAME mygaf)
-                    SET(Gaf_CUSTOM_ARGUMENTS_FROM_FILE {coderoot}/cmdlineargs.txt)
-                    GAF_GENERATE_CPP(GAF_SOURCES GAF_HEADERS {root}/examples/{gaf})
-                    include_directories(${{CMAKE_CURRENT_BINARY_DIR}})
-                    add_executable(app {cpp} {gaf_sources}${{GAF_HEADERS}})
-                    '''.format(
-                        gaf=code.gaf,
-                        cpp= os.path.join(test_cpp_folder, code.test),
-                        config= os.path.join(test_cpp_folder, 'config_in.h'),
-                        external=os.path.join(test_cpp_folder, 'external'),
-                        root=root_folder,
-                        coderoot=code_root_folder,
-                        headeronly = '1' if run.header_only_test else '0',
-                        json = '1' if run.json_test else '0',
-                        gaf_sources = '' if run.header_only_test else '${GAF_SOURCES} '
-                    ))
-                code_build_folder = os.path.join(code_root_folder, 'build')
-                ensure_folder_exist(code_build_folder)
-                cmake_result = ''
-                make_result = ''
-                app_result = ''
-                try:
-                    print('running cmake')
-                    cmake_result = subprocess.check_output(['cmake', '..'], stderr=subprocess.STDOUT, universal_newlines=True, cwd=code_build_folder)
-                    print('running make')
-                    make_result = subprocess.check_output(['make'], stderr=subprocess.STDOUT, universal_newlines=True, cwd=code_build_folder)
-                    print('running code')
-                    code_run_folder = os.path.join(code_build_folder, 'run')
-                    ensure_folder_exist(code_run_folder)
-                    app_result = subprocess.check_output(['../app'], stderr=subprocess.STDOUT, universal_newlines=True, cwd=code_run_folder)
-                    print_result(code_root_folder, cmake_result, make_result, app_result)
-                    total_oks += 1
-                except subprocess.CalledProcessError as exc:
-                    eprint('Status: FAIL')
-                    eprint('Error code: {}'.format(exc.returncode))
-                    eprint(exc.output)
-                    print_result(code_root_folder, cmake_result, make_result, app_result)
-                    total_errors += 1
-                total_tests += 1
+                        cmd.write('--enum\n')
+                        cmd.write(ev + '\n')
+
+                    cpp_version = '11'
+                    if ev == 'EnumClass':
+                        cpp_version = '11'
+
+                    with open(os.path.join(code_root_folder, 'CMakeLists.txt'), 'w') as cmake_file:
+                        test_cpp_folder = os.path.join(root_folder, 'test-cpp')
+                        cmake_file.write('''
+                        cmake_minimum_required(VERSION 3.1)
+                        project(gaf)
+                        set (CMAKE_CXX_STANDARD {cppversion})
+                        set(CMAKE_CXX_STANDARD_REQUIRED ON)
+                        if (MSVC)
+                          add_compile_options(/W4)
+                        else()
+                          add_compile_options(-Wall -Wextra -Wpedantic)
+                        endif()
+                        SET(GAF_TEST_HEADER_ONLY {headeronly})
+                        SET(GAF_TEST_JSON {json})
+                        SET(GAF_ENUM_STYLE_{enum} Yes)
+                        CONFIGURE_FILE("{config}" "${{PROJECT_BINARY_DIR}}/config.h")
+                        include_directories("${{PROJECT_BINARY_DIR}}")
+    
+                        include_directories(SYSTEM {external}/catch)
+                        include_directories(SYSTEM {external}/rapidjson-1.1.0/include)
+                        include({root}/gaf.cmake)
+                        SET(Gaf_CUSTOM_NAME mygaf)
+                        SET(Gaf_CUSTOM_ARGUMENTS_FROM_FILE {coderoot}/cmdlineargs.txt)
+                        GAF_GENERATE_CPP(GAF_SOURCES GAF_HEADERS {root}/examples/{gaf})
+                        include_directories(${{CMAKE_CURRENT_BINARY_DIR}})
+                        add_executable(app {cpp} {gaf_sources}${{GAF_HEADERS}})
+                        '''.format(
+                            cppversion=cpp_version,
+                            gaf=code.gaf,
+                            cpp= os.path.join(test_cpp_folder, code.test),
+                            config= os.path.join(test_cpp_folder, 'config_in.h'),
+                            external=os.path.join(test_cpp_folder, 'external'),
+                            root=root_folder,
+                            enum=ev,
+                            coderoot=code_root_folder,
+                            headeronly = '1' if run.header_only_test else '0',
+                            json = '1' if run.json_test else '0',
+                            gaf_sources = '' if run.header_only_test else '${GAF_SOURCES} '
+                        ))
+                    code_build_folder = os.path.join(code_root_folder, 'build')
+                    ensure_folder_exist(code_build_folder)
+                    cmake_result = ''
+                    make_result = ''
+                    app_result = ''
+                    try:
+                        print('running cmake')
+                        cmake_result = subprocess.check_output(['cmake', '..'], stderr=subprocess.STDOUT, universal_newlines=True, cwd=code_build_folder)
+                        print('running make')
+                        make_result = subprocess.check_output(['make'], stderr=subprocess.STDOUT, universal_newlines=True, cwd=code_build_folder)
+                        print('running code')
+                        code_run_folder = os.path.join(code_build_folder, 'run')
+                        ensure_folder_exist(code_run_folder)
+                        app_result = subprocess.check_output(['../app'], stderr=subprocess.STDOUT, universal_newlines=True, cwd=code_run_folder)
+                        print_result(code_root_folder, cmake_result, make_result, app_result)
+                        total_oks += 1
+                    except subprocess.CalledProcessError as exc:
+                        eprint('Status: FAIL')
+                        eprint('Error code: {}'.format(exc.returncode))
+                        eprint(exc.output)
+                        print_result(code_root_folder, cmake_result, make_result, app_result)
+                        total_errors += 1
+                    total_tests += 1
     print()
     print()
     if total_errors > 0:
