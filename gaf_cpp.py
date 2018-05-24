@@ -177,15 +177,15 @@ def iterate_enum(e: Enum, sources: Out, prefix_prop: bool=False):
 def add_enum_json_function(e: Enum, sources: Out, prefix_prop: bool=False, type_enum: bool=False):
     enum_type = '{}::Type'.format(e.name) if type_enum else e.name
     value_prefix = '{}_'.format(e.name) if prefix_prop else '{}::'.format(e.name)
-    sources.add_header('  const char* ReadFromJsonValue({t}* c, const rapidjson::Value& value);\n'.format(t=enum_type))
-    sources.add_source('  const char* ReadFromJsonValue({t}* c, const rapidjson::Value& value)\n'.format(t=enum_type))
-    sources.add_source('  {{\n')
-    sources.add_source('    if(value.IsString()==false) return "read value for {e} was not a string";\n'.format(e=e.name))
+    sources.add_header('const char* ReadFromJsonValue({t}* c, const rapidjson::Value& value);\n'.format(t=enum_type))
+    sources.add_source('const char* ReadFromJsonValue({t}* c, const rapidjson::Value& value)\n'.format(t=enum_type))
+    sources.add_source('{{\n')
+    sources.add_source('  if(value.IsString()==false) return "read value for {e} was not a string";\n'.format(e=e.name))
     for v in e.values:
-        sources.add_source('    if(strcmp(value.GetString(), "{v}")==0) {{ *c = {p}{v}; return nullptr;}}\n'.format(p=value_prefix, v=v))
-    sources.add_source('    return "read string for {e} was not valud";\n'.format(e=e.name))
-    sources.add_source('  }}\n')
-    sources.add_source('  \n')
+        sources.add_source('  if(strcmp(value.GetString(), "{v}")==0) {{ *c = {p}{v}; return nullptr;}}\n'.format(p=value_prefix, v=v))
+    sources.add_source('  return "read string for {e} was not valud";\n'.format(e=e.name))
+    sources.add_source('}}\n')
+    sources.add_source('\n')
 
 
 def generate_cpp(f: File, sources: Out, name: str, opt: OutputOptions):
