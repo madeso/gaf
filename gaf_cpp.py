@@ -247,17 +247,20 @@ def generate_cpp(f: File, sources: Out, name: str, opt: OutputOptions):
             sources.add_header('enum class {} {{\n'.format(e.name))
             iterate_enum(e, sources)
             sources.add_header('}}; // enum {}\n'.format(e.name))
-            add_enum_json_function(e, sources)
+            if opt.write_json:
+                add_enum_json_function(e, sources)
         elif opt.enum_style == CppEnumStyle.NamespaceEnum:
             sources.add_header('namespace {} {{ enum Type {{\n'.format(e.name))
             iterate_enum(e, sources)
             sources.add_header('}}; }} // namespace enum {}\n'.format(e.name))
-            add_enum_json_function(e, sources, type_enum=True)
+            if opt.write_json:
+                add_enum_json_function(e, sources, type_enum=True)
         elif opt.enum_style == CppEnumStyle.PrefixEnum:
             sources.add_header('enum {} {{\n'.format(e.name))
             iterate_enum(e, sources, True)
             sources.add_header('}}; // enum {}\n'.format(e.name))
-            add_enum_json_function(e, sources, prefix_prop=True)
+            if opt.write_json:
+                add_enum_json_function(e, sources, prefix_prop=True)
         else:
             sources.add_header('code generation failed, unhandled enum style {}'.format(opt.enum_style))
 
