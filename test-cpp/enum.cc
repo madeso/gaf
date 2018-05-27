@@ -7,7 +7,7 @@
 #endif
 
 #include "mygaf.h"
-
+#include "readjsonsource.h"
 
 TEST_CASE("Person") {
   Person dude;
@@ -57,3 +57,61 @@ TEST_CASE("enum types") {
 }
 
 // todo: need to add json loading tests
+
+#if GAF_TEST_JSON
+
+TEST_CASE("json_basic") {
+#ifndef GAF_ENUM_STYLE_NamespaceEnum
+  Happiness
+#else
+  Happiness::Type
+#endif
+  happiness =
+#ifdef GAF_ENUM_STYLE_PrefixEnum
+  Happiness_INDIFFERENT
+#else
+  Happiness::INDIFFERENT
+#endif
+  ;
+
+#ifndef GAF_ENUM_STYLE_NamespaceEnum
+  Project
+#else
+  Project::Type
+#endif
+  project =
+#ifdef GAF_ENUM_STYLE_PrefixEnum
+  Project_Other
+#else
+  Project::Other
+#endif
+  ;
+
+  Person person;
+  const char* const load = ReadJsonSource(&person, " {\"happiness\": \"INDIFFERENT\", \"favoriteProject\": \"Other\"} ");
+  REQUIRE(load == nullptr);
+  REQUIRE(person.happiness == happiness);
+  REQUIRE(person.favoriteProject == project);
+}
+
+TEST_CASE("json_missing_project") {
+  Person person;
+  const char* const load = ReadJsonSource(&person, " {\"happiness\": 12} ");
+  REQUIRE(load != nullptr);
+}
+
+
+TEST_CASE("json_empty_document") {
+  Person person;
+  const char* const load = ReadJsonSource(&person, "{}");
+  REQUIRE(load != nullptr);
+}
+
+
+TEST_CASE("json_as_ints") {
+  Person person;
+  const char* const load = ReadJsonSource(&person, " {\"happiness\": 1, \"favoriteProject\": 2} ");
+  REQUIRE(load != nullptr);
+}
+
+#endif
