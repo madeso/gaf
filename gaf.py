@@ -1,16 +1,6 @@
 #!/usr/bin/env python3
 # GAme Format Parser
 
-# todo: GENERAL: structure python code better
-# todo: update travis and others to get more system configs
-
-# todo: make generated code cleaner
-# todo: add bitfield enum type, or bool only optimization struct
-# todo: imgui api/extensions
-# todo: allow place "extensions" in other files
-# todo: json read/write
-# todo: toml read/write
-# todo: binary read/write
 
 from enum import Enum
 import enum
