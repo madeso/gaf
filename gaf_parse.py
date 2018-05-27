@@ -146,9 +146,15 @@ def read_default_value(f: CharFile, t: Type, fi: File) -> str:
     p = peek_char(f)
     if is_ident(True, p):
         ident = read_ident(f)
+
+        if t.standard_type == StandardType.bool:
+            if ident == 'true':
+                return 'true'
+            if ident == 'false':
+                return 'false'
         c = fi.find_constant(ident, t)
         if c is None:
-            f.report_error('failed to find constant named {n} with a type {t}'.format(n=ident, t=t))
+            f.report_error('failed to find constant named {n} with a type {t}'.format(n=ident, t=t.name))
             return ''
         return c.value
 

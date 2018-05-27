@@ -6,6 +6,7 @@ struct Foo {
 struct Bar {
   Foo foo;
   string bar;
+  bool b;
 }
 
 

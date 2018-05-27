@@ -18,6 +18,7 @@ TEST_CASE("constructor") {
   REQUIRE(bar.foo.hello == 0);
   REQUIRE(bar.foo.world == 0.0f);
   REQUIRE(bar.bar == "");
+  REQUIRE(bar.b == false);
 }
 
 TEST_CASE("setter") {
@@ -27,12 +28,14 @@ TEST_CASE("setter") {
   Bar bar;
   bar.foo = foo;
   bar.bar = "dog";
+  bar.b = true;
   foo.hello =5;
   foo.world = 5.5f;
 
   REQUIRE(bar.foo.hello == 42);
   REQUIRE(bar.foo.world == 4.2f);
   REQUIRE(bar.bar == "dog");
+  REQUIRE(bar.b == true);
 
   bar.foo.hello = 13;
   bar.foo.world = 3.7f;
@@ -66,11 +69,12 @@ TEST_CASE("json_empty_document") {
 
 TEST_CASE("json_advanced") {
   Bar bar;
-  const char* const load = ReadJsonSource(&bar, "{\"bar\": \"cat and dog\", \"foo\": {\"hello\": 12, \"world\": 2.4}}");
+  const char* const load = ReadJsonSource(&bar, "{\"bar\": \"cat and dog\", \"b\": true, \"foo\": {\"hello\": 12, \"world\": 2.4}}");
   REQUIRE(load == nullptr);
   CHECK(bar.foo.hello == 12);
   CHECK(bar.foo.world == 2.4f);
   CHECK(bar.bar == "cat and dog");
+  CHECK(bar.b == true);
 }
 
 #endif

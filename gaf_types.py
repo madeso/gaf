@@ -13,6 +13,7 @@ class StandardType(enum.Enum):
     float = object()
     double = object()
     byte = object()
+    bool = object()
     string = object()
     INVALID = object()
 
@@ -31,6 +32,8 @@ class StandardType(enum.Enum):
             return 'double'
         if self == StandardType.byte:
             return 'char'
+        if self == StandardType.bool:
+            return 'bool'
         if self == StandardType.string:
             return 'std::string'
         return ''
@@ -66,6 +69,7 @@ class TypeList:
         self.add_type(Type(StandardType.int32, 'int32', True, '0'))
         self.add_type(Type(StandardType.int64, 'int64', True, '0'))
         self.add_type(Type(StandardType.byte, 'byte', True, '0'))
+        self.add_type(Type(StandardType.bool, 'bool', False, 'false'))
 
         self.add_type(Type(StandardType.float, 'float', False, '0.0f'))
         self.add_type(Type(StandardType.double, 'double', False, '0.0'))

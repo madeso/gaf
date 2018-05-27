@@ -63,6 +63,13 @@ def get_cpp_parse_from_rapidjson_base(sources: Out, t: StandardType, member: str
         return get_cpp_parse_from_rapidjson_helper_float(sources, member, indent, name, json)
     elif t == StandardType.byte:
         return get_cpp_parse_from_rapidjson_helper_int(sources, t, member, indent, name, json)
+    elif t == StandardType.bool:
+        line = '{i}if({j}.IsBool()==false) return "read value for {n} was not a bool"; \n'\
+            .format(m=member, i=indent, t=t, n=name, j=json)
+        var = 'c->{m}'.format(m=member)
+        val = '{}.GetBool()'.format(json)
+        sources.add_source(line)
+        return VarValue(variable=var, value=val)
     elif t == StandardType.string:
         line = '{i}if({j}.IsString()==false) return "read value for {n} was not a string"; \n'\
             .format(m=member, i=indent, t=t, n=name, j=json)

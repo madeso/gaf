@@ -13,6 +13,7 @@ TEST_CASE("constructor") {
   CHECK(foo.hello == 0);
   CHECK(foo.world == Approx(0.0f));
   CHECK(foo.dog == "");
+  CHECK(foo.cat == false);
 }
 
 TEST_CASE("setter") {
@@ -20,7 +21,9 @@ TEST_CASE("setter") {
   foo.hello = 42;
   foo.world = 4.2f;
   foo.dog = "dog";
+  foo.cat = true;
   REQUIRE(foo.hello == 42);
   REQUIRE(foo.world == 4.2f);
   CHECK(foo.dog == "dog");
+  CHECK(foo.cat == true);
 }
