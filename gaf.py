@@ -16,11 +16,10 @@ from enum import Enum
 import enum
 import os
 import typing
+import argparse
 
 from gaf_cpp import write_cpp
 from gaf_parse import CharFile, read_several_structs, ParseError
-import argparse
-
 from gaf_types import OutputOptions, CppEnumStyle
 
 
