@@ -68,6 +68,7 @@ def main():
         Code('package'),
         Code('twostructs'),
         Code('arrays'),
+        Code('standard_types'),
         Code('enum', use_enum=True)
     ]
 

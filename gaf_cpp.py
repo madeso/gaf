@@ -44,6 +44,7 @@ def get_cpp_parse_from_rapidjson_helper_float(sources: Out, member: str, indent:
 
 
 def get_cpp_parse_from_rapidjson_base(sources: Out, t: StandardType, member: str, indent: str, name: str, json: str) -> VarValue:
+    # todo: verify that all int parsing ranges are correct
     if t == StandardType.int8:
         return get_cpp_parse_from_rapidjson_helper_int(sources, t, member, indent, name, json)
     elif t == StandardType.int16:
@@ -57,6 +58,14 @@ def get_cpp_parse_from_rapidjson_base(sources: Out, t: StandardType, member: str
         val = '{}.GetInt64()'.format(json)
         sources.add_source(line)
         return VarValue(variable=var, value=val)
+    elif t == StandardType.uint8:
+        return get_cpp_parse_from_rapidjson_helper_int(sources, t, member, indent, name, json)
+    elif t == StandardType.uint16:
+        return get_cpp_parse_from_rapidjson_helper_int(sources, t, member, indent, name, json)
+    elif t == StandardType.uint32:
+        return get_cpp_parse_from_rapidjson_helper_int(sources, t, member, indent, name, json)
+    elif t == StandardType.uint64:
+        return get_cpp_parse_from_rapidjson_helper_int(sources, t, member, indent, name, json)
     elif t == StandardType.float:
         return get_cpp_parse_from_rapidjson_helper_float(sources, member, indent, name, json)
     elif t == StandardType.double:

@@ -10,6 +10,10 @@ class StandardType(enum.Enum):
     int16 = object()
     int32 = object()
     int64 = object()
+    uint8 = object()
+    uint16 = object()
+    uint32 = object()
+    uint64 = object()
     float = object()
     double = object()
     byte = object()
@@ -26,6 +30,14 @@ class StandardType(enum.Enum):
             return 'int32_t'
         if self == StandardType.int64:
             return 'int64_t'
+        if self == StandardType.uint8:
+            return 'uint8_t'
+        if self == StandardType.uint16:
+            return 'uint16_t'
+        if self == StandardType.uint32:
+            return 'uint32_t'
+        if self == StandardType.uint64:
+            return 'uint64_t'
         if self == StandardType.float:
             return 'float'
         if self == StandardType.double:
@@ -68,11 +80,15 @@ class TypeList:
         self.add_type(Type(StandardType.int16, 'int16', True, '0'))
         self.add_type(Type(StandardType.int32, 'int32', True, '0'))
         self.add_type(Type(StandardType.int64, 'int64', True, '0'))
-        self.add_type(Type(StandardType.byte, 'byte', True, '0'))
-        self.add_type(Type(StandardType.bool, 'bool', False, 'false'))
+        self.add_type(Type(StandardType.uint8, 'uint8', True, '0'))
+        self.add_type(Type(StandardType.uint16, 'uint16', True, '0'))
+        self.add_type(Type(StandardType.uint32, 'uint32', True, '0'))
+        self.add_type(Type(StandardType.uint64, 'uint64', True, '0'))
 
         self.add_type(Type(StandardType.float, 'float', False, '0.0f'))
         self.add_type(Type(StandardType.double, 'double', False, '0.0'))
+        self.add_type(Type(StandardType.byte, 'byte', True, '0'))
+        self.add_type(Type(StandardType.bool, 'bool', False, 'false'))
         self.add_type(Type(StandardType.string, 'string', False))
 
     def is_valid_type(self, name: str) -> bool:
