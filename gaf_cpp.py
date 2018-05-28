@@ -313,13 +313,13 @@ def write_cpp(f: File, opt: OutputOptions, out_dir: str, name: str):
     sources = Out()
     generate_cpp(f, sources, name, opt)
 
-    with open(os.path.join(out_dir, name + '.h'), 'w', encoding='utf-8') as out:
+    with open(os.path.join(out_dir, opt.prefix + name + '.h'), 'w', encoding='utf-8') as out:
         for s in sources.header:
             out.write(s)
 
     if not opt.header_only:
-        with open(os.path.join(out_dir, name + '.cc'), 'w', encoding='utf-8') as out:
-            out.write('#include "{}.h"\n'.format(name))
+        with open(os.path.join(out_dir, opt.prefix + name + '.cc'), 'w', encoding='utf-8') as out:
+            out.write('#include "{}.h"\n'.format(opt.prefix + name))
             out.write('\n')
             out.write('#include <limits>\n')
             if opt.write_json:

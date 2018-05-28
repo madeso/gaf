@@ -18,11 +18,12 @@ def ensure_folder_exist(directory):
 
 
 class Code:
-    def __init__(self, name, gaf=None, test=None, use_enum: bool = False):
+    def __init__(self, name, gaf=None, test=None, use_enum: bool = False, test_underscore: bool = False):
         self.name = name
         self.gaf = gaf if gaf is not None else name+'.c'
         self.test = test if test is not None else name+'.cc'
         self.use_enum = use_enum
+        self.test_underscore = test_underscore
 
 
 def remove_folder(d):
@@ -40,7 +41,7 @@ def print_result(root, cmake_result, make_result, app_result):
 
 
 class CodeRun:
-    def __init__(self, json_test, header_only_test):
+    def __init__(self, json_test: bool, header_only_test: bool):
         codename = ''
         if json_test:
             codename += '_json'
@@ -65,6 +66,7 @@ def main():
         Code('comments2', test='comments.cc'),
         Code('comments3', test='comments.cc'),
         Code('onestruct'),
+        Code('underscore', gaf='onestruct.c', test='underscore_onestruct.cc', test_underscore = True),
         Code('package'),
         Code('twostructs'),
         Code('arrays'),
@@ -128,6 +130,7 @@ def main():
 
                     with open(os.path.join(code_root_folder, 'CMakeLists.txt'), 'w') as cmake_file:
                         test_cpp_folder = os.path.join(root_folder, 'test-cpp')
+                        underscore = 'SET(Gaf_CUSTOM_PREFIX gaf_)' if code.test_underscore else 'SET(Gaf_CUSTOM_NAME mygaf)'
                         cmake_file.write('''
                         cmake_minimum_required(VERSION 3.1)
                         project(gaf)
@@ -147,7 +150,7 @@ def main():
                         include_directories(SYSTEM {external}/catch)
                         include_directories(SYSTEM {external}/rapidjson-1.1.0/include)
                         include({root}/gaf.cmake)
-                        SET(Gaf_CUSTOM_NAME mygaf)
+                        {custom_underscore}
                         SET(Gaf_CUSTOM_ARGUMENTS_FROM_FILE {coderoot}/cmdlineargs.txt)
                         GAF_GENERATE_CPP(GAF_SOURCES GAF_HEADERS {root}/examples/{gaf})
                         include_directories(${{CMAKE_CURRENT_BINARY_DIR}})
@@ -163,7 +166,8 @@ def main():
                             coderoot=code_root_folder,
                             headeronly = '1' if run.header_only_test else '0',
                             json = '1' if run.json_test else '0',
-                            gaf_sources = '' if run.header_only_test else '${GAF_SOURCES} '
+                            gaf_sources = '' if run.header_only_test else '${GAF_SOURCES} ',
+                            custom_underscore=underscore
                         ))
                     code_build_folder = os.path.join(code_root_folder, 'build')
                     ensure_folder_exist(code_build_folder)

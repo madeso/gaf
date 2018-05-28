@@ -211,8 +211,9 @@ class CppEnumStyle(enum.Enum):
 
 
 class OutputOptions:
-    def __init__(self, header_only: bool, write_json: bool, enum_style: CppEnumStyle):
+    def __init__(self, header_only: bool, write_json: bool, enum_style: CppEnumStyle, prefix: str):
         self.header_only = header_only
         self.write_json = write_json
         # todo: this needs to come from the args
         self.enum_style = enum_style
+        self.prefix = prefix
