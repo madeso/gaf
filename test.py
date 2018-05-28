@@ -61,9 +61,9 @@ def main():
     code_examples = [
         Code('defaultvalues'),
         Code('constants', test='defaultvalues.cc'),
-        Code('comments1', test='onestruct.cc'),
-        Code('comments2', test='onestruct.cc'),
-        Code('comments3', test='onestruct.cc'),
+        Code('comments1', test='comments.cc'),
+        Code('comments2', test='comments.cc'),
+        Code('comments3', test='comments.cc'),
         Code('onestruct'),
         Code('package'),
         Code('twostructs'),
