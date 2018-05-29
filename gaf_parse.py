@@ -202,6 +202,11 @@ def read_struct(f: CharFile, type_list: TypeList, fi: File) -> Struct:
 
             read_spaces(f)
             ch = peek_char(f)
+        elif ch == '?':
+            read_char(f)
+            read_spaces(f)
+            ch = peek_char(f)
+            mem.is_optional = True
 
         if ch == '=':
             if not is_default_type(ty):

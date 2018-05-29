@@ -69,6 +69,7 @@ def main():
         Code('underscore', gaf='onestruct.c', test='underscore_onestruct.cc', test_underscore = True),
         Code('package'),
         Code('twostructs'),
+        Code('optional'),
         Code('arrays'),
         Code('standard_types'),
         Code('enum', use_enum=True)

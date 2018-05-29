@@ -104,7 +104,10 @@ def get_cpp_parse_from_rapidjson(sources: Out, t: StandardType, member: str, ind
         sources.add_source('{}}}\n'.format(indent))
     else:
         vv = get_cpp_parse_from_rapidjson_base(sources, t, member, indent, name, 'iter->value')
-        sources.add_source('{i}{var} = {val};\n'.format(i=indent, var=vv.variable, val=vv.value))
+        if member_type.is_optional:
+            sources.add_source('{i}{var} = std::make_shared<{cpptype}>({val});\n'.format(i=indent, var=vv.variable, val=vv.value, cpptype=t.get_cpp_type()))
+        else:
+            sources.add_source('{i}{var} = {val};\n'.format(i=indent, var=vv.variable, val=vv.value))
 
 
 def write_json_member(m: Member, sources: Out, indent):
@@ -123,6 +126,15 @@ def write_json_member(m: Member, sources: Out, indent):
                    '{i}}}\n'\
                 .format(i=indent, name=m.name, type=m.typename.name)
             sources.add_source(line)
+        elif m.is_optional:
+            sources.add_source('{i}c->{name} = std::make_shared<{type}>();\n'
+                               '{i}const char* const r = ReadFromJsonValue(c->{name}.get(),iter->value);\n'
+                               '{i}if(r!=nullptr)\n'
+                               '{i}{{\n'
+                               '{i}  c->{name}.reset();\n'
+                               '{i}  return r;\n'
+                               '{i}}}\n'
+                               .format(i=indent, name=m.name, type=m.typename.name))
         else:
             sources.add_source('{i}const char* const r = ReadFromJsonValue(&c->{name},iter->value);\n'
                                '{i}if(r!=nullptr)\n'
@@ -143,7 +155,10 @@ def write_json_source_for_cpp(write_json: bool, sources: Out, s: Struct):
             write_json_member(m, sources, '    ')
             sources.add_source('  }\n')
             sources.add_source('  else {\n')
-            sources.add_source('    return "missing {} in json object";\n'.format(m.name))
+            if m.is_optional:
+                sources.add_source('    c->{}.reset();\n'.format(m.name))
+            else:
+                sources.add_source('    c->return "missing {} in json object";\n'.format(m.name))
             sources.add_source('  }\n')
         sources.add_source('  return nullptr;\n')
         sources.add_source('}\n')
@@ -157,7 +172,9 @@ def write_member_variables_for_cpp(sources: Out, s: Struct, opt: OutputOptions):
         # m.typename.is_enum
         type_name = '{}::Type'.format(m.typename.name)\
             if m.typename.is_enum and opt.enum_style == CppEnumStyle.NamespaceEnum else m.typename.name
-        if m.is_dynamic_array:
+        if m.is_optional:
+            sources.add_header('  std::shared_ptr<{tn}> {n};\n'.format(n=m.name, tn=type_name))
+        elif m.is_dynamic_array:
             sources.add_header('  std::vector<{tn}> {n};\n'.format(n=m.name, tn=type_name))
         else:
             sources.add_header('  {tn} {n};\n'.format(n=m.name, tn=type_name))
@@ -215,6 +232,7 @@ def generate_cpp(f: File, sources: Out, name: str, opt: OutputOptions):
 
     has_string = StandardType.string in [t.standard_type for t in unique_types]
     has_dynamic_arrays = any(m for s in f.structs for m in s.members if m.is_dynamic_array)
+    has_optional = any(m for s in f.structs for m in s.members if m.is_optional)
 
     sources.add_header('#ifndef {}_H\n'.format(headerguard))
     sources.add_header('#define {}_H\n'.format(headerguard))
@@ -235,6 +253,9 @@ def generate_cpp(f: File, sources: Out, name: str, opt: OutputOptions):
     if has_dynamic_arrays:
         added_include = True
         sources.add_header('#include <vector>\n')
+    if has_optional:
+        added_include = True
+        sources.add_header('#include <memory>\n')
     if added_include:
         sources.add_header('\n')
 
