@@ -7,3 +7,4 @@
 
 #cmakedefine GAF_JSON_RETURN_Bool
 #cmakedefine GAF_JSON_RETURN_Char
+#cmakedefine GAF_JSON_RETURN_String

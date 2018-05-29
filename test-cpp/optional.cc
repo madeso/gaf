@@ -31,33 +31,33 @@ TEST_CASE("setter") {
 
 TEST_CASE("json_basic") {
   Foo foo;
-  const char* const load = ReadJsonSource(&foo, " {\"value\": 12} ");
-  REQUIRE(load == nullptr);
+  const std::string load = ReadJsonSource(&foo, " {\"value\": 12} ");
+  REQUIRE(load == "");
   REQUIRE(foo.value != nullptr);
   REQUIRE(*foo.value == 12);
 }
 
 TEST_CASE("json_missing_foo") {
   Bar bar;
-  const char* const load = ReadJsonSource(&bar, " {\"name\": \"good dog\"} ");
-  REQUIRE(load == nullptr);
+  const std::string load = ReadJsonSource(&bar, " {\"name\": \"good dog\"} ");
+  REQUIRE(load == "");
   REQUIRE(bar.name != nullptr);
   REQUIRE(*bar.name == "good dog");
   REQUIRE(bar.foo == nullptr);
 }
 
 TEST_CASE("json_invalid_value_for_name") {
-  // optional means optiona, not accept if invalid
+  // optional means optional, not accept if invalid
   Bar bar;
-  const char* const load = ReadJsonSource(&bar, " {\"name\": 3} ");
-  REQUIRE(load != nullptr);
+  const std::string load = ReadJsonSource(&bar, " {\"name\": 3} ");
+  REQUIRE(load != "");
 }
 
 
 TEST_CASE("json_empty_document") {
   Bar bar;
-  const char* const load = ReadJsonSource(&bar, "{}");
-  REQUIRE(load == nullptr);
+  const std::string load = ReadJsonSource(&bar, "{}");
+  REQUIRE(load == "");
   REQUIRE(bar.name == nullptr);
   REQUIRE(bar.foo == nullptr);
 }
@@ -65,8 +65,8 @@ TEST_CASE("json_empty_document") {
 
 TEST_CASE("json_optional_struct") {
   Bar bar;
-  const char* const load = ReadJsonSource(&bar, "{\"foo\": {\"value\": 5}}");
-  REQUIRE(load == nullptr);
+  const std::string load = ReadJsonSource(&bar, "{\"foo\": {\"value\": 5}}");
+  REQUIRE(load == "");
   CHECK(bar.name == nullptr);
   CHECK(bar.foo != nullptr);
   CHECK(bar.foo->value != nullptr);

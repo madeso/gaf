@@ -215,6 +215,7 @@ class CppEnumStyle(enum.Enum):
 class CppJsonReturn(enum.Enum):
     Char = object()
     Bool = object()
+    String = object()
 
 
 class OutputOptions:

@@ -47,30 +47,30 @@ TEST_CASE("setter") {
 
 TEST_CASE("json_basic") {
   Foo foo;
-  const char* const load = ReadJsonSource(&foo, " {\"hello\": 12, \"world\": 2.4} ");
-  REQUIRE(load == nullptr);
+  const std::string load = ReadJsonSource(&foo, " {\"hello\": 12, \"world\": 2.4} ");
+  REQUIRE(load == "");
   REQUIRE(foo.hello == 12);
   REQUIRE(foo.world == 2.4f);
 }
 
 TEST_CASE("json_missing_world") {
   Foo foo;
-  const char* const load = ReadJsonSource(&foo, " {\"hello\": 12} ");
-  REQUIRE(load != nullptr);
+  const std::string load = ReadJsonSource(&foo, " {\"hello\": 12} ");
+  REQUIRE(load != "");
 }
 
 
 TEST_CASE("json_empty_document") {
   Foo foo;
-  const char* const load = ReadJsonSource(&foo, "{}");
-  REQUIRE(load != nullptr);
+  const std::string load = ReadJsonSource(&foo, "{}");
+  REQUIRE(load != "");
 }
 
 
 TEST_CASE("json_advanced") {
   Bar bar;
-  const char* const load = ReadJsonSource(&bar, "{\"bar\": \"cat and dog\", \"b\": true, \"foo\": {\"hello\": 12, \"world\": 2.4}}");
-  REQUIRE(load == nullptr);
+  const std::string load = ReadJsonSource(&bar, "{\"bar\": \"cat and dog\", \"b\": true, \"foo\": {\"hello\": 12, \"world\": 2.4}}");
+  REQUIRE(load == "");
   CHECK(bar.foo.hello == 12);
   CHECK(bar.foo.world == 2.4f);
   CHECK(bar.bar == "cat and dog");

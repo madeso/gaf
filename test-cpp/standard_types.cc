@@ -30,7 +30,7 @@ TEST_CASE("constructor") {
 
 TEST_CASE("json") {
   FooBar fb;
-  const char* const load = ReadJsonSource(&fb,
+  const std::string load = ReadJsonSource(&fb,
     "{\
     \"a\": 1,\
     \"b\": 2,\
@@ -46,7 +46,7 @@ TEST_CASE("json") {
     \"h\": 11.0,\
     \"i\": \"dog\"}"
   );
-  REQUIRE(load == nullptr);
+  REQUIRE(load == "");
 
   REQUIRE(fb.a == 1);
   REQUIRE(fb.b == 2);

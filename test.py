@@ -86,7 +86,7 @@ def main():
     root_folder = os.getcwd()
     print('root', root_folder)
 
-    rvs = ['Char', 'Bool']
+    rvs = ['Char', 'Bool', 'String']
     if args.rv is not None:
         rvs = [rvs[args.rv]]
 

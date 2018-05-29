@@ -28,6 +28,18 @@ def json_return_value(opt: OutputOptions) -> str:
         return 'const char*'
     if opt.json_return == CppJsonReturn.Bool:
         return 'bool'
+    if opt.json_return == CppJsonReturn.String:
+        return 'std::string'
+    return 'Unhandled_type_CppReturnValue'
+
+
+def json_is_false(opt: OutputOptions) -> str:
+    if opt.json_return == CppJsonReturn.Char:
+        return '!=nullptr'
+    if opt.json_return == CppJsonReturn.Bool:
+        return '==false'
+    if opt.json_return == CppJsonReturn.String:
+        return '.empty() == false'
     return 'Unhandled_type_CppReturnValue'
 
 
@@ -36,6 +48,8 @@ def json_return_error(opt: OutputOptions, err: str) -> str:
         return 'return "{}";'.format(err)
     if opt.json_return == CppJsonReturn.Bool:
         return 'return false;'
+    if opt.json_return == CppJsonReturn.String:
+        return 'return "{}";'.format(err)
     return 'return Unhandled_err_CppReturnValue;'
 
 
@@ -44,6 +58,8 @@ def json_return_ok(opt: OutputOptions) -> str:
         return 'nullptr'
     if opt.json_return == CppJsonReturn.Bool:
         return 'true'
+    if opt.json_return == CppJsonReturn.String:
+        return '""'
     return 'Unhandled_OK_CppReturnValue'
 
 
@@ -154,29 +170,31 @@ def write_json_member(opt: OutputOptions, m: Member, sources: Out, indent):
                    '{i}for (rapidjson::SizeType i=0; i<arr.Size(); i++)\n' \
                    '{i}{{\n' \
                    '{i}  {type} temp;\n' \
-                   '{i}  const char* const r = ReadFromJsonValue(&temp,arr[i]);\n' \
-                   '{i}  if(r!=nullptr) {{ return r; }}\n' \
+                   '{i}  {rv} r = ReadFromJsonValue(&temp,arr[i]);\n' \
+                   '{i}  if(r{false}) {{ return r; }}\n' \
                    '{i}  c->{name}.push_back(temp);\n' \
                    '{i}}}\n'\
                 .format(i=indent, name=m.name, type=m.typename.name,
-                        err=json_return_error(opt, "tried to read {name} but value was not a array".format(i=indent, name=m.name, type=m.typename.name)))
+                        err=json_return_error(opt, "tried to read {name} but value was not a array".format(i=indent, name=m.name, type=m.typename.name)),
+                        false=json_is_false(opt),
+                        rv=json_return_value(opt))
             sources.add_source(line)
         elif m.is_optional:
             sources.add_source('{i}c->{name} = std::make_shared<{type}>();\n'
-                               '{i}const char* const r = ReadFromJsonValue(c->{name}.get(),iter->value);\n'
-                               '{i}if(r!=nullptr)\n'
+                               '{i}{rv} r = ReadFromJsonValue(c->{name}.get(),iter->value);\n'
+                               '{i}if(r{false})\n'
                                '{i}{{\n'
                                '{i}  c->{name}.reset();\n'
                                '{i}  return r;\n'
                                '{i}}}\n'
-                               .format(i=indent, name=m.name, type=m.typename.name))
+                               .format(i=indent, name=m.name, type=m.typename.name,false=json_is_false(opt), rv=json_return_value(opt)))
         else:
-            sources.add_source('{i}const char* const r = ReadFromJsonValue(&c->{name},iter->value);\n'
-                               '{i}if(r!=nullptr)\n'
+            sources.add_source('{i}{rv} r = ReadFromJsonValue(&c->{name},iter->value);\n'
+                               '{i}if(r{false})\n'
                                '{i}{{\n'
                                '{i}  return r;\n'
                                '{i}}}\n'
-                               .format(i=indent, name=m.name))
+                               .format(i=indent, name=m.name, false=json_is_false(opt), rv=json_return_value(opt)))
 
 
 def write_json_source_for_cpp(write_json: bool, sources: Out, s: Struct, opt: OutputOptions):

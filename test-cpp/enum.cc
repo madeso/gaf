@@ -88,30 +88,30 @@ TEST_CASE("json_basic") {
   ;
 
   Person person;
-  const char* const load = ReadJsonSource(&person, " {\"happiness\": \"INDIFFERENT\", \"favoriteProject\": \"Other\"} ");
-  REQUIRE(load == nullptr);
+  const std::string load = ReadJsonSource(&person, " {\"happiness\": \"INDIFFERENT\", \"favoriteProject\": \"Other\"} ");
+  REQUIRE(load == "");
   REQUIRE(person.happiness == happiness);
   REQUIRE(person.favoriteProject == project);
 }
 
 TEST_CASE("json_missing_project") {
   Person person;
-  const char* const load = ReadJsonSource(&person, " {\"happiness\": 12} ");
-  REQUIRE(load != nullptr);
+  const std::string load = ReadJsonSource(&person, " {\"happiness\": 12} ");
+  REQUIRE(load != "");
 }
 
 
 TEST_CASE("json_empty_document") {
   Person person;
-  const char* const load = ReadJsonSource(&person, "{}");
-  REQUIRE(load != nullptr);
+  const std::string load = ReadJsonSource(&person, "{}");
+  REQUIRE(load != "");
 }
 
 
 TEST_CASE("json_as_ints") {
   Person person;
-  const char* const load = ReadJsonSource(&person, " {\"happiness\": 1, \"favoriteProject\": 2} ");
-  REQUIRE(load != nullptr);
+  const std::string load = ReadJsonSource(&person, " {\"happiness\": 1, \"favoriteProject\": 2} ");
+  REQUIRE(load != "");
 }
 
 #endif

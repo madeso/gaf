@@ -53,22 +53,22 @@ TEST_CASE("vector works") {
 TEST_CASE("basic_emptyjson") {
   Basic basic;
 
-  const char* const load = ReadJsonSource(&basic, "{}");
-  REQUIRE(load != nullptr);
+  const std::string load = ReadJsonSource(&basic, "{}");
+  REQUIRE(load != "");
 }
 
 TEST_CASE("advanced_emptyjson") {
   Advanced advanced;
 
-  const char* const load = ReadJsonSource(&advanced, "{}");
-  REQUIRE(load != nullptr);
+  const std::string load = ReadJsonSource(&advanced, "{}");
+  REQUIRE(load != "");
 }
 
 TEST_CASE("basic_basic_json") {
   Basic basic;
 
-  const char* const load = ReadJsonSource(&basic, "{\"some_ints\": [], \"some_strings\": []}");
-  REQUIRE(load == nullptr);
+  const std::string load = ReadJsonSource(&basic, "{\"some_ints\": [], \"some_strings\": []}");
+  REQUIRE(load == "");
 
   REQUIRE(basic.some_ints.size() == 0);
   REQUIRE(basic.some_strings.size() == 0);
@@ -77,8 +77,8 @@ TEST_CASE("basic_basic_json") {
 TEST_CASE("advanced_basic_json") {
   Advanced advanced;
 
-  const char* const load = ReadJsonSource(&advanced, "{\"basics\": [] }");
-  REQUIRE(load == nullptr);
+  const std::string load = ReadJsonSource(&advanced, "{\"basics\": [] }");
+  REQUIRE(load == "");
 
   REQUIRE(advanced.basics.size() == 0);
 }
@@ -86,8 +86,8 @@ TEST_CASE("advanced_basic_json") {
 TEST_CASE("basic_advanced_json") {
   Basic basic;
 
-  const char* const load = ReadJsonSource(&basic, "{\"some_ints\": [10, 20], \"some_strings\": [\"horse\", \"fish\"]}");
-  REQUIRE(load == nullptr);
+  const std::string load = ReadJsonSource(&basic, "{\"some_ints\": [10, 20], \"some_strings\": [\"horse\", \"fish\"]}");
+  REQUIRE(load == "");
 
   REQUIRE_THAT(basic.some_ints, Equals(Vector<int>() << 10 << 20));
   REQUIRE_THAT(basic.some_strings, Equals(Vector<std::string>() << "horse" << "fish"));
@@ -96,8 +96,8 @@ TEST_CASE("basic_advanced_json") {
 TEST_CASE("advanced_advanced_json") {
   Advanced advanced;
 
-  const char* const load = ReadJsonSource(&advanced, "{\"basics\": [{\"some_ints\": [10, 20], \"some_strings\": [\"horse\", \"fish\"]}] }");
-  REQUIRE(load == nullptr);
+  const std::string load = ReadJsonSource(&advanced, "{\"basics\": [{\"some_ints\": [10, 20], \"some_strings\": [\"horse\", \"fish\"]}] }");
+  REQUIRE(load == "");
 
   Basic basic;
   basic.some_ints.push_back(5);
