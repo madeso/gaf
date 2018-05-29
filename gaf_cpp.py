@@ -158,7 +158,7 @@ def write_json_source_for_cpp(write_json: bool, sources: Out, s: Struct):
             if m.is_optional:
                 sources.add_source('    c->{}.reset();\n'.format(m.name))
             else:
-                sources.add_source('    c->return "missing {} in json object";\n'.format(m.name))
+                sources.add_source('    return "missing {} in json object";\n'.format(m.name))
             sources.add_source('  }\n')
         sources.add_source('  return nullptr;\n')
         sources.add_source('}\n')
