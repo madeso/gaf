@@ -4,3 +4,6 @@
 #cmakedefine GAF_ENUM_STYLE_EnumClass
 #cmakedefine GAF_ENUM_STYLE_NamespaceEnum
 #cmakedefine GAF_ENUM_STYLE_PrefixEnum
+
+#cmakedefine GAF_JSON_RETURN_Bool
+#cmakedefine GAF_JSON_RETURN_Char

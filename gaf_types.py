@@ -211,10 +211,17 @@ class CppEnumStyle(enum.Enum):
     PrefixEnum = object()
 
 
+@enum.unique
+class CppJsonReturn(enum.Enum):
+    Char = object()
+    Bool = object()
+
+
 class OutputOptions:
-    def __init__(self, header_only: bool, write_json: bool, enum_style: CppEnumStyle, prefix: str):
+    def __init__(self, header_only: bool, write_json: bool, enum_style: CppEnumStyle, prefix: str, json_return: CppJsonReturn):
         self.header_only = header_only
         self.write_json = write_json
         # todo: this needs to come from the args
         self.enum_style = enum_style
         self.prefix = prefix
+        self.json_return = json_return

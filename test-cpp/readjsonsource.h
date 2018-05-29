@@ -11,7 +11,19 @@ const char* ReadJsonSource(T* t, const char* const source) {
   document.Parse(source);
   const auto err = document.GetParseError();
   if(err != rapidjson::kParseErrorNone ) {return "test: json error parsing";}
+
+#ifdef GAF_JSON_RETURN_Char
   return ReadFromJsonValue(t, document);
+#else
+  if(ReadFromJsonValue(t, document))
+  {
+    return nullptr;
+  }
+  else
+  {
+    return "json load failure";
+  }
+#endif
 }
 
 
