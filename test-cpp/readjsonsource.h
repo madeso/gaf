@@ -18,8 +18,8 @@ std::string ReadJsonSource(T* t, const char* const source) {
 #else    // GAF_JSON_RETURN_String
 
 #ifdef GAF_JSON_RETURN_Char
-  const char* err = ReadFromJsonValue(t, document);
-  if(err) return err;
+  const char* read_err = ReadFromJsonValue(t, document);
+  if(read_err) return read_err;
   else return "";
 #else    // GAF_JSON_RETURN_Char
   if(ReadFromJsonValue(t, document))
