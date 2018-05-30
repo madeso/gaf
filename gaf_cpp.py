@@ -326,6 +326,10 @@ def generate_cpp(f: File, sources: Out, name: str, opt: OutputOptions):
     if has_string or json_string:
         added_include = True
         sources.add_header('#include <string>\n')
+    if json_string and opt.header_only:
+        added_include = True
+        sources.add_header('#include <sstream>\n')
+
     if len(f.enums) > 0 and opt.write_json:
         if opt.header_only:
             sources.add_header('#include <cstring>\n')
@@ -453,6 +457,9 @@ def write_cpp(f: File, opt: OutputOptions, out_dir: str, name: str):
             out.write('\n')
             out.write('#include <limits>\n')
             if opt.write_json:
+                if opt.json_return == CppJsonReturn.String:
+                    out.write('#include <sstream>\n')
+                out.write('\n')
                 out.write('#include "rapidjson/document.h"\n')
             out.write('\n')
 
