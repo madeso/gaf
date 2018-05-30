@@ -14,7 +14,7 @@ std::string ReadJsonSource(T* t, const char* const source) {
   if(err != rapidjson::kParseErrorNone ) {return "test: json error parsing";}
 
 #ifdef GAF_JSON_RETURN_String
-  return ReadFromJsonValue(t, document);
+  return ReadFromJsonValue(t, document, "");
 #else    // GAF_JSON_RETURN_String
 
 #ifdef GAF_JSON_RETURN_Char

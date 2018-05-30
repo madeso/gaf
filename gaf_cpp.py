@@ -165,41 +165,65 @@ def write_json_member(opt: OutputOptions, m: Member, sources: Out, indent):
         get_cpp_parse_from_rapidjson(opt, sources, m.typename.standard_type, m.name, indent, m.name, m)
     else:
         if m.is_dynamic_array:
-            line = '{i}const rapidjson::Value& arr = iter->value;\n' \
-                   '{i}if(!arr.IsArray()) {err}\n' \
-                   '{i}for (rapidjson::SizeType i=0; i<arr.Size(); i++)\n' \
-                   '{i}{{\n' \
-                   '{i}  {type} temp;\n' \
-                   '{i}  {rv} r = ReadFromJsonValue(&temp,arr[i]);\n' \
-                   '{i}  if(r{false}) {{ return r; }}\n' \
-                   '{i}  c->{name}.push_back(temp);\n' \
-                   '{i}}}\n'\
-                .format(i=indent, name=m.name, type=m.typename.name,
-                        err=json_return_error(opt, "tried to read {name} but value was not a array".format(i=indent, name=m.name, type=m.typename.name)),
-                        false=json_is_false(opt),
-                        rv=json_return_value(opt))
-            sources.add_source(line)
+            lines = []
+            lines.append('{i}const rapidjson::Value& arr = iter->value;\n')
+            lines.append('{i}if(!arr.IsArray()) {err}\n')
+            lines.append('{i}for (rapidjson::SizeType i=0; i<arr.Size(); i++)\n')
+            lines.append('{i}{{\n')
+            lines.append('{i}  {type} temp;\n')
+            if opt.json_return == CppJsonReturn.String:
+                lines.append('{i}  gaf_ss.str("");\n')
+                lines.append('{i}  gaf_ss << gaf_path << ".{name}[" << i << "]";\n')
+                lines.append('{i}  {rv} r = ReadFromJsonValue(&temp,arr[i], gaf_ss.str());\n')
+            else:
+                lines.append('{i}  {rv} r = ReadFromJsonValue(&temp,arr[i]);\n')
+            lines.append('{i}  if(r{false}) {{ return r; }}\n')
+            lines.append('{i}  c->{name}.push_back(temp);\n')
+            lines.append('{i}}}\n')
+            for line in lines:
+                sources.add_source(line.format(i=indent, name=m.name, type=m.typename.name,
+                                               err=json_return_error(opt, "tried to read {name} but value was not a array".format(i=indent, name=m.name, type=m.typename.name)),
+                                               false=json_is_false(opt),
+                                               rv=json_return_value(opt)))
         elif m.is_optional:
-            sources.add_source('{i}c->{name} = std::make_shared<{type}>();\n'
-                               '{i}{rv} r = ReadFromJsonValue(c->{name}.get(),iter->value);\n'
-                               '{i}if(r{false})\n'
-                               '{i}{{\n'
-                               '{i}  c->{name}.reset();\n'
-                               '{i}  return r;\n'
-                               '{i}}}\n'
-                               .format(i=indent, name=m.name, type=m.typename.name,false=json_is_false(opt), rv=json_return_value(opt)))
+            lines = []
+            lines.append('{i}c->{name} = std::make_shared<{type}>();\n')
+            if opt.json_return == CppJsonReturn.String:
+                lines.append('{i}gaf_ss.str("");\n')
+                lines.append('{i}gaf_ss << gaf_path << ".{name}";\n')
+                lines.append('{i}{rv} r = ReadFromJsonValue(c->{name}.get(),iter->value, gaf_ss.str());\n')
+            else:
+                lines.append('{i}{rv} r = ReadFromJsonValue(c->{name}.get(),iter->value);\n')
+            lines.append('{i}if(r{false})\n')
+            lines.append('{i}{{\n')
+            lines.append('{i}  c->{name}.reset();\n')
+            lines.append('{i}  return r;\n')
+            lines.append('{i}}}\n')
+            for line in lines:
+                sources.add_source(line.format(i=indent, name=m.name, type=m.typename.name,false=json_is_false(opt), rv=json_return_value(opt)))
         else:
-            sources.add_source('{i}{rv} r = ReadFromJsonValue(&c->{name},iter->value);\n'
-                               '{i}if(r{false})\n'
-                               '{i}{{\n'
-                               '{i}  return r;\n'
-                               '{i}}}\n'
-                               .format(i=indent, name=m.name, false=json_is_false(opt), rv=json_return_value(opt)))
+            lines = []
+            if opt.json_return == CppJsonReturn.String:
+                lines.append('{i}gaf_ss.str("");\n')
+                lines.append('{i}gaf_ss << gaf_path << ".{name}";\n')
+                lines.append('{i}{rv} r = ReadFromJsonValue(&c->{name},iter->value, gaf_ss.str());\n')
+            else:
+                lines.append('{i}{rv} r = ReadFromJsonValue(&c->{name},iter->value);\n')
+            lines.append('{i}if(r{false})\n')
+            lines.append('{i}{{\n')
+            lines.append('{i}  return r;\n')
+            lines.append('{i}}}\n')
+            for line in lines:
+                sources.add_source(line.format(i=indent, name=m.name, false=json_is_false(opt), rv=json_return_value(opt)))
 
 
 def write_json_source_for_cpp(write_json: bool, sources: Out, s: Struct, opt: OutputOptions):
     if write_json:
-        sources.add_source('{rv} ReadFromJsonValue({struct}* c, const rapidjson::Value& value) {{\n'.format(struct=s.name, rv=json_return_value(opt)))
+        if opt.json_return == CppJsonReturn.String:
+            sources.add_source('{rv} ReadFromJsonValue({struct}* c, const rapidjson::Value& value, const std::string& gaf_path) {{\n'.format(struct=s.name, rv=json_return_value(opt)))
+            sources.add_source('  std::stringstream gaf_ss;\n')
+        else:
+            sources.add_source('{rv} ReadFromJsonValue({struct}* c, const rapidjson::Value& value) {{\n'.format(struct=s.name, rv=json_return_value(opt)))
         sources.add_source('  if(!value.IsObject()) {error}\n'.format(error=json_return_error(opt, "tried to read {} but value was not a object".format(s.name))))
         sources.add_source('  rapidjson::Value::ConstMemberIterator iter;\n')
         for m in s.members:
@@ -263,10 +287,13 @@ def iterate_enum(e: Enum, sources: Out, prefix_prop: bool=False):
 def add_enum_json_function(e: Enum, sources: Out, opt: OutputOptions, prefix_prop: bool=False, type_enum: bool=False):
     enum_type = '{}::Type'.format(e.name) if type_enum else e.name
     value_prefix = '{}_'.format(e.name) if prefix_prop else '{}::'.format(e.name)
-    sources.add_header('{rv} ReadFromJsonValue({t}* c, const rapidjson::Value& value);\n'.format(t=enum_type, rv=json_return_value(opt)))
-    sources.add_source('{rv} ReadFromJsonValue({t}* c, const rapidjson::Value& value)\n'.format(t=enum_type, rv=json_return_value(opt)))
+    arg = ', const std::string& gaf_path' if opt.json_return == CppJsonReturn.String else ''
+    sources.add_header('{rv} ReadFromJsonValue({t}* c, const rapidjson::Value& value{a});\n'.format(t=enum_type, rv=json_return_value(opt), a=arg))
+    sources.add_source('{rv} ReadFromJsonValue({t}* c, const rapidjson::Value& value{a})\n'.format(t=enum_type, rv=json_return_value(opt), a=arg))
     sources.add_source('{{\n')
-    sources.add_source('  if(value.IsString()==false) {err};\n'.format( err=json_return_error(opt, "read value for {e} was not a string".format(e=e.name))))
+    if opt.json_return == CppJsonReturn.String:
+        sources.add_source('  std::stringstream gaf_ss;\n')
+    sources.add_source('  if(value.IsString()==false) {err};\n'.format(err=json_return_error(opt, "read value for {e} was not a string".format(e=e.name))))
     for v in e.values:
         sources.add_source('  if(strcmp(value.GetString(), "{v}")==0) {{ *c = {p}{v}; return {ok};}}\n'.format(p=value_prefix, v=v, ok=json_return_ok(opt)))
     sources.add_source('  {}\n'.format(json_return_error(opt, "read string for {e} was not valid".format(e=e.name))))
@@ -366,7 +393,8 @@ def generate_cpp(f: File, sources: Out, name: str, opt: OutputOptions):
 
         if opt.write_json:
             sources.add_header('\n')
-            sources.add_header('{rv} ReadFromJsonValue({name}* c, const rapidjson::Value& value);\n'.format(name=s.name, rv=json_return_value(opt)))
+            arg = ', const std::string& gaf_path' if opt.json_return == CppJsonReturn.String else ''
+            sources.add_header('{rv} ReadFromJsonValue({name}* c, const rapidjson::Value& value{a});\n'.format(name=s.name, rv=json_return_value(opt), a=arg))
         sources.add_header('\n')
 
     if opt.header_only:
