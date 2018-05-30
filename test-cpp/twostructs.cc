@@ -53,6 +53,14 @@ TEST_CASE("json_basic") {
   REQUIRE(foo.world == 2.4f);
 }
 
+TEST_CASE("json_double_can_be_ints") {
+  Foo foo;
+  const std::string load = ReadJsonSource(&foo, " {\"hello\": 12, \"world\": 2} ");
+  REQUIRE(load == "");
+  REQUIRE(foo.hello == 12);
+  REQUIRE(foo.world == 2.0f);
+}
+
 TEST_CASE("json_missing_world") {
   Foo foo;
   const std::string load = ReadJsonSource(&foo, " {\"hello\": 12} ");

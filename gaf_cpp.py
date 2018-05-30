@@ -80,9 +80,9 @@ def get_cpp_parse_from_rapidjson_helper_int(opt: OutputOptions, sources: Out, t:
 
 
 def get_cpp_parse_from_rapidjson_helper_float(opt: OutputOptions, sources: Out, member: str, indent: str, name: str, json: str) -> VarValue:
-    line = '{i}if({j}.IsDouble()==false) {err} \n'\
+    line = '{i}if({j}.IsNumber()==false) {err} \n'\
         .format(m=member, i=indent, n=name, j=json,
-                err=json_return_error(opt, "read value for {n} was not a double".format(m=member, i=indent, n=name, j=json), json))
+                err=json_return_error(opt, "read value for {n} was not a number".format(m=member, i=indent, n=name, j=json), json))
     sources.add_source(line)
     var = 'c->{m}'.format(m=member)
     val = '{}.GetDouble()'.format(json)
