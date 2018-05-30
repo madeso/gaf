@@ -310,6 +310,7 @@ def generate_cpp(f: File, sources: Out, name: str, opt: OutputOptions):
                      if t.standard_type.get_cpp_type() != '' and t.name != t.get_cpp_type()
                      ]
 
+    json_string = opt.write_json and opt.json_return == CppJsonReturn.String
     has_string = StandardType.string in [t.standard_type for t in unique_types]
     has_dynamic_arrays = any(m for s in f.structs for m in s.members if m.is_dynamic_array)
     has_optional = any(m for s in f.structs for m in s.members if m.is_optional)
@@ -322,7 +323,7 @@ def generate_cpp(f: File, sources: Out, name: str, opt: OutputOptions):
     if len(default_types) > 0:
         added_include = True
         sources.add_header('#include <cstdint>\n')
-    if has_string:
+    if has_string or json_string:
         added_include = True
         sources.add_header('#include <string>\n')
     if len(f.enums) > 0 and opt.write_json:
