@@ -68,6 +68,13 @@ TEST_CASE("pointer json_invalid_value_for_name") {
   REQUIRE(load != "");
 }
 
+TEST_CASE("optional json_invalid_value_for_name") {
+  // optional means optional, not accept if invalid
+  BarRoot bar;
+  const std::string load = ReadJsonSource(&bar, " {\"name\": 3} ");
+  REQUIRE(load != "");
+}
+
 
 TEST_CASE("pointer json_empty_document") {
   FooRoot bar;
@@ -75,6 +82,14 @@ TEST_CASE("pointer json_empty_document") {
   REQUIRE(load == "");
   REQUIRE(bar.name == nullptr);
   REQUIRE(bar.foo == nullptr);
+}
+
+TEST_CASE("optional json_empty_document") {
+  BarRoot bar;
+  const std::string load = ReadJsonSource(&bar, "{}");
+  REQUIRE(load == "");
+  REQUIRE(bar.name == "");
+  REQUIRE(bar.foo.value == 0);
 }
 
 
@@ -86,6 +101,14 @@ TEST_CASE("pointer json_optional_struct") {
   CHECK(bar.foo != nullptr);
   CHECK(bar.foo->value != nullptr);
   CHECK(*bar.foo->value == 5);
+}
+
+TEST_CASE("optional json_optional_struct") {
+  BarRoot bar;
+  const std::string load = ReadJsonSource(&bar, "{\"foo\": {\"value\": 5}}");
+  REQUIRE(load == "");
+  CHECK(bar.name == "");
+  CHECK(bar.foo.value == 5);
 }
 
 #endif
