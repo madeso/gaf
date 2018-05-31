@@ -231,12 +231,13 @@ def write_json_source_for_cpp(write_json: bool, sources: Out, s: Struct, opt: Ou
             sources.add_source('  if(iter != value.MemberEnd()) {\n')
             write_json_member(opt, m, sources, '    ')
             sources.add_source('  }\n')
-            sources.add_source('  else {\n')
-            if m.is_optional:
-                sources.add_source('    c->{}.reset();\n'.format(m.name))
-            else:
-                sources.add_source('    {error}\n'.format(error=json_return_error(opt, "missing {} in json object".format(m.name), 'value')))
-            sources.add_source('  }\n')
+            if m.missing_is_fail or m.is_optional:
+                sources.add_source('  else {\n')
+                if m.is_optional:
+                    sources.add_source('    c->{}.reset();\n'.format(m.name))
+                else:
+                    sources.add_source('    {error}\n'.format(error=json_return_error(opt, "missing {} in json object".format(m.name), 'value')))
+                sources.add_source('  }\n')
         sources.add_source('  return {};\n'.format(json_return_ok(opt)))
         sources.add_source('}\n')
         sources.add_source('\n')

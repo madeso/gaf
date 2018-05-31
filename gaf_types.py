@@ -111,6 +111,7 @@ class Member:
         self.defaultvalue = typename.default_value
         self.is_dynamic_array = False
         self.is_optional = False
+        self.missing_is_fail = True
 
     def __str__(self):
         if self.defaultvalue is None:

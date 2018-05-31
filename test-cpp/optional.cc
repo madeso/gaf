@@ -9,7 +9,7 @@
 #include "mygaf.h"
 #include "readjsonsource.h"
 
-TEST_CASE("constructor") {
+TEST_CASE("pointer constructor") {
   Foo foo;
   REQUIRE(foo.value == nullptr);
 
@@ -18,18 +18,18 @@ TEST_CASE("constructor") {
   REQUIRE(bar.foo == nullptr);
 }
 
-TEST_CASE("setter") {
-  FooRoot bar;
-  bar.name = std::make_shared<std::string>("dog");
-  bar.foo = std::make_shared<Foo>();
+TEST_CASE("optional constructor") {
+  Bar foo;
+  REQUIRE(foo.value == 0);
 
-  REQUIRE(*bar.name == "dog");
-  REQUIRE(bar.foo->value == nullptr);
+  BarRoot bar;
+  REQUIRE(bar.name == "");
+  REQUIRE(bar.foo.value == 0);
 }
 
 #if GAF_TEST_JSON
 
-TEST_CASE("json_basic") {
+TEST_CASE("pointer json_basic") {
   Foo foo;
   const std::string load = ReadJsonSource(&foo, " {\"value\": 12} ");
   REQUIRE(load == "");
@@ -37,7 +37,14 @@ TEST_CASE("json_basic") {
   REQUIRE(*foo.value == 12);
 }
 
-TEST_CASE("json_missing_foo") {
+TEST_CASE("optional json_basic") {
+  Bar foo;
+  const std::string load = ReadJsonSource(&foo, " {\"value\": 12} ");
+  REQUIRE(load == "");
+  REQUIRE(foo.value == 12);
+}
+
+TEST_CASE("pointer json_missing_foo") {
   FooRoot bar;
   const std::string load = ReadJsonSource(&bar, " {\"name\": \"good dog\"} ");
   REQUIRE(load == "");
@@ -46,7 +53,15 @@ TEST_CASE("json_missing_foo") {
   REQUIRE(bar.foo == nullptr);
 }
 
-TEST_CASE("json_invalid_value_for_name") {
+TEST_CASE("optional json_missing_foo") {
+  BarRoot bar;
+  const std::string load = ReadJsonSource(&bar, " {\"name\": \"good dog\"} ");
+  REQUIRE(load == "");
+  REQUIRE(bar.name == "good dog");
+  REQUIRE(bar.foo.value == 0);
+}
+
+TEST_CASE("pointer json_invalid_value_for_name") {
   // optional means optional, not accept if invalid
   FooRoot bar;
   const std::string load = ReadJsonSource(&bar, " {\"name\": 3} ");
@@ -54,7 +69,7 @@ TEST_CASE("json_invalid_value_for_name") {
 }
 
 
-TEST_CASE("json_empty_document") {
+TEST_CASE("pointer json_empty_document") {
   FooRoot bar;
   const std::string load = ReadJsonSource(&bar, "{}");
   REQUIRE(load == "");
@@ -63,7 +78,7 @@ TEST_CASE("json_empty_document") {
 }
 
 
-TEST_CASE("json_optional_struct") {
+TEST_CASE("pointer json_optional_struct") {
   FooRoot bar;
   const std::string load = ReadJsonSource(&bar, "{\"foo\": {\"value\": 5}}");
   REQUIRE(load == "");
