@@ -13,13 +13,13 @@ TEST_CASE("constructor") {
   Foo foo;
   REQUIRE(foo.value == nullptr);
 
-  Bar bar;
+  FooRoot bar;
   REQUIRE(bar.name == nullptr);
   REQUIRE(bar.foo == nullptr);
 }
 
 TEST_CASE("setter") {
-  Bar bar;
+  FooRoot bar;
   bar.name = std::make_shared<std::string>("dog");
   bar.foo = std::make_shared<Foo>();
 
@@ -38,7 +38,7 @@ TEST_CASE("json_basic") {
 }
 
 TEST_CASE("json_missing_foo") {
-  Bar bar;
+  FooRoot bar;
   const std::string load = ReadJsonSource(&bar, " {\"name\": \"good dog\"} ");
   REQUIRE(load == "");
   REQUIRE(bar.name != nullptr);
@@ -48,14 +48,14 @@ TEST_CASE("json_missing_foo") {
 
 TEST_CASE("json_invalid_value_for_name") {
   // optional means optional, not accept if invalid
-  Bar bar;
+  FooRoot bar;
   const std::string load = ReadJsonSource(&bar, " {\"name\": 3} ");
   REQUIRE(load != "");
 }
 
 
 TEST_CASE("json_empty_document") {
-  Bar bar;
+  FooRoot bar;
   const std::string load = ReadJsonSource(&bar, "{}");
   REQUIRE(load == "");
   REQUIRE(bar.name == nullptr);
@@ -64,7 +64,7 @@ TEST_CASE("json_empty_document") {
 
 
 TEST_CASE("json_optional_struct") {
-  Bar bar;
+  FooRoot bar;
   const std::string load = ReadJsonSource(&bar, "{\"foo\": {\"value\": 5}}");
   REQUIRE(load == "");
   CHECK(bar.name == nullptr);

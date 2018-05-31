@@ -2,7 +2,8 @@ struct Foo {
   int32 value?;
 }
 
-struct Bar {
+struct FooRoot {
   string name?;
   Foo foo?;
 }
+
