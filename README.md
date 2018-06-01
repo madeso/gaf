@@ -3,7 +3,9 @@
 
 
 
-[![Build Status](https://travis-ci.org/madeso/gaf.svg?branch=master)](https://travis-ci.org/madeso/gaf)
+[![Travis Status](https://travis-ci.org/madeso/gaf.svg?branch=master)](https://travis-ci.org/madeso/gaf)
+[![Appveyor status](https://ci.appveyor.com/api/projects/status/github/madeso/gaf?branch=master&svg=true)](https://ci.appveyor.com/project/madeso/gaf)
+
 
 # What is it
 
