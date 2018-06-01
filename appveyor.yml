@@ -1,0 +1,18 @@
+environment:
+  matrix:
+    - APPVEYOR_BUILD_WORKER_IMAGE: Visual Studio 2015
+    - APPVEYOR_BUILD_WORKER_IMAGE: Visual Studio 2017
+  # Python 3.4 has outdated pip
+  # https://github.com/jakubroztocil/httpie/blob/master/appveyor.yml
+  PYTHON: 'C:\Python36'
+
+clone_folder: c:\projects\gaf
+
+install:
+  - cmd: sed -i 's/git@github.com:/https:\/\/github.com\//' .gitmodules
+  - cmd: git submodule update --init --recursive
+  - cmd: 'echo %PYTHON%'
+  - cmd: '%PYTHON%\python.exe --version'
+
+build_script:
+  - cmd: '%PYTHON%\python.exe c:\projects\gaf\test.py all'
