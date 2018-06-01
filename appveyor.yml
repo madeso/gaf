@@ -9,8 +9,6 @@ environment:
 clone_folder: c:\projects\gaf
 
 install:
-  - cmd: sed -i 's/git@github.com:/https:\/\/github.com\//' .gitmodules
-  - cmd: git submodule update --init --recursive
   - cmd: 'echo %PYTHON%'
   - cmd: '%PYTHON%\python.exe --version'
 
