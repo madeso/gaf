@@ -360,9 +360,13 @@ def generate_cpp(f: File, sources: Out, name: str, opt: OutputOptions):
         sources.add_header('\n')
 
     if len(default_types) > 0:
-        sources.add_header('\n')
         for t in default_types:
             sources.add_header('typedef {ct} {t};\n'.format(t=t.name, ct=t.get_cpp_type()))
+        sources.add_header('\n')
+
+    if len(f.typedefs) > 0:
+        for s in f.typedefs:
+            sources.add_header('class {};\n'.format(s.name))
         sources.add_header('\n')
 
     for e in f.enums:
@@ -389,7 +393,7 @@ def generate_cpp(f: File, sources: Out, name: str, opt: OutputOptions):
 
         sources.add_header('\n')
 
-    for s in f.structs:
+    for s in f.structs_defined:
         sources.add_header('class {} {{\n'.format(s.name))
         sources.add_header(' public:\n')
         write_default_constructor_for_cpp(s, sources, opt)

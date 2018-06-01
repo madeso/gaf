@@ -174,6 +174,8 @@ def empty_constant_list() -> typing.List[Constant]:
 class File:
     def __init__(self):
         self.structs = empty_struct_list()
+        self.typedefs = empty_struct_list()
+        self.structs_defined = empty_struct_list()
         self.enums = empty_enum_list()
         self.constants = empty_constant_list()
         self.package_name = ''

@@ -328,6 +328,11 @@ def read_several_structs(f: CharFile) -> File:
             s = read_struct(f, type_list, file)
             if file.find_struct(s.name) is None:
                 file.structs.append(s)
+
+            if s.is_defined:
+                file.structs_defined.append(s)
+            else:
+                file.typedefs.append(s)
         elif keyword == 'enum':
             e = read_enum(f, type_list)
             file.enums.append(e)

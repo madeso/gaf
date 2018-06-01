@@ -1,5 +1,8 @@
+struct FooRoot;
+
 struct Foo {
   int32? value;
+  FooRoot? root;
 }
 
 struct FooRoot {
