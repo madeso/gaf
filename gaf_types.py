@@ -128,6 +128,7 @@ class Struct:
     def __init__(self, name: str):
         self.name = name
         self.members = empty_member_list()
+        self.is_defined = False
 
     def add_member(self, member: Member):
         self.members.append(member)
@@ -197,6 +198,12 @@ class File:
 
     def find_enum(self, name: str) -> typing.Optional[Enum]:
         for e in self.enums:
+            if e.name == name:
+                return e
+        return None
+
+    def find_struct(self, name: str) -> typing.Optional[Struct]:
+        for e in self.structs:
             if e.name == name:
                 return e
         return None

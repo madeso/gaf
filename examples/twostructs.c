@@ -1,7 +1,4 @@
-struct Foo {
-  int32 hello;
-  float world;
-}
+struct Foo;
 
 struct Bar {
   Foo foo;
@@ -9,4 +6,7 @@ struct Bar {
   bool b;
 }
 
-
+struct Foo {
+  int32 hello;
+  float world;
+}

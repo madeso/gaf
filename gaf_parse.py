@@ -207,59 +207,74 @@ def read_default_value(f: CharFile, t: Type, fi: File) -> str:
 def read_struct(f: CharFile, type_list: TypeList, fi: File) -> Struct:
     struct_name = read_ident(f)
     struct = Struct(struct_name)
-    read_single_char(f, '{')
-    while peek_char(f) != '}':
-        ty = read_ident(f)
 
-        is_optional = False
-        read_spaces(f)
-        ch = peek_char(f)
-        if ch == '?':
-            is_optional = True
-            read_char(f)
+    forward = fi.find_struct(struct_name)
+    if forward is None:
+        type_list.add_type(Type(StandardType.INVALID, struct_name, False))
+    else:
+        struct = forward
+
+    read_spaces(f)
+    ch = peek_char(f)
+
+    if ch == ';':
+        read_char(f)
+    elif ch == '{':
+        read_char(f)
+        if struct.is_defined:
+            f.report_error('structs {} has already been defined'.format(struct_name))
+        struct.is_defined = True
+        while peek_char(f) != '}':
+            ty = read_ident(f)
+
+            is_optional = False
+            read_spaces(f)
+            ch = peek_char(f)
+            if ch == '?':
+                is_optional = True
+                read_char(f)
+                read_spaces(f)
+                ch = peek_char(f)
+
+            name = read_ident(f)
+            if type_list.is_valid_type(ty) is False:
+                f.report_error('Invalid type {t} for member {s}.{m}'.format(t=ty, s=struct_name, m=name))
+            valid_type = type_list.get_type(ty) if type_list.is_valid_type(ty) else StandardType.int32
+            mem = Member(name, valid_type)
+            mem.is_optional = is_optional
+
             read_spaces(f)
             ch = peek_char(f)
 
-        name = read_ident(f)
-        if type_list.is_valid_type(ty) is False:
-            f.report_error('Invalid type {t} for member {s}.{m}'.format(t=ty, s=struct_name, m=name))
-        valid_type = type_list.get_type(ty) if type_list.is_valid_type(ty) else StandardType.int32
-        mem = Member(name, valid_type)
-        mem.is_optional = is_optional
+            if not is_optional:
+                if ch == '[':
+                    read_char(f)
+                    read_spaces(f)
+                    read_single_char(f, ']')
+                    mem.is_dynamic_array = True
+                    mem.defaultvalue = None
 
-        read_spaces(f)
-        ch = peek_char(f)
+                    read_spaces(f)
+                    ch = peek_char(f)
+                if ch == '?':
+                    read_char(f)
+                    read_spaces(f)
+                    ch = peek_char(f)
+                    mem.missing_is_fail = False
 
-        if not is_optional:
-            if ch == '[':
+            if ch == '=':
+                if not is_default_type(ty) and not valid_type.is_enum:
+                    f.report_error('structs cant have default values yet')
+                if mem.is_dynamic_array:
+                    f.report_error('dynamic arrays cant have default values yet')
                 read_char(f)
-                read_spaces(f)
-                read_single_char(f, ']')
-                mem.is_dynamic_array = True
-                mem.defaultvalue = None
+                mem.defaultvalue = read_default_value(f, valid_type, fi)
+            read_spaces(f)
+            read_single_char(f, ';')
 
-                read_spaces(f)
-                ch = peek_char(f)
-            if ch == '?':
-                read_char(f)
-                read_spaces(f)
-                ch = peek_char(f)
-                mem.missing_is_fail = False
-
-        if ch == '=':
-            if not is_default_type(ty) and not valid_type.is_enum:
-                f.report_error('structs cant have default values yet')
-            if mem.is_dynamic_array:
-                f.report_error('dynamic arrays cant have default values yet')
-            read_char(f)
-            mem.defaultvalue = read_default_value(f, valid_type, fi)
-        read_spaces(f)
-        read_single_char(f, ';')
-
-        struct.add_member(mem)
-        read_spaces(f)
-    read_single_char(f, '}')
-    type_list.add_type(Type(StandardType.INVALID, struct_name, False))
+            struct.add_member(mem)
+            read_spaces(f)
+        read_single_char(f, '}')
 
     return struct
 
@@ -311,7 +326,8 @@ def read_several_structs(f: CharFile) -> File:
         keyword = read_ident(f)
         if keyword == 'struct':
             s = read_struct(f, type_list, file)
-            file.structs.append(s)
+            if file.find_struct(s.name) is None:
+                file.structs.append(s)
         elif keyword == 'enum':
             e = read_enum(f, type_list)
             file.enums.append(e)
