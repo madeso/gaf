@@ -200,16 +200,20 @@ def main():
                         app_result = ''
                         try:
                             print('running cmake')
+                            build_cmd = ['cmake', '..']
+                            if 'APPVEYOR' in os.environ:
+                                build_cmd.append('-DPYTHON_EXECUTABLE:FILEPATH='+os.environ['PYTHON']+'\\python.exe')
+                                print(build_cmd)
                             sys.stdout.flush()
-                            cmake_result = subprocess.check_output(['cmake', '..'], stderr=subprocess.STDOUT, universal_newlines=True, cwd=code_build_folder)
-                            print('running make')
+                            cmake_result = subprocess.check_output(build_cmd, stderr=subprocess.STDOUT, universal_newlines=True, cwd=code_build_folder)
+                            print('running build')
                             sys.stdout.flush()
                             make_result = subprocess.check_output(['cmake', '--build', '.', '--config', 'Release'], stderr=subprocess.STDOUT, universal_newlines=True, cwd=code_build_folder)
                             print('running code')
                             sys.stdout.flush()
                             code_run_folder = os.path.join(code_build_folder, 'run')
                             ensure_folder_exist(code_run_folder)
-                            app_path = os.path.join(code_build_folder, 'Release', 'app.exe') if is_windows() else '../app' 
+                            app_path = os.path.join(code_build_folder, 'Release', 'app.exe') if is_windows() else '../app'
                             app_result = subprocess.check_output([app_path], stderr=subprocess.STDOUT, universal_newlines=True, cwd=code_run_folder)
                             print_result(code_root_folder, cmake_result, make_result, app_result)
                             total_oks += 1
