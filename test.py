@@ -19,12 +19,13 @@ def ensure_folder_exist(directory):
 
 
 class Code:
-    def __init__(self, name, gaf=None, test=None, use_enum: bool = False, test_underscore: bool = False):
+    def __init__(self, name, gaf=None, test=None, use_enum: bool = False, test_underscore: bool = False, json_test: bool = False):
         self.name = name
         self.gaf = gaf if gaf is not None else name+'.c'
         self.test = test if test is not None else name+'.cc'
         self.use_enum = use_enum
         self.test_underscore = test_underscore
+        self.json_test = json_test
 
 
 def remove_folder(d):
@@ -75,13 +76,13 @@ def main():
         Code('comments2', test='comments.cc'),
         Code('comments3', test='comments.cc'),
         Code('onestruct'),
-        Code('underscore', gaf='onestruct.c', test='underscore_onestruct.cc', test_underscore = True),
+        Code('underscore', gaf='onestruct.c', test='underscore_onestruct.cc', test_underscore=True),
         Code('package'),
-        Code('twostructs'),
-        Code('optional'),
-        Code('arrays'),
-        Code('standard_types'),
-        Code('enum', use_enum=True)
+        Code('twostructs', json_test=True),
+        Code('optional', json_test=True),
+        Code('arrays', json_test=True),
+        Code('standard_types', json_test=True),
+        Code('enum', use_enum=True, json_test=True)
     ]
 
     import argparse
@@ -111,8 +112,10 @@ def main():
     coderuns = all_coderuns()
 
     for code in code_examples:
-        for run in coderuns:
-            for rv in rvs:
+        lrvs = rvs if code.json_test else [rvs[2]]
+        lcoderuns = coderuns if code.json_test else [CodeRun(json_test=False, header_only_test=True), CodeRun(json_test=False, header_only_test=False)]
+        for run in lcoderuns:
+            for rv in lrvs:
                 enum_values = ['EnumClass', 'NamespaceEnum', 'PrefixEnum'] if code.use_enum else ['PrefixEnum']
                 for ev in enum_values:
                     if args.only is None or run.codename in args.only:
