@@ -140,6 +140,20 @@ def read_default_value_double(f: CharFile) -> str:
     return '{d}.{f}'.format(d=dec, f=frac)
 
 
+def read_default_value_string(f: CharFile) -> str:
+    read_single_char(f, '"')
+    r = '"'
+    while peek_char(f) is not '"':
+        ch = read_char(f)
+        r += ch
+        if ch == '\\':
+            r += read_char(f)
+
+    read_single_char(f, '"')
+    r += '"'
+    return r
+
+
 def read_default_value(f: CharFile, t: Type, fi: File) -> str:
     read_spaces(f)
 
@@ -180,6 +194,8 @@ def read_default_value(f: CharFile, t: Type, fi: File) -> str:
         fl = read_default_value_double(f)
         read_single_char(f, 'f')
         return fl
+    if t.standard_type == StandardType.string:
+        return read_default_value_string(f)
     if t.standard_type == StandardType.double:
         return read_default_value_double(f)
     if t.standard_type == StandardType.byte:
