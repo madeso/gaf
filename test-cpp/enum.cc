@@ -13,10 +13,10 @@ TEST_CASE("Person") {
   Person dude;
 
 #ifdef GAF_ENUM_STYLE_PrefixEnum
-CHECK(dude.happiness == Happiness_SAD);
+  CHECK(dude.happiness == Happiness_GLAD);
   CHECK(dude.favoriteProject == Project_Protobuf);
 #else
-  CHECK(dude.happiness == Happiness::SAD);
+  CHECK(dude.happiness == Happiness::GLAD);
   CHECK(dude.favoriteProject == Project::Protobuf);
 #endif
 }

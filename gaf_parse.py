@@ -152,6 +152,16 @@ def read_default_value(f: CharFile, t: Type, fi: File) -> str:
                 return 'true'
             if ident == 'false':
                 return 'false'
+        if t.is_enum:
+            e = fi.find_enum(t.name)
+            if e is None:
+                f.report_error('BUG: failed to find enum {t} while loooking up {n}'.format(n=ident, t=t.name))
+                return ''
+            if ident in e.values:
+                return ident
+            else:
+                f.report_error('{n} is not a valid enum value of {t}'.format(n=ident, t=t.name))
+                return ''
         c = fi.find_constant(ident, t)
         if c is None:
             f.report_error('failed to find constant named {n} with a type {t}'.format(n=ident, t=t.name))
@@ -221,7 +231,7 @@ def read_struct(f: CharFile, type_list: TypeList, fi: File) -> Struct:
                 mem.missing_is_fail = False
 
         if ch == '=':
-            if not is_default_type(ty):
+            if not is_default_type(ty) and not valid_type.is_enum:
                 f.report_error('structs cant have default values yet')
             if mem.is_dynamic_array:
                 f.report_error('dynamic arrays cant have default values yet')

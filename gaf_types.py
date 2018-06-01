@@ -195,6 +195,12 @@ class File:
                 return c
         return None
 
+    def find_enum(self, name: str) -> typing.Optional[Enum]:
+        for e in self.enums:
+            if e.name == name:
+                return e
+        return None
+
 
 def merge(iters):
     for it in iters:

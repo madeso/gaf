@@ -1,5 +1,5 @@
 enum Happiness {
-    SAD, INDIFFERENT, HAPPY
+    SAD, INDIFFERENT, HAPPY, GLAD
 }
 
 // unless specified, type defaults to something like int32
@@ -8,6 +8,6 @@ enum Project : byte {
 }
 
 struct Person {
-  Happiness happiness;
+  Happiness happiness = GLAD;
   Project favoriteProject;
 }
