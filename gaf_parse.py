@@ -240,6 +240,10 @@ def read_struct(f: CharFile, type_list: TypeList, fi: File) -> Struct:
             if type_list.is_valid_type(ty) is False:
                 f.report_error('Invalid type {t} for member {s}.{m}'.format(t=ty, s=struct_name, m=name))
             valid_type = type_list.get_type(ty) if type_list.is_valid_type(ty) else StandardType.int32
+            s = fi.find_struct(ty)
+            if s is not None:
+                if not s.is_defined:
+                    f.report_error('Struct {t} is not defined yet for {s}.{m}. Define or use optional'.format(t=ty, s=struct_name, m=name))
             mem = Member(name, valid_type)
             mem.is_optional = is_optional
 
