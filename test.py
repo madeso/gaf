@@ -80,7 +80,7 @@ def main():
         Code('twostructs', json_test=True),
         Code('optional', json_test=True),
         Code('arrays', json_test=True),
-        Code('standard_types', json_test=True),
+        Code('master', json_test=True),
         Code('enum', use_enum=True, json_test=True)
     ]
 
