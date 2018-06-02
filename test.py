@@ -79,7 +79,6 @@ def main():
         Code('package'),
         Code('twostructs', json_test=True),
         Code('optional', json_test=True),
-        Code('arrays', json_test=True),
         Code('master', json_test=True),
         Code('enum', use_enum=True, json_test=True)
     ]
