@@ -78,7 +78,6 @@ def main():
         Code('underscore', test_underscore=True),
         Code('package'),
         Code('twostructs', json_test=True),
-        Code('optional', json_test=True),
         Code('master', json_test=True),
         Code('enum', use_enum=True, json_test=True)
     ]
