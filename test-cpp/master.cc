@@ -149,6 +149,7 @@ TEST_CASE("array basic json") {
   REQUIRE(fb.standard.size() == 0);
 }
 
+// todo: parse standard too
 TEST_CASE("arrays advanced json") {
   Arrays fb;
   const std::string load = ReadJsonSource(&fb,
