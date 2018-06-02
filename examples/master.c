@@ -1,4 +1,4 @@
-struct FooBar
+struct Standard
 {
   int8 a;
   int16 b;

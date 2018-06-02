@@ -10,7 +10,7 @@
 #include "readjsonsource.h"
 
 TEST_CASE("constructor") {
-  FooBar fb;
+  Standard fb;
   REQUIRE(fb.a == 0);
   REQUIRE(fb.b == 0);
   REQUIRE(fb.c == 0);
@@ -29,7 +29,7 @@ TEST_CASE("constructor") {
 #if GAF_TEST_JSON
 
 TEST_CASE("json") {
-  FooBar fb;
+  Standard fb;
   const std::string load = ReadJsonSource(&fb,
     "{\
     \"a\": 1,\
