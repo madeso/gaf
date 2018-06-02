@@ -111,6 +111,7 @@ def main():
 
     coderuns = all_coderuns()
 
+    index = 0
     for code in code_examples:
         lrvs = rvs if code.json_test else [rvs[2]]
         lcoderuns = coderuns if code.json_test else [CodeRun(json_test=False, header_only_test=True), CodeRun(json_test=False, header_only_test=False)]
@@ -128,9 +129,11 @@ def main():
 
                         codename += '_' + rv
 
+                        index = index + 1
+
                         print()
                         print('----------------------------------------------------------------')
-                        print('--- {}'.format(codename))
+                        print('--- {} #{}'.format(codename, index))
                         print('----------------------------------------------------------------')
                         sys.stdout.flush()
 
