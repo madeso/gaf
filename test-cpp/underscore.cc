@@ -3,10 +3,10 @@
 
 #include "config.h"
 #if GAF_TEST_HEADER_ONLY
-#define GENERATED_ONESTRUCT_IMPLEMENTATION
+#define GENERATED_UNDERSCORE_IMPLEMENTATION
 #endif
 
-#include "gaf_onestruct.h"
+#include "gaf_underscore.h"
 
 TEST_CASE("constructor") {
   Foo foo;
