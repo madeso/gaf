@@ -243,6 +243,66 @@ def write_json_source_for_cpp(write_json: bool, sources: Out, s: Struct, opt: Ou
         sources.add_source('\n')
 
 
+def write_single_imgui_member_to_source(name: str, var: str, t: StandardType, sources: Out, indent: str):
+    if t == StandardType.int8:
+        sources.add_source('{i}ImGui::Edit("{name}", &c->{var});\n'.format(name=name, var=var, i=indent))
+    elif t == StandardType.int16:
+        sources.add_source('{i}ImGui::Edit("{name}", &c->{var});\n'.format(name=name, var=var, i=indent))
+    elif t == StandardType.int32:
+        sources.add_source('{i}ImGui::InputInt("{name}", &c->{var});\n'.format(name=name, var=var, i=indent))
+    elif t == StandardType.int64:
+        sources.add_source('{i}ImGui::Edit("{name}", &c->{var});\n'.format(name=name, var=var, i=indent))
+    elif t == StandardType.uint8:
+        sources.add_source('{i}ImGui::Edit("{name}", &c->{var});\n'.format(name=name, var=var, i=indent))
+    elif t == StandardType.uint16:
+        sources.add_source('{i}ImGui::Edit("{name}", &c->{var});\n'.format(name=name, var=var, i=indent))
+    elif t == StandardType.uint32:
+        sources.add_source('{i}ImGui::Edit("{name}", &c->{var});\n'.format(name=name, var=var, i=indent))
+    elif t == StandardType.uint64:
+        sources.add_source('{i}ImGui::Edit("{name}", &c->{var});\n'.format(name=name, var=var, i=indent))
+    elif t == StandardType.float:
+        sources.add_source('{i}ImGui::Edit("{name}", &c->{var});\n'.format(name=name, var=var, i=indent))
+    elif t == StandardType.double:
+        sources.add_source('{i}ImGui::Edit("{name}", &c->{var});\n'.format(name=name, var=var, i=indent))
+    elif t == StandardType.byte:
+        sources.add_source('{i}ImGui::Edit("{name}", &c->{var});\n'.format(name=name, var=var, i=indent))
+    elif t == StandardType.bool:
+        sources.add_source('{i}ImGui::Checkbox("{name}", &c->{var});\n'.format(name=name, var=var, i=indent))
+    elif t == StandardType.string:
+        sources.add_source('{i}ImGui::Edit("{name}", &c->{var});\n'.format(name=name, var=var, i=indent))
+    else:
+        sources.add_source('{i}// todo: Unhandled type: {name} / {var}\n'.format(name=name, var=var, i=indent))
+
+
+def write_single_member_to_source(m: Member, sources: Out):
+    if not m.is_dynamic_array:
+        write_single_imgui_member_to_source(m.name, m.name, m.typename.standard_type, sources, '  ')
+    else:
+        sources.add_source('  if(ImGui::TreeNode("{name}"))\n'.format(name=m.name, var=m.name))
+        sources.add_source('  {\n')
+        sources.add_source('    for(std::size_t i=0; i<c->{var}.size(); i+= 1)\n'.format(var=m.name))
+        sources.add_source('    {\n')
+        sources.add_source('      ImGui::PushID(i);\n')
+        write_single_imgui_member_to_source('', '{}[i]'.format(m.name), m.typename.standard_type, sources, '      ')
+        sources.add_source('      ImGui::SameLine();\n')
+        sources.add_source('      ImGui::Button("Delete##{}");\n'.format(m.name))
+        sources.add_source('      ImGui::PopID();\n')
+        sources.add_source('    }\n')
+        sources.add_source('    ImGui::Button("Add");\n')
+        sources.add_source('    ImGui::TreePop();\n')
+        sources.add_source('  }\n')
+
+
+def write_imgui_source_for_cpp(write_imgui: bool, sources: Out, s: Struct, opt: OutputOptions):
+    if write_imgui:
+        sources.add_source('void RunImgui({name}* c)\n'.format(name=s.name))
+        sources.add_source('{\n')
+        for m in s.members:
+            write_single_member_to_source(m, sources)
+        sources.add_source('}\n')
+        sources.add_source('\n')
+
+
 def write_member_variables_for_cpp(sources: Out, s: Struct, opt: OutputOptions):
     # sources.add_header(' public:\n')
     for m in s.members:
@@ -399,12 +459,17 @@ def generate_cpp(f: File, sources: Out, name: str, opt: OutputOptions):
         write_default_constructor_for_cpp(s, sources, opt)
 
         write_json_source_for_cpp(opt.write_json, sources, s, opt)
+        write_imgui_source_for_cpp(opt.write_imgui, sources, s, opt)
+
         write_member_variables_for_cpp(sources, s, opt)
 
         if opt.write_json:
             sources.add_header('\n')
             arg = ', const std::string& gaf_path' if opt.json_return == CppJsonReturn.String else ''
             sources.add_header('{rv} ReadFromJsonValue({name}* c, const rapidjson::Value& value{a});\n'.format(name=s.name, rv=json_return_value(opt), a=arg))
+        if opt.write_imgui:
+            sources.add_header('\n')
+            sources.add_header('void RunImgui({name}* c);\n'.format(name=s.name))
         sources.add_header('\n')
 
     if opt.json_return == CppJsonReturn.String and opt.write_json:
@@ -468,6 +533,9 @@ def write_cpp(f: File, opt: OutputOptions, out_dir: str, name: str):
                     out.write('#include <sstream>\n')
                 out.write('\n')
                 out.write('#include "rapidjson/document.h"\n')
+            if opt.write_imgui:
+                out.write('#include {}\n'.format(opt.imgui_header))
+                out.write('\n')
             out.write('\n')
 
             if f.package_name != '':

@@ -31,6 +31,10 @@ function(GAF_GENERATE_CPP SRCS HDRS)
       SET(GAF_EXTRA_ARGS "${GAF_EXTRA_ARGS};--prefix;${Gaf_CUSTOM_PREFIX}")
     endif()
 
+    if(DEFINED Gaf_INCLUDE_IMGUI)
+      SET(GAF_EXTRA_ARGS "${GAF_EXTRA_ARGS};--include-imgui")
+    endif()
+
     list(APPEND ${SRCS} "${CMAKE_CURRENT_BINARY_DIR}/${Gaf_CUSTOM_PREFIX}${FIL_NAME}.cc")
     list(APPEND ${HDRS} "${CMAKE_CURRENT_BINARY_DIR}/${Gaf_CUSTOM_PREFIX}${FIL_NAME}.h")
     message(STATUS "Appending ${CMAKE_CURRENT_BINARY_DIR}/${Gaf_CUSTOM_PREFIX}${FIL_NAME}.h")
