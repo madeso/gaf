@@ -2,7 +2,7 @@
 import os
 
 from gaf_types import StandardType, Struct, get_unique_types, File, Member, OutputOptions, CppEnumStyle, Enum, \
-    CppJsonReturn
+    CppJsonReturn, TypeList
 
 
 class Out:
@@ -274,21 +274,45 @@ def write_single_imgui_member_to_source(name: str, var: str, t: StandardType, so
         sources.add_source('{i}// todo: Unhandled type: {name} / {var}\n'.format(name=name, var=var, i=indent))
 
 
+def determine_pushback_value(m: Member) -> str:
+    t = m.typename
+    tl = TypeList()
+    tl.add_default_types()
+    if tl.is_valid_type(t.name):
+        nt = tl.get_type(t.name)
+        return nt.default_value
+    else:
+        return '{}()'.format(t.name)
+
+
 def write_single_member_to_source(m: Member, sources: Out):
     if not m.is_dynamic_array:
         write_single_imgui_member_to_source(m.name, m.name, m.typename.standard_type, sources, '  ')
     else:
         sources.add_source('  if(ImGui::TreeNode("{name}"))\n'.format(name=m.name, var=m.name))
         sources.add_source('  {\n')
+        sources.add_source('    std::size_t delete_index = 0;\n')
+        sources.add_source('    bool please_delete = false;\n')
         sources.add_source('    for(std::size_t i=0; i<c->{var}.size(); i+= 1)\n'.format(var=m.name))
         sources.add_source('    {\n')
         sources.add_source('      ImGui::PushID(i);\n')
         write_single_imgui_member_to_source('', '{}[i]'.format(m.name), m.typename.standard_type, sources, '      ')
         sources.add_source('      ImGui::SameLine();\n')
-        sources.add_source('      ImGui::Button("Delete##{}");\n'.format(m.name))
+        sources.add_source('      if( ImGui::Button("Delete##{}") )\n'.format(m.name))
+        sources.add_source('      {\n')
+        sources.add_source('        delete_index = i;\n')
+        sources.add_source('        please_delete = true;\n')
+        sources.add_source('      }\n')
         sources.add_source('      ImGui::PopID();\n')
         sources.add_source('    }\n')
-        sources.add_source('    ImGui::Button("Add");\n')
+        sources.add_source('    if(please_delete)\n')
+        sources.add_source('    {\n')
+        sources.add_source('      c->{var}.erase(c->{var}.begin()+delete_index);\n'.format(var=m.name))
+        sources.add_source('    }\n')
+        sources.add_source('    if(ImGui::Button("Add"))\n')
+        sources.add_source('    {\n')
+        sources.add_source('      c->{var}.push_back({val});\n'.format(var=m.name, val=determine_pushback_value(m)))
+        sources.add_source('    }\n')
         sources.add_source('    ImGui::TreePop();\n')
         sources.add_source('  }\n')
 
