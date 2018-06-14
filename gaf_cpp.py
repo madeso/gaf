@@ -272,6 +272,12 @@ def write_single_imgui_member_to_source(name: str, var: str, t: StandardType, so
         sources.add_source('{i}ImGui::Edit("{name}", &c->{var});\n'.format(name=name, var=var, i=indent))
     else:
         sources.add_source('{i}// todo: Unhandled type: {name} / {var}\n'.format(name=name, var=var, i=indent))
+        sources.add_source('{i}ImGui::SetNextTreeNodeOpen(true, ImGuiSetCond_Appearing);\n'.format(i=indent))
+        sources.add_source('{i}if(ImGui::TreeNode("{name}"))\n'.format(name=name, i=indent))
+        sources.add_source('{i}{{\n'.format(i=indent))
+        sources.add_source('{i}  RunImgui(&c->{var});\n'.format(var=var, i=indent))
+        sources.add_source('{i}  ImGui::TreePop();\n'.format(i=indent))
+        sources.add_source('{i}}}\n'.format(i=indent))
 
 
 def determine_pushback_value(m: Member) -> str:
@@ -289,6 +295,7 @@ def write_single_member_to_source(m: Member, sources: Out):
     if not m.is_dynamic_array:
         write_single_imgui_member_to_source(m.name, m.name, m.typename.standard_type, sources, '  ')
     else:
+        sources.add_source('  ImGui::SetNextTreeNodeOpen(true, ImGuiSetCond_Appearing);\n')
         sources.add_source('  if(ImGui::TreeNode("{name}"))\n'.format(name=m.name, var=m.name))
         sources.add_source('  {\n')
         sources.add_source('    std::size_t delete_index = 0;\n')
