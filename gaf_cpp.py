@@ -298,12 +298,29 @@ def determine_pushback_value(m: Member) -> str:
         return '{}()'.format(t.name)
 
 
+def determine_new_value(m: Member) -> str:
+    t = m.typename
+    tl = TypeList()
+    tl.add_default_types()
+    if tl.is_valid_type(t.name):
+        nt = tl.get_type(t.name)
+        return 'new {t}({val})'.format(t=t.get_cpp_type(), val=nt.default_value)
+    else:
+        return 'new {}()'.format(t.name)
+
+
 def write_single_member_to_source(m: Member, sources: Out):
     if not m.is_dynamic_array:
         if m.is_optional:
             sources.add_source('    if(c->{var})\n'.format(var=m.name))
             sources.add_source('    {\n')
             write_single_imgui_member_to_source(m.name, 'c->{}.get()'.format(m.name), m.typename.standard_type, sources, '      ')
+            sources.add_source('      if(ImGui::Button("Clear {name}")) {{ c->{name}.reset(); }}\n'.format(name=m.name))
+            sources.add_source('    }\n')
+            sources.add_source('    else\n')
+            sources.add_source('    {\n')
+            sources.add_source('      if(ImGui::Button("Set {name}")) {{ c->{name}.reset({new_val}); }}\n'
+                               .format(name=m.name, new_val=determine_new_value(m)))
             sources.add_source('    }\n')
             sources.add_source('    \n'.format(var=m.name))
         else:
