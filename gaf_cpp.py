@@ -319,9 +319,7 @@ def determine_new_value(m: Member) -> str:
 
 
 def add_imgui_delete_button(m: Member, sources: Out):
-    sources.add_source('      std::stringstream gaf_delete_ss;\n')
-    sources.add_source('      gaf_delete_ss << "Delete {name}[" << i << "]";\n'.format(name=m.name))
-    sources.add_source('      if( ImGui::Button(gaf_delete_ss.str().c_str()) )\n')
+    sources.add_source('      if( ImGui::Button("Delete") )\n')
     sources.add_source('      {\n')
     sources.add_source('        delete_index = i;\n')
     sources.add_source('        please_delete = true;\n')
