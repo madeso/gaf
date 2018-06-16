@@ -243,7 +243,18 @@ def write_json_source_for_cpp(write_json: bool, sources: Out, s: Struct, opt: Ou
         sources.add_source('\n')
 
 
-def write_single_imgui_member_to_source(name: str, var: str, t: StandardType, sources: Out, indent: str):
+def determine_pushback_value(m: Member) -> str:
+    t = m.typename
+    tl = TypeList()
+    tl.add_default_types()
+    if tl.is_valid_type(t.name):
+        nt = tl.get_type(t.name)
+        return nt.default_value
+    else:
+        return '{}()'.format(t.name)
+
+
+def write_single_imgui_member_to_source(name: str, var: str, t: StandardType, sources: Out, indent: str, m: Member, add_delete: bool):
     if t == StandardType.int8:
         sources.add_source('{i}ImGui::Edit({name}, {var});\n'.format(name=name, var=var, i=indent))
     elif t == StandardType.int16:
@@ -281,20 +292,18 @@ def write_single_imgui_member_to_source(name: str, var: str, t: StandardType, so
         sources.add_source('{i}ImGui::SetNextTreeNodeOpen(true, ImGuiSetCond_Appearing);\n'.format(i=indent))
         sources.add_source('{i}if(ImGui::TreeNode({name}))\n'.format(name=name, i=indent))
         sources.add_source('{i}{{\n'.format(i=indent))
+        if add_delete:
+            sources.add_source('{i}  ImGui::SameLine();\n'.format(i=indent))
+            add_imgui_delete_button(m, sources)
         sources.add_source('{i}  RunImgui({var});\n'.format(var=var, i=indent))
         sources.add_source('{i}  ImGui::TreePop();\n'.format(i=indent))
         sources.add_source('{i}}}\n'.format(i=indent))
-
-
-def determine_pushback_value(m: Member) -> str:
-    t = m.typename
-    tl = TypeList()
-    tl.add_default_types()
-    if tl.is_valid_type(t.name):
-        nt = tl.get_type(t.name)
-        return nt.default_value
-    else:
-        return '{}()'.format(t.name)
+        if add_delete:
+            sources.add_source('{i}else\n'.format(i=indent))
+            sources.add_source('{i}{{\n'.format(i=indent))
+            sources.add_source('{i}  ImGui::SameLine();\n'.format(i=indent))
+            add_imgui_delete_button(m, sources)
+            sources.add_source('{i}}}\n'.format(i=indent))
 
 
 def determine_new_value(m: Member) -> str:
@@ -308,12 +317,22 @@ def determine_new_value(m: Member) -> str:
         return 'new {}()'.format(t.name)
 
 
+def add_imgui_delete_button(m: Member, sources: Out):
+    sources.add_source('      std::stringstream gaf_delete_ss;\n')
+    sources.add_source('      gaf_delete_ss << "Delete {name}[" << i << "]";\n'.format(name=m.name))
+    sources.add_source('      if( ImGui::Button(gaf_delete_ss.str().c_str()) )\n')
+    sources.add_source('      {\n')
+    sources.add_source('        delete_index = i;\n')
+    sources.add_source('        please_delete = true;\n')
+    sources.add_source('      }\n')
+
+
 def write_single_member_to_source(m: Member, sources: Out):
     if not m.is_dynamic_array:
         if m.is_optional:
             sources.add_source('    if(c->{var})\n'.format(var=m.name))
             sources.add_source('    {\n')
-            write_single_imgui_member_to_source('"{}"'.format(m.name), 'c->{}.get()'.format(m.name), m.typename.standard_type, sources, '      ')
+            write_single_imgui_member_to_source('"{}"'.format(m.name), 'c->{}.get()'.format(m.name), m.typename.standard_type, sources, '      ', m, False)
             sources.add_source('      if(ImGui::Button("Clear {name}")) {{ c->{name}.reset(); }}\n'.format(name=m.name))
             sources.add_source('    }\n')
             sources.add_source('    else\n')
@@ -323,8 +342,9 @@ def write_single_member_to_source(m: Member, sources: Out):
             sources.add_source('    }\n')
             sources.add_source('    \n'.format(var=m.name))
         else:
-            write_single_imgui_member_to_source('"{}"'.format(m.name), '&c->{}'.format(m.name), m.typename.standard_type, sources, '  ')
+            write_single_imgui_member_to_source('"{}"'.format(m.name), '&c->{}'.format(m.name), m.typename.standard_type, sources, '  ', m, False)
     else:
+        short_version = m.typename.standard_type != StandardType.INVALID or m.typename.is_enum
         sources.add_source('  ImGui::SetNextTreeNodeOpen(true, ImGuiSetCond_Appearing);\n')
         sources.add_source('  if(ImGui::TreeNode("{name}"))\n'.format(name=m.name, var=m.name))
         sources.add_source('  {\n')
@@ -335,16 +355,10 @@ def write_single_member_to_source(m: Member, sources: Out):
         sources.add_source('      std::stringstream gaf_ss;\n')
         sources.add_source('      gaf_ss << "{name}[" << i << "]";\n'.format(name=m.name))
         sources.add_source('      ImGui::PushID(i);\n')
-        write_single_imgui_member_to_source('gaf_ss.str().c_str()', '&c->{}[i]'.format(m.name), m.typename.standard_type, sources, '      ')
-        if m.typename.standard_type != StandardType.INVALID or m.typename.is_enum:
+        write_single_imgui_member_to_source('gaf_ss.str().c_str()', '&c->{}[i]'.format(m.name), m.typename.standard_type, sources, '      ', m, not short_version)
+        if short_version:
             sources.add_source('      ImGui::SameLine();\n')
-        sources.add_source('      std::stringstream gaf_delete_ss;\n')
-        sources.add_source('      gaf_delete_ss << "Delete {name}[" << i << "]";\n'.format(name=m.name))
-        sources.add_source('      if( ImGui::Button(gaf_delete_ss.str().c_str()) )\n')
-        sources.add_source('      {\n')
-        sources.add_source('        delete_index = i;\n')
-        sources.add_source('        please_delete = true;\n')
-        sources.add_source('      }\n')
+            add_imgui_delete_button(m, sources)
         sources.add_source('      ImGui::PopID();\n')
         sources.add_source('    }\n')
         sources.add_source('    if(please_delete)\n')
