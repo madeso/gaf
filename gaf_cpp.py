@@ -245,36 +245,36 @@ def write_json_source_for_cpp(write_json: bool, sources: Out, s: Struct, opt: Ou
 
 def write_single_imgui_member_to_source(name: str, var: str, t: StandardType, sources: Out, indent: str):
     if t == StandardType.int8:
-        sources.add_source('{i}ImGui::Edit("{name}", &c->{var});\n'.format(name=name, var=var, i=indent))
+        sources.add_source('{i}ImGui::Edit("{name}", {var});\n'.format(name=name, var=var, i=indent))
     elif t == StandardType.int16:
-        sources.add_source('{i}ImGui::Edit("{name}", &c->{var});\n'.format(name=name, var=var, i=indent))
+        sources.add_source('{i}ImGui::Edit("{name}", {var});\n'.format(name=name, var=var, i=indent))
     elif t == StandardType.int32:
-        sources.add_source('{i}ImGui::InputInt("{name}", &c->{var});\n'.format(name=name, var=var, i=indent))
+        sources.add_source('{i}ImGui::InputInt("{name}", {var});\n'.format(name=name, var=var, i=indent))
     elif t == StandardType.int64:
-        sources.add_source('{i}ImGui::Edit("{name}", &c->{var});\n'.format(name=name, var=var, i=indent))
+        sources.add_source('{i}ImGui::Edit("{name}", {var});\n'.format(name=name, var=var, i=indent))
     elif t == StandardType.uint8:
-        sources.add_source('{i}ImGui::Edit("{name}", &c->{var});\n'.format(name=name, var=var, i=indent))
+        sources.add_source('{i}ImGui::Edit("{name}", {var});\n'.format(name=name, var=var, i=indent))
     elif t == StandardType.uint16:
-        sources.add_source('{i}ImGui::Edit("{name}", &c->{var});\n'.format(name=name, var=var, i=indent))
+        sources.add_source('{i}ImGui::Edit("{name}", {var});\n'.format(name=name, var=var, i=indent))
     elif t == StandardType.uint32:
-        sources.add_source('{i}ImGui::Edit("{name}", &c->{var});\n'.format(name=name, var=var, i=indent))
+        sources.add_source('{i}ImGui::Edit("{name}", {var});\n'.format(name=name, var=var, i=indent))
     elif t == StandardType.uint64:
-        sources.add_source('{i}ImGui::Edit("{name}", &c->{var});\n'.format(name=name, var=var, i=indent))
+        sources.add_source('{i}ImGui::Edit("{name}", {var});\n'.format(name=name, var=var, i=indent))
     elif t == StandardType.float:
-        sources.add_source('{i}ImGui::InputFloat("{name}", &c->{var});\n'.format(name=name, var=var, i=indent))
+        sources.add_source('{i}ImGui::InputFloat("{name}", {var});\n'.format(name=name, var=var, i=indent))
     elif t == StandardType.double:
-        sources.add_source('{i}ImGui::InputDouble("{name}", &c->{var});\n'.format(name=name, var=var, i=indent))
+        sources.add_source('{i}ImGui::InputDouble("{name}", {var});\n'.format(name=name, var=var, i=indent))
     elif t == StandardType.byte:
-        sources.add_source('{i}ImGui::Edit("{name}", &c->{var});\n'.format(name=name, var=var, i=indent))
+        sources.add_source('{i}ImGui::Edit("{name}", {var});\n'.format(name=name, var=var, i=indent))
     elif t == StandardType.bool:
-        sources.add_source('{i}ImGui::Checkbox("{name}", &c->{var});\n'.format(name=name, var=var, i=indent))
+        sources.add_source('{i}ImGui::Checkbox("{name}", {var});\n'.format(name=name, var=var, i=indent))
     elif t == StandardType.string:
         sources.add_source('{i}{{\n'.format(i=indent))
         sources.add_source('{i}  char gaf_temp[1024];\n'.format(i=indent))
-        sources.add_source('{i}  strcpy(gaf_temp, c->{var}.c_str());\n'.format(var=var, i=indent))
+        sources.add_source('{i}  strcpy(gaf_temp, ({var})->c_str());\n'.format(var=var, i=indent))
         sources.add_source('{i}  if(ImGui::InputText("{name}", gaf_temp, 1024))\n'.format(name=name, i=indent))
         sources.add_source('{i}  {{\n'.format(i=indent))
-        sources.add_source('{i}    c->{var} = gaf_temp;\n'.format(var=var, i=indent))
+        sources.add_source('{i}    *({var}) = gaf_temp;\n'.format(var=var, i=indent))
         sources.add_source('{i}  }}\n'.format(i=indent))
         sources.add_source('{i}}}\n'.format(i=indent))
     else:
@@ -282,7 +282,7 @@ def write_single_imgui_member_to_source(name: str, var: str, t: StandardType, so
         sources.add_source('{i}ImGui::SetNextTreeNodeOpen(true, ImGuiSetCond_Appearing);\n'.format(i=indent))
         sources.add_source('{i}if(ImGui::TreeNode("{name}"))\n'.format(name=name, i=indent))
         sources.add_source('{i}{{\n'.format(i=indent))
-        sources.add_source('{i}  RunImgui(&c->{var});\n'.format(var=var, i=indent))
+        sources.add_source('{i}  RunImgui({var});\n'.format(var=var, i=indent))
         sources.add_source('{i}  ImGui::TreePop();\n'.format(i=indent))
         sources.add_source('{i}}}\n'.format(i=indent))
 
@@ -301,9 +301,13 @@ def determine_pushback_value(m: Member) -> str:
 def write_single_member_to_source(m: Member, sources: Out):
     if not m.is_dynamic_array:
         if m.is_optional:
-            pass
+            sources.add_source('    if(c->{var})\n'.format(var=m.name))
+            sources.add_source('    {\n')
+            write_single_imgui_member_to_source(m.name, 'c->{}.get()'.format(m.name), m.typename.standard_type, sources, '      ')
+            sources.add_source('    }\n')
+            sources.add_source('    \n'.format(var=m.name))
         else:
-            write_single_imgui_member_to_source(m.name, m.name, m.typename.standard_type, sources, '  ')
+            write_single_imgui_member_to_source(m.name, '&c->{}'.format(m.name), m.typename.standard_type, sources, '  ')
     else:
         sources.add_source('  ImGui::SetNextTreeNodeOpen(true, ImGuiSetCond_Appearing);\n')
         sources.add_source('  if(ImGui::TreeNode("{name}"))\n'.format(name=m.name, var=m.name))
@@ -313,7 +317,7 @@ def write_single_member_to_source(m: Member, sources: Out):
         sources.add_source('    for(std::size_t i=0; i<c->{var}.size(); i+= 1)\n'.format(var=m.name))
         sources.add_source('    {\n')
         sources.add_source('      ImGui::PushID(i);\n')
-        write_single_imgui_member_to_source('', '{}[i]'.format(m.name), m.typename.standard_type, sources, '      ')
+        write_single_imgui_member_to_source('', '&c->{}[i]'.format(m.name), m.typename.standard_type, sources, '      ')
         sources.add_source('      ImGui::SameLine();\n')
         sources.add_source('      if( ImGui::Button("Delete##{}") )\n'.format(m.name))
         sources.add_source('      {\n')
