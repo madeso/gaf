@@ -289,8 +289,9 @@ def write_single_imgui_member_to_source(name: str, var: str, t: StandardType, so
         sources.add_source('{i}  }}\n'.format(i=indent))
         sources.add_source('{i}}}\n'.format(i=indent))
     else:
-        sources.add_source('{i}ImGui::SetNextTreeNodeOpen(true, ImGuiSetCond_Appearing);\n'.format(i=indent))
-        sources.add_source('{i}if(ImGui::TreeNode({name}))\n'.format(name=name, i=indent))
+        sources.add_source('{i}if(ImGui::TreeNodeEx({name}, ImGuiTreeNodeFlags_DefaultOpen{extra_flags}))\n'
+                           .format(name=name, i=indent,
+                                   extra_flags='' if not add_delete else '| ImGuiTreeNodeFlags_FramePadding'))
         sources.add_source('{i}{{\n'.format(i=indent))
         if add_delete:
             sources.add_source('{i}  ImGui::SameLine();\n'.format(i=indent))
@@ -345,8 +346,7 @@ def write_single_member_to_source(m: Member, sources: Out):
             write_single_imgui_member_to_source('"{}"'.format(m.name), '&c->{}'.format(m.name), m.typename.standard_type, sources, '  ', m, False)
     else:
         short_version = m.typename.standard_type != StandardType.INVALID or m.typename.is_enum
-        sources.add_source('  ImGui::SetNextTreeNodeOpen(true, ImGuiSetCond_Appearing);\n')
-        sources.add_source('  if(ImGui::TreeNode("{name}"))\n'.format(name=m.name, var=m.name))
+        sources.add_source('  if(ImGui::TreeNodeEx("{name}", ImGuiTreeNodeFlags_DefaultOpen))\n'.format(name=m.name, var=m.name))
         sources.add_source('  {\n')
         sources.add_source('    std::size_t delete_index = 0;\n')
         sources.add_source('    bool please_delete = false;\n')
@@ -365,7 +365,7 @@ def write_single_member_to_source(m: Member, sources: Out):
         sources.add_source('    {\n')
         sources.add_source('      c->{var}.erase(c->{var}.begin()+delete_index);\n'.format(var=m.name))
         sources.add_source('    }\n')
-        sources.add_source('    if(ImGui::Button("Add {name}"))\n'.format(name=m.name))
+        sources.add_source('    if(ImGui::Button("Add to {name}"))\n'.format(name=m.name))
         sources.add_source('    {\n')
         sources.add_source('      c->{var}.push_back({val});\n'.format(var=m.name, val=determine_pushback_value(m)))
         sources.add_source('    }\n')
