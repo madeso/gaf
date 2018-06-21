@@ -344,8 +344,13 @@ def write_single_member_to_source(m: Member, sources: Out):
             write_single_imgui_member_to_source('"{}"'.format(m.name), '&c->{}'.format(m.name), m.typename.standard_type, sources, '  ', m, False)
     else:
         short_version = m.typename.standard_type != StandardType.INVALID or m.typename.is_enum
-        sources.add_source('  if(ImGui::TreeNodeEx("{name}", ImGuiTreeNodeFlags_DefaultOpen))\n'.format(name=m.name, var=m.name))
+        sources.add_source('  if(ImGui::TreeNodeEx("{name}", ImGuiTreeNodeFlags_DefaultOpen | ImGuiTreeNodeFlags_FramePadding))\n'.format(name=m.name, var=m.name))
         sources.add_source('  {\n')
+        sources.add_source('    ImGui::SameLine();\n'.format(name=m.name))
+        sources.add_source('    if(ImGui::Button("Add to {name}"))\n'.format(name=m.name))
+        sources.add_source('    {\n')
+        sources.add_source('      c->{var}.push_back({val});\n'.format(var=m.name, val=determine_pushback_value(m)))
+        sources.add_source('    }\n')
         sources.add_source('    std::size_t delete_index = 0;\n')
         sources.add_source('    bool please_delete = false;\n')
         sources.add_source('    for(std::size_t i=0; i<c->{var}.size(); i+= 1)\n'.format(var=m.name))
@@ -363,11 +368,15 @@ def write_single_member_to_source(m: Member, sources: Out):
         sources.add_source('    {\n')
         sources.add_source('      c->{var}.erase(c->{var}.begin()+delete_index);\n'.format(var=m.name))
         sources.add_source('    }\n')
+        sources.add_source('    ImGui::TreePop();\n')
+        sources.add_source('  }\n')
+        sources.add_source('  else\n')
+        sources.add_source('  {\n')
+        sources.add_source('    ImGui::SameLine();\n'.format(name=m.name))
         sources.add_source('    if(ImGui::Button("Add to {name}"))\n'.format(name=m.name))
         sources.add_source('    {\n')
         sources.add_source('      c->{var}.push_back({val});\n'.format(var=m.name, val=determine_pushback_value(m)))
         sources.add_source('    }\n')
-        sources.add_source('    ImGui::TreePop();\n')
         sources.add_source('  }\n')
 
 
