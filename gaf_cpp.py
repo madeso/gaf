@@ -254,7 +254,7 @@ def determine_pushback_value(m: Member) -> str:
         return '{}()'.format(t.name)
 
 
-def write_single_imgui_member_to_source(name: str, var: str, t: StandardType, sources: Out, indent: str, m: Member, add_delete: bool):
+def write_single_imgui_member_to_source(name: str, var: str, t: StandardType, sources: Out, indent: str, m: Member, add_delete: bool, opt: OutputOptions):
     if t == StandardType.int8:
         sources.add_source('{i}ImGui::Edit({name}, {var});\n'.format(name=name, var=var, i=indent))
     elif t == StandardType.int16:
@@ -295,7 +295,7 @@ def write_single_imgui_member_to_source(name: str, var: str, t: StandardType, so
         sources.add_source('{i}{{\n'.format(i=indent))
         if add_delete:
             sources.add_source('{i}  ImGui::SameLine();\n'.format(i=indent))
-            add_imgui_delete_button(m, sources)
+            add_imgui_delete_button(m, sources, opt)
         sources.add_source('{i}  RunImgui({var});\n'.format(var=var, i=indent))
         sources.add_source('{i}  ImGui::TreePop();\n'.format(i=indent))
         sources.add_source('{i}}}\n'.format(i=indent))
@@ -303,7 +303,7 @@ def write_single_imgui_member_to_source(name: str, var: str, t: StandardType, so
             sources.add_source('{i}else\n'.format(i=indent))
             sources.add_source('{i}{{\n'.format(i=indent))
             sources.add_source('{i}  ImGui::SameLine();\n'.format(i=indent))
-            add_imgui_delete_button(m, sources)
+            add_imgui_delete_button(m, sources, opt)
             sources.add_source('{i}}}\n'.format(i=indent))
 
 
@@ -318,20 +318,20 @@ def determine_new_value(m: Member) -> str:
         return 'new {}()'.format(t.name)
 
 
-def add_imgui_delete_button(m: Member, sources: Out):
-    sources.add_source('      if( ImGui::Button("Delete") )\n')
+def add_imgui_delete_button(m: Member, sources: Out, opt: OutputOptions):
+    sources.add_source('      if( ImGui::Button({delete}) )\n'.format(delete=opt.imgui_remove))
     sources.add_source('      {\n')
     sources.add_source('        delete_index = i;\n')
     sources.add_source('        please_delete = true;\n')
     sources.add_source('      }\n')
 
 
-def write_single_member_to_source(m: Member, sources: Out):
+def write_single_member_to_source(m: Member, sources: Out, opt: OutputOptions):
     if not m.is_dynamic_array:
         if m.is_optional:
             sources.add_source('    if(c->{var})\n'.format(var=m.name))
             sources.add_source('    {\n')
-            write_single_imgui_member_to_source('"{}"'.format(m.name), 'c->{}.get()'.format(m.name), m.typename.standard_type, sources, '      ', m, False)
+            write_single_imgui_member_to_source('"{}"'.format(m.name), 'c->{}.get()'.format(m.name), m.typename.standard_type, sources, '      ', m, False, opt)
             sources.add_source('      if(ImGui::Button("Clear {name}")) {{ c->{name}.reset(); }}\n'.format(name=m.name))
             sources.add_source('    }\n')
             sources.add_source('    else\n')
@@ -341,13 +341,13 @@ def write_single_member_to_source(m: Member, sources: Out):
             sources.add_source('    }\n')
             sources.add_source('    \n'.format(var=m.name))
         else:
-            write_single_imgui_member_to_source('"{}"'.format(m.name), '&c->{}'.format(m.name), m.typename.standard_type, sources, '  ', m, False)
+            write_single_imgui_member_to_source('"{}"'.format(m.name), '&c->{}'.format(m.name), m.typename.standard_type, sources, '  ', m, False, opt)
     else:
         short_version = m.typename.standard_type != StandardType.INVALID or m.typename.is_enum
         sources.add_source('  if(ImGui::TreeNodeEx("{name}", ImGuiTreeNodeFlags_DefaultOpen | ImGuiTreeNodeFlags_FramePadding))\n'.format(name=m.name, var=m.name))
         sources.add_source('  {\n')
         sources.add_source('    ImGui::SameLine();\n'.format(name=m.name))
-        sources.add_source('    if(ImGui::Button("Add to {name}"))\n'.format(name=m.name))
+        sources.add_source('    if(ImGui::Button({add}))\n'.format(add=opt.imgui_add))
         sources.add_source('    {\n')
         sources.add_source('      c->{var}.push_back({val});\n'.format(var=m.name, val=determine_pushback_value(m)))
         sources.add_source('    }\n')
@@ -358,10 +358,10 @@ def write_single_member_to_source(m: Member, sources: Out):
         sources.add_source('      std::stringstream gaf_ss;\n')
         sources.add_source('      gaf_ss << "{name}[" << i << "]";\n'.format(name=m.name))
         sources.add_source('      ImGui::PushID(i);\n')
-        write_single_imgui_member_to_source('gaf_ss.str().c_str()', '&c->{}[i]'.format(m.name), m.typename.standard_type, sources, '      ', m, not short_version)
+        write_single_imgui_member_to_source('gaf_ss.str().c_str()', '&c->{}[i]'.format(m.name), m.typename.standard_type, sources, '      ', m, not short_version, opt)
         if short_version:
             sources.add_source('      ImGui::SameLine();\n')
-            add_imgui_delete_button(m, sources)
+            add_imgui_delete_button(m, sources, opt)
         sources.add_source('      ImGui::PopID();\n')
         sources.add_source('    }\n')
         sources.add_source('    if(please_delete)\n')
@@ -373,7 +373,7 @@ def write_single_member_to_source(m: Member, sources: Out):
         sources.add_source('  else\n')
         sources.add_source('  {\n')
         sources.add_source('    ImGui::SameLine();\n'.format(name=m.name))
-        sources.add_source('    if(ImGui::Button("Add to {name}"))\n'.format(name=m.name))
+        sources.add_source('    if(ImGui::Button({add}))\n'.format(add=opt.imgui_add))
         sources.add_source('    {\n')
         sources.add_source('      c->{var}.push_back({val});\n'.format(var=m.name, val=determine_pushback_value(m)))
         sources.add_source('    }\n')
@@ -385,7 +385,7 @@ def write_imgui_source_for_cpp(write_imgui: bool, sources: Out, s: Struct, opt: 
         sources.add_source('void RunImgui({name}* c)\n'.format(name=s.name))
         sources.add_source('{\n')
         for m in s.members:
-            write_single_member_to_source(m, sources)
+            write_single_member_to_source(m, sources, opt)
         sources.add_source('}\n')
         sources.add_source('\n')
 
@@ -621,7 +621,8 @@ def write_cpp(f: File, opt: OutputOptions, out_dir: str, name: str):
                 out.write('\n')
                 out.write('#include "rapidjson/document.h"\n')
             if opt.write_imgui:
-                out.write('#include {}\n'.format(opt.imgui_header))
+                for header in opt.imgui_headers:
+                    out.write('#include {}\n'.format(header))
                 out.write('\n')
             out.write('\n')
 

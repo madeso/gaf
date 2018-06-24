@@ -59,7 +59,9 @@ def on_generate_command(args):
                             prefix=args.prefix if args.prefix is not None else '',
                             json_return=CppJsonReturn.Char if r is None else r,
                             write_imgui=args.include_imgui,
-                            imgui_header=args.imgui_header if args.imgui_header is not None else '"imgui.h"')
+                            imgui_headers=args.imgui_headers if args.imgui_headers is not None else ['"imgui.h"'],
+                            imgui_add=args.imgui_add if args.imgui_add is not None else '"Add"',
+                            imgui_remove=args.imgui_remove if args.imgui_remove is not None else '"Remove"')
         write_cpp(s, opt, args.output_folder,
                   os.path.splitext(os.path.basename(file.name))[0] if args.name is None else args.name)
     else:
@@ -99,7 +101,9 @@ def main():
                             help='include rapid json implementation')
     gen_parser.add_argument('--include-imgui', action='store_const', const=True, default=False,
                             help='include dear imgui implementation')
-    gen_parser.add_argument('--imgui-header', help='use this header instead of the standard imgui')
+    gen_parser.add_argument('--imgui-headers', nargs='+', help='use this header instead of the standard imgui')
+    gen_parser.add_argument('--imgui-add', help='the imgui add item button text')
+    gen_parser.add_argument('--imgui-remove', help='the imgui remove item button text')
     gen_parser.set_defaults(func=on_generate_command)
 
     dis_parser = sub.add_parser('display', help='generate a game format parser', aliases=['disp', 'print', 'prn'])
