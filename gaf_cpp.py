@@ -245,6 +245,8 @@ def write_json_source_for_cpp(write_json: bool, sources: Out, s: Struct, opt: Ou
 
 def determine_pushback_value(m: Member) -> str:
     t = m.typename
+    if t.standard_type == StandardType.string:
+        return '""'
     tl = TypeList()
     tl.add_default_types()
     if tl.is_valid_type(t.name):
