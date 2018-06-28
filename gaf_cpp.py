@@ -291,22 +291,25 @@ def write_single_imgui_member_to_source(name: str, var: str, t: StandardType, so
         sources.add_source('{i}  }}\n'.format(i=indent))
         sources.add_source('{i}}}\n'.format(i=indent))
     else:
-        sources.add_source('{i}if(ImGui::TreeNodeEx({name}, ImGuiTreeNodeFlags_DefaultOpen{extra_flags}))\n'
-                           .format(name=name, i=indent,
-                                   extra_flags='' if not add_delete else '| ImGuiTreeNodeFlags_FramePadding'))
-        sources.add_source('{i}{{\n'.format(i=indent))
-        if add_delete:
-            sources.add_source('{i}  ImGui::SameLine();\n'.format(i=indent))
-            add_imgui_delete_button(m, sources, opt)
-        sources.add_source('{i}  RunImgui({var});\n'.format(var=var, i=indent))
-        sources.add_source('{i}  ImGui::TreePop();\n'.format(i=indent))
-        sources.add_source('{i}}}\n'.format(i=indent))
-        if add_delete:
-            sources.add_source('{i}else\n'.format(i=indent))
+        if m.typename.is_enum:
+            sources.add_source('{i}RunImgui({var}, {name});\n'.format(var=var, i=indent, name=name))
+        else:
+            sources.add_source('{i}if(ImGui::TreeNodeEx({name}, ImGuiTreeNodeFlags_DefaultOpen{extra_flags}))\n'
+                               .format(name=name, i=indent,
+                                       extra_flags='' if not add_delete else '| ImGuiTreeNodeFlags_FramePadding'))
             sources.add_source('{i}{{\n'.format(i=indent))
-            sources.add_source('{i}  ImGui::SameLine();\n'.format(i=indent))
-            add_imgui_delete_button(m, sources, opt)
+            if add_delete:
+                sources.add_source('{i}  ImGui::SameLine();\n'.format(i=indent))
+                add_imgui_delete_button(m, sources, opt)
+            sources.add_source('{i}  RunImgui({var});\n'.format(var=var, i=indent))
+            sources.add_source('{i}  ImGui::TreePop();\n'.format(i=indent))
             sources.add_source('{i}}}\n'.format(i=indent))
+            if add_delete:
+                sources.add_source('{i}else\n'.format(i=indent))
+                sources.add_source('{i}{{\n'.format(i=indent))
+                sources.add_source('{i}  ImGui::SameLine();\n'.format(i=indent))
+                add_imgui_delete_button(m, sources, opt)
+                sources.add_source('{i}}}\n'.format(i=indent))
 
 
 def determine_new_value(m: Member) -> str:
@@ -557,10 +560,10 @@ def generate_cpp(f: File, sources: Out, name: str, opt: OutputOptions):
             sources.add_source('  return "<invalid value>";\n')
             sources.add_source('}\n')
 
-            sources.add_header('void RunImgui({name}* en);\n'.format(name=e.name))
-            sources.add_source('void RunImgui({name}* en)\n'.format(name=e.name))
+            sources.add_header('void RunImgui({name}* en, const char* label);\n'.format(name=e.name))
+            sources.add_source('void RunImgui({name}* en, const char* label)\n'.format(name=e.name))
             sources.add_source('{\n')
-            sources.add_source('  if(ImGui::BeginCombo("todo: label", ToString(*en)))\n')
+            sources.add_source('  if(ImGui::BeginCombo(label, ToString(*en)))\n')
             sources.add_source('  {\n')
             for v in e.values:
                 sources.add_source('    if(ImGui::Selectable("{name}", *en == {prefix}{val})) {{ *en = {prefix}{val}; }}\n'.format(prefix=get_value_prefix_opt(e, opt), name=v, val=v))
