@@ -434,9 +434,14 @@ def iterate_enum(e: Enum, sources: Out, prefix_prop: bool=False):
         sources.add_header('  {p}{v}{c}\n'.format(p=prefix, v=v, c=comma))
 
 
-def add_enum_json_function(e: Enum, sources: Out, opt: OutputOptions, prefix_prop: bool=False, type_enum: bool=False):
+def get_value_prefix_opt(e: Enum, opt: OutputOptions) -> str:
+    prefix_prop = opt.enum_style == CppEnumStyle.PrefixEnum
+    return '{}_'.format(e.name) if prefix_prop else '{}::'.format(e.name)
+
+
+def add_enum_json_function(e: Enum, sources: Out, opt: OutputOptions, type_enum: bool=False):
     enum_type = '{}::Type'.format(e.name) if type_enum else e.name
-    value_prefix = '{}_'.format(e.name) if prefix_prop else '{}::'.format(e.name)
+    value_prefix = get_value_prefix_opt(e, opt)
     arg = ', const std::string& gaf_path' if opt.json_return == CppJsonReturn.String else ''
     sources.add_header('{rv} ReadFromJsonValue({t}* c, const rapidjson::Value& value{a});\n'.format(t=enum_type, rv=json_return_value(opt), a=arg))
     sources.add_source('{rv} ReadFromJsonValue({t}* c, const rapidjson::Value& value{a})\n'.format(t=enum_type, rv=json_return_value(opt), a=arg))
@@ -536,11 +541,34 @@ def generate_cpp(f: File, sources: Out, name: str, opt: OutputOptions):
             iterate_enum(e, sources, True)
             sources.add_header('}}; // enum {}\n'.format(e.name))
             if opt.write_json:
-                add_enum_json_function(e, sources, opt, prefix_prop=True)
+                add_enum_json_function(e, sources, opt)
         else:
             sources.add_header('code generation failed, unhandled enum style {}'.format(opt.enum_style))
 
         sources.add_header('\n')
+
+    for e in f.enums:
+        if opt.write_imgui:
+            sources.add_header('const char* ToString({name} en);\n'.format(name=e.name))
+            sources.add_source('const char* ToString({name} en)\n'.format(name=e.name))
+            sources.add_source('{\n')
+            for v in e.values:
+                sources.add_source('  if(en == {prefix}{val}) {{ return "{name}"; }}\n'.format(prefix=get_value_prefix_opt(e, opt), name=v, val=v))
+            sources.add_source('  return "<invalid value>";\n')
+            sources.add_source('}\n')
+
+            sources.add_header('void RunImgui({name}* en);\n'.format(name=e.name))
+            sources.add_source('void RunImgui({name}* en)\n'.format(name=e.name))
+            sources.add_source('{\n')
+            sources.add_source('  if(ImGui::BeginCombo("todo: label", ToString(*en)))\n')
+            sources.add_source('  {\n')
+            for v in e.values:
+                sources.add_source('    if(ImGui::Selectable("{name}", *en == {prefix}{val})) {{ *en = {prefix}{val}; }}\n'.format(prefix=get_value_prefix_opt(e, opt), name=v, val=v))
+            sources.add_source('    ImGui::EndCombo();\n')
+            sources.add_source('  }\n')
+            sources.add_source('}\n')
+            sources.add_header('\n')
+            sources.add_source('\n')
 
     for s in f.structs_defined:
         sources.add_header('class {} {{\n'.format(s.name))
