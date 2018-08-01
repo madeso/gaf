@@ -316,7 +316,7 @@ def determine_new_value(m: Member) -> str:
     t = m.typename
     tl = TypeList()
     tl.add_default_types()
-    if tl.is_valid_type(t.name):
+    if tl.is_valid_type(t.name) and t.standard_type != StandardType.string:
         nt = tl.get_type(t.name)
         return 'new {t}({val})'.format(t=t.get_cpp_type(), val=nt.default_value)
     else:
