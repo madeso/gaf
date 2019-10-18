@@ -40,7 +40,7 @@ function(GAF_GENERATE_CPP SRCS HDRS)
 
     list(APPEND ${SRCS} "${CMAKE_CURRENT_BINARY_DIR}/${Gaf_CUSTOM_PREFIX}${FIL_NAME}.cc")
     list(APPEND ${HDRS} "${CMAKE_CURRENT_BINARY_DIR}/${Gaf_CUSTOM_PREFIX}${FIL_NAME}.h")
-    message(STATUS "Appending ${CMAKE_CURRENT_BINARY_DIR}/${Gaf_CUSTOM_PREFIX}${FIL_NAME}.h")
+    # message(STATUS "Appending ${CMAKE_CURRENT_BINARY_DIR}/${Gaf_CUSTOM_PREFIX}${FIL_NAME}.h")
 
     SET(ABSOLUTE_GAF ${GAF_ROOT_DIR}/gaf.py)
 
@@ -58,6 +58,6 @@ function(GAF_GENERATE_CPP SRCS HDRS)
   set(${SRCS} ${${SRCS}} PARENT_SCOPE)
   set(${HDRS} ${${HDRS}} PARENT_SCOPE)
 
-  message(STATUS "headers ${HDRS}")
-  message(STATUS "hh ${${HDRS}}")
+  # message(STATUS "headers ${HDRS}")
+  # message(STATUS "hh ${${HDRS}}")
 endfunction()
