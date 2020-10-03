@@ -53,7 +53,6 @@ def on_generate_command(args):
         e = args.enum
         r = args.json_return
         opt = OutputOptions(header_only=args.header_only, write_json=args.include_json,
-                            enum_style=CppEnumStyle.PrefixEnum if e is None else e,
                             prefix=args.prefix if args.prefix is not None else '',
                             json_return=CppJsonReturn.Char if r is None else r,
                             write_imgui=args.include_imgui,

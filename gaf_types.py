@@ -236,12 +236,11 @@ class CppJsonReturn(enum.Enum):
 
 
 class OutputOptions:
-    def __init__(self, header_only: bool, write_json: bool, enum_style: CppEnumStyle, prefix: str, json_return: CppJsonReturn, write_imgui: bool, imgui_headers: typing.List[str], imgui_add: str, imgui_remove: str):
+    def __init__(self, header_only: bool, write_json: bool, prefix: str, json_return: CppJsonReturn, write_imgui: bool, imgui_headers: typing.List[str], imgui_add: str, imgui_remove: str):
         # opinionated: remove header_only
         self.header_only = header_only
         self.write_json = write_json
         # todo: this needs to come from the args
-        self.enum_style = enum_style
         self.prefix = prefix
         self.json_return = json_return
         self.write_imgui = write_imgui

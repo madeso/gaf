@@ -9,44 +9,18 @@
 #include "mygaf.h"
 #include "readjsonsource.h"
 
-TEST_CASE("Person") {
+TEST_CASE("Person")
+{
   Person dude;
-
-#ifdef GAF_ENUM_STYLE_PrefixEnum
-  CHECK(dude.happiness == Happiness_GLAD);
-  CHECK(dude.favoriteProject == Project_Protobuf);
-#else
+  
   CHECK(dude.happiness == Happiness::GLAD);
   CHECK(dude.favoriteProject == Project::Protobuf);
-#endif
 }
 
-TEST_CASE("enum types") {
-#ifndef GAF_ENUM_STYLE_NamespaceEnum
-  Happiness
-#else
-  Happiness::Type
-#endif
-  happiness =
-#ifdef GAF_ENUM_STYLE_PrefixEnum
-  Happiness_HAPPY
-#else
-  Happiness::HAPPY
-#endif
-  ;
-
-#ifndef GAF_ENUM_STYLE_NamespaceEnum
-  Project
-#else
-  Project::Type
-#endif
-  project =
-#ifdef GAF_ENUM_STYLE_PrefixEnum
-  Project_Gaf
-#else
-  Project::Gaf
-#endif
-  ;
+TEST_CASE("enum types")
+{
+  Happiness happiness = Happiness::HAPPY;
+  Project project = Project::Gaf;
 
   Person dude;
   dude.happiness = happiness;
@@ -57,35 +31,11 @@ TEST_CASE("enum types") {
 }
 
 // todo: need to add json loading tests
-
 #if GAF_TEST_JSON
 
-TEST_CASE("json_basic") {
-#ifndef GAF_ENUM_STYLE_NamespaceEnum
-  Happiness
-#else
-  Happiness::Type
-#endif
-  happiness =
-#ifdef GAF_ENUM_STYLE_PrefixEnum
-  Happiness_INDIFFERENT
-#else
-  Happiness::INDIFFERENT
-#endif
-  ;
-
-#ifndef GAF_ENUM_STYLE_NamespaceEnum
-  Project
-#else
-  Project::Type
-#endif
-  project =
-#ifdef GAF_ENUM_STYLE_PrefixEnum
-  Project_Other
-#else
-  Project::Other
-#endif
-  ;
+TEST_CASE("json_basic")
+{
+  Happiness happiness = Happiness::INDIFFERENT;Project project = Project::Other;
 
   Person person;
   const std::string load = ReadJsonSource(&person, " {\"happiness\": \"INDIFFERENT\", \"favoriteProject\": \"Other\"} ");
@@ -94,21 +44,24 @@ TEST_CASE("json_basic") {
   REQUIRE(person.favoriteProject == project);
 }
 
-TEST_CASE("json_missing_project") {
+TEST_CASE("json_missing_project")
+{
   Person person;
   const std::string load = ReadJsonSource(&person, " {\"happiness\": 12} ");
   REQUIRE(load != "");
 }
 
 
-TEST_CASE("json_empty_document") {
+TEST_CASE("json_empty_document")
+{
   Person person;
   const std::string load = ReadJsonSource(&person, "{}");
   REQUIRE(load != "");
 }
 
 
-TEST_CASE("json_as_ints") {
+TEST_CASE("json_as_ints")
+{
   Person person;
   const std::string load = ReadJsonSource(&person, " {\"happiness\": 1, \"favoriteProject\": 2} ");
   REQUIRE(load != "");

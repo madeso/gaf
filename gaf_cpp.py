@@ -400,8 +400,7 @@ def write_member_variables_for_cpp(sources: Out, s: Struct, opt: OutputOptions):
     for m in s.members:
 
         # m.typename.is_enum
-        type_name = '{}::Type'.format(m.typename.name)\
-            if m.typename.is_enum and opt.enum_style == CppEnumStyle.NamespaceEnum else m.typename.name
+        type_name = m.typename.name
         if m.is_optional:
             sources.add_header('  std::shared_ptr<{tn}> {n};\n'.format(n=m.name, tn=type_name))
         elif m.is_dynamic_array:
@@ -421,8 +420,7 @@ def write_default_constructor_for_cpp(s: Struct, sources: Out, opt: OutputOption
         for m in common_members:
             default_value = m.defaultvalue
             if m.typename.is_enum:
-                default_value = '{t}{colon}{v}'.format(t=m.typename.name, v=m.defaultvalue,
-                                                       colon='_' if opt.enum_style == CppEnumStyle.PrefixEnum else '::')
+                default_value = '{t}::{v}'.format(t=m.typename.name, v=m.defaultvalue)
             sources.add_source('  {s} {n}({d})\n'.format(s=sep, n=m.name, d=default_value))
             sep = ','
         sources.add_source('{}\n')
@@ -438,8 +436,7 @@ def iterate_enum(e: Enum, sources: Out, prefix_prop: bool=False):
 
 
 def get_value_prefix_opt(e: Enum, opt: OutputOptions) -> str:
-    prefix_prop = opt.enum_style == CppEnumStyle.PrefixEnum
-    return '{}_'.format(e.name) if prefix_prop else '{}::'.format(e.name)
+    return '{}::'.format(e.name)
 
 
 def add_enum_json_function(e: Enum, sources: Out, opt: OutputOptions, type_enum: bool=False):
@@ -527,26 +524,11 @@ def generate_cpp(f: File, sources: Out, name: str, opt: OutputOptions):
         sources.add_header('\n')
 
     for e in f.enums:
-        if opt.enum_style == CppEnumStyle.EnumClass:
-            sources.add_header('enum class {} {{\n'.format(e.name))
-            iterate_enum(e, sources)
-            sources.add_header('}}; // enum {}\n'.format(e.name))
-            if opt.write_json:
-                add_enum_json_function(e, sources, opt)
-        elif opt.enum_style == CppEnumStyle.NamespaceEnum:
-            sources.add_header('namespace {} {{ enum Type {{\n'.format(e.name))
-            iterate_enum(e, sources)
-            sources.add_header('}}; }} // namespace enum {}\n'.format(e.name))
-            if opt.write_json:
-                add_enum_json_function(e, sources, opt, type_enum=True)
-        elif opt.enum_style == CppEnumStyle.PrefixEnum:
-            sources.add_header('enum {} {{\n'.format(e.name))
-            iterate_enum(e, sources, True)
-            sources.add_header('}}; // enum {}\n'.format(e.name))
-            if opt.write_json:
-                add_enum_json_function(e, sources, opt)
-        else:
-            sources.add_header('code generation failed, unhandled enum style {}'.format(opt.enum_style))
+        sources.add_header('enum class {} {{\n'.format(e.name))
+        iterate_enum(e, sources)
+        sources.add_header('}}; // enum {}\n'.format(e.name))
+        if opt.write_json:
+            add_enum_json_function(e, sources, opt)
 
         sources.add_header('\n')
 
