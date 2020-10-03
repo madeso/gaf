@@ -34,11 +34,6 @@ class EnumType(object):
         return '%s(%s)' % (self.enums.__name__, astr)
 
 
-@enum.unique
-class Language(Enum):
-    CPP = object()
-
-
 def on_generate_command(args):
     file = CharFile(args.input)
     if args.debug:
@@ -49,17 +44,14 @@ def on_generate_command(args):
         except ParseError as p:
             print(p.message)
             return
-    if args.language == Language.CPP:
-        opt = OutputOptions(write_json=args.include_json,
-                            prefix=args.prefix if args.prefix is not None else '',
-                            write_imgui=args.include_imgui,
-                            imgui_headers=args.imgui_headers if args.imgui_headers is not None else ['"imgui.h"'],
-                            imgui_add=args.imgui_add if args.imgui_add is not None else '"Add"',
-                            imgui_remove=args.imgui_remove if args.imgui_remove is not None else '"Remove"')
-        write_cpp(s, opt, args.output_folder,
-                  os.path.splitext(os.path.basename(file.name))[0] if args.name is None else args.name)
-    else:
-        raise ParseError('unhandled language {}'.format(args.language))
+    opt = OutputOptions(write_json=args.include_json,
+                        prefix=args.prefix if args.prefix is not None else '',
+                        write_imgui=args.include_imgui,
+                        imgui_headers=args.imgui_headers if args.imgui_headers is not None else ['"imgui.h"'],
+                        imgui_add=args.imgui_add if args.imgui_add is not None else '"Add"',
+                        imgui_remove=args.imgui_remove if args.imgui_remove is not None else '"Remove"')
+    write_cpp(s, opt, args.output_folder,
+                os.path.splitext(os.path.basename(file.name))[0] if args.name is None else args.name)
 
 
 def on_display_command(args):
@@ -81,7 +73,6 @@ def main():
 
     gen_parser = sub.add_parser('generate', help='generate a game format parser', aliases=['gen'],
                                 fromfile_prefix_chars='@')
-    gen_parser.add_argument('language', type=EnumType(Language), help='the language')
     gen_parser.add_argument('input', type=argparse.FileType('r'), help='the source gaf file')
     gen_parser.add_argument('output_folder', help='the output directory')
     gen_parser.add_argument('--debug', action='store_const', const=True, default=False, help='debug gaf')
