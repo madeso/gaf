@@ -445,15 +445,9 @@ def generate_cpp(f: File, sources: Out, name: str, opt: OutputOptions):
     if has_string or json_string:
         added_include = True
         sources.add_header('#include <string>\n')
-    if json_string and opt.header_only:
-        added_include = True
-        sources.add_header('#include <sstream>\n')
 
     if len(f.enums) > 0 and opt.write_json:
-        if opt.header_only:
-            sources.add_header('#include <cstring>\n')
-        else:
-            sources.add_source('#include <cstring>\n')
+        sources.add_source('#include <cstring>\n')
     if has_dynamic_arrays:
         added_include = True
         sources.add_header('#include <vector>\n')
@@ -463,12 +457,7 @@ def generate_cpp(f: File, sources: Out, name: str, opt: OutputOptions):
     if added_include:
         sources.add_header('\n')
 
-    if opt.write_json and opt.header_only:
-        sources.add_header('#include <limits>\n')
-        sources.add_header('#include "rapidjson/document.h"\n')
-        sources.add_header('\n')
-
-    if opt.write_json and not opt.header_only:
+    if opt.write_json:
         # todo: forward decalre rapidjson::Value
         sources.add_header('#include "rapidjson/document.h"\n')
         sources.add_header('\n')
@@ -567,13 +556,6 @@ def generate_cpp(f: File, sources: Out, name: str, opt: OutputOptions):
 
         sources.add_header('\n')
 
-    if opt.header_only:
-        sources.add_header('#ifdef {}_IMPLEMENTATION\n'.format(headerguard))
-        sources.add_header('\n')
-        for s in sources.source:
-            sources.add_header(s)
-        sources.add_header('#endif // {}_IMPLEMENTATION\n'.format(headerguard))
-
     if f.package_name != '':
         sources.add_header('}} // namespace {}\n'.format(f.package_name))
         sources.add_header('\n')
@@ -589,28 +571,27 @@ def write_cpp(f: File, opt: OutputOptions, out_dir: str, name: str):
         for s in sources.header:
             out.write(s)
 
-    if not opt.header_only:
-        with open(os.path.join(out_dir, opt.prefix + name + '.cc'), 'w', encoding='utf-8') as out:
-            out.write('#include "{}.h"\n'.format(opt.prefix + name))
+    with open(os.path.join(out_dir, opt.prefix + name + '.cc'), 'w', encoding='utf-8') as out:
+        out.write('#include "{}.h"\n'.format(opt.prefix + name))
+        out.write('\n')
+        out.write('#include <limits>\n')
+        if opt.write_json:
+            out.write('#include <sstream>\n')
             out.write('\n')
-            out.write('#include <limits>\n')
-            if opt.write_json:
-                out.write('#include <sstream>\n')
-                out.write('\n')
-                out.write('#include "rapidjson/document.h"\n')
-            if opt.write_imgui:
-                for header in opt.imgui_headers:
-                    out.write('#include {}\n'.format(header))
-                out.write('\n')
+            out.write('#include "rapidjson/document.h"\n')
+        if opt.write_imgui:
+            for header in opt.imgui_headers:
+                out.write('#include {}\n'.format(header))
+            out.write('\n')
+        out.write('\n')
+
+        if f.package_name != '':
+            out.write('namespace {} {{\n'.format(f.package_name))
             out.write('\n')
 
-            if f.package_name != '':
-                out.write('namespace {} {{\n'.format(f.package_name))
-                out.write('\n')
+        for s in sources.source:
+            out.write(s)
 
-            for s in sources.source:
-                out.write(s)
-
-            if f.package_name != '':
-                out.write('}} // namespace {}\n'.format(f.package_name))
-                out.write('\n')
+        if f.package_name != '':
+            out.write('}} // namespace {}\n'.format(f.package_name))
+            out.write('\n')

@@ -42,21 +42,17 @@ def print_result(root, cmake_result, make_result, app_result):
 
 
 class CodeRun:
-    def __init__(self, json_test: bool, header_only_test: bool):
+    def __init__(self, json_test: bool):
         codename = ''
         if json_test:
             codename += '_json'
-        if header_only_test:
-            codename += '_headeronly'
         self.json_test = json_test
-        self.header_only_test = header_only_test
         self.codename = codename.strip('_')
 
 
 def all_coderuns():
-    return [CodeRun(json_test, header_only_test)
-            for json_test, header_only_test in itertools.product(
-            [True, False], [True, False])]
+    return [CodeRun(json_test)
+            for json_test in [True, False]]
 
 
 def escape_path(p: str) -> str:
@@ -100,11 +96,9 @@ def main():
     total_tests = 0
     total_oks = 0
 
-    coderuns = all_coderuns()
-
     index = 0
     for code in code_examples:
-        lcoderuns = coderuns if code.json_test else [CodeRun(json_test=False, header_only_test=True), CodeRun(json_test=False, header_only_test=False)]
+        lcoderuns = all_coderuns() if code.json_test else [CodeRun(json_test=False)]
         for run in lcoderuns:
             if args.only is None or run.codename in args.only:
                 codename = code.name
@@ -126,8 +120,6 @@ def main():
                 with open(os.path.join(code_root_folder, 'cmdlineargs.txt'), 'w') as cmd:
                     if run.json_test:
                         cmd.write('--include-json\n')
-                    if run.header_only_test:
-                        cmd.write('--header-only\n')
 
                 cpp_version = '11'
 
@@ -144,7 +136,6 @@ def main():
                     else()
                         add_compile_options(-Wall -Wextra -Wpedantic)
                     endif()
-                    SET(GAF_TEST_HEADER_ONLY {headeronly})
                     SET(GAF_TEST_JSON {json})
                     CONFIGURE_FILE("{config}" "${{PROJECT_BINARY_DIR}}/config.h")
                     include_directories("${{PROJECT_BINARY_DIR}}")
@@ -165,9 +156,8 @@ def main():
                         external=escape_path(os.path.join(test_cpp_folder, 'external')),
                         root=escape_path(root_folder),
                         coderoot=escape_path(code_root_folder),
-                        headeronly = '1' if run.header_only_test else '0',
                         json = '1' if run.json_test else '0',
-                        gaf_sources = '' if run.header_only_test else '${GAF_SOURCES} ',
+                        gaf_sources = '${GAF_SOURCES} ',
                         custom_underscore=underscore
                     ))
                 code_build_folder = os.path.join(code_root_folder, 'build')

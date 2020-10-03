@@ -2,9 +2,6 @@
 #include "catch.hpp"
 
 #include "config.h"
-#if GAF_TEST_HEADER_ONLY
-#define GENERATED_UNDERSCORE_IMPLEMENTATION
-#endif
 
 #include "gaf_underscore.h"
 

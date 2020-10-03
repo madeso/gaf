@@ -221,9 +221,7 @@ def get_unique_types(f: File) -> typing.Set[Type]:
 
 
 class OutputOptions:
-    def __init__(self, header_only: bool, write_json: bool, prefix: str, write_imgui: bool, imgui_headers: typing.List[str], imgui_add: str, imgui_remove: str):
-        # opinionated: remove header_only
-        self.header_only = header_only
+    def __init__(self, write_json: bool, prefix: str, write_imgui: bool, imgui_headers: typing.List[str], imgui_add: str, imgui_remove: str):
         self.write_json = write_json
         # todo: this needs to come from the args
         self.prefix = prefix

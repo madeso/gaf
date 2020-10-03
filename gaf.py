@@ -50,7 +50,7 @@ def on_generate_command(args):
             print(p.message)
             return
     if args.language == Language.CPP:
-        opt = OutputOptions(header_only=args.header_only, write_json=args.include_json,
+        opt = OutputOptions(write_json=args.include_json,
                             prefix=args.prefix if args.prefix is not None else '',
                             write_imgui=args.include_imgui,
                             imgui_headers=args.imgui_headers if args.imgui_headers is not None else ['"imgui.h"'],
