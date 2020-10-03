@@ -1,11 +1,9 @@
 #!/usr/bin/env python3
 # GAme Format Parser
 
-
 from enum import Enum
 import enum
 import os
-import typing
 import argparse
 
 from gaf_cpp import write_cpp
