@@ -219,13 +219,6 @@ def merge(iters):
 def get_unique_types(f: File) -> typing.Set[Type]:
     return set(m.typename for m in merge(s.members for s in f.structs))
 
-# opinionated: always enum class
-@enum.unique
-class CppEnumStyle(enum.Enum):
-    EnumClass = object()
-    NamespaceEnum = object()
-    PrefixEnum = object()
-
 
 # opinionated: always string
 @enum.unique
