@@ -11,29 +11,6 @@ from gaf_parse import CharFile, read_several_structs, ParseError
 from gaf_types import OutputOptions
 
 
-class EnumType(object):
-    """Factory for creating enum object types
-    """
-
-    def __init__(self, enumclass):
-        self.enums = dict()
-        self.name = enumclass.__name__
-        for e in enumclass:
-            self.enums[e.name.lower()] = e
-
-    def __call__(self, astring):
-        try:
-            return self.enums[astring.lower()]
-        except KeyError:
-            msg = ', '.join([t.name.lower() for t in self.enums])
-            msg = '%s: use one of {%s}' % (self.name, msg)
-            raise argparse.ArgumentTypeError(msg)
-
-    def __repr__(self):
-        astr = ', '.join([t.name.lower() for t in self.enums])
-        return '%s(%s)' % (self.enums.__name__, astr)
-
-
 def on_generate_command(args):
     file = CharFile(args.input)
     if args.debug:
