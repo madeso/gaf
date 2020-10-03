@@ -1,6 +1,6 @@
 language: python
 os: linux
-dist: trusty
+dist: focal
 sudo: false
 python: "3.5"
 
