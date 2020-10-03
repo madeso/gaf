@@ -13,26 +13,7 @@ std::string ReadJsonSource(T* t, const char* const source) {
   const auto err = document.GetParseError();
   if(err != rapidjson::kParseErrorNone ) {return "test: json error parsing";}
 
-#ifdef GAF_JSON_RETURN_String
   return ReadFromJsonValue(t, document, "");
-#else    // GAF_JSON_RETURN_String
-
-#ifdef GAF_JSON_RETURN_Char
-  const char* read_err = ReadFromJsonValue(t, document);
-  if(read_err) return read_err;
-  else return "";
-#else    // GAF_JSON_RETURN_Char
-  if(ReadFromJsonValue(t, document))
-  {
-    return "";
-  }
-  else
-  {
-    return "json load failure";
-  }
-#endif    // GAF_JSON_RETURN_Char
-
-#endif    // GAF_JSON_RETURN_String
 }
 
 

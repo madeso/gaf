@@ -220,22 +220,13 @@ def get_unique_types(f: File) -> typing.Set[Type]:
     return set(m.typename for m in merge(s.members for s in f.structs))
 
 
-# opinionated: always string
-@enum.unique
-class CppJsonReturn(enum.Enum):
-    Char = object()
-    Bool = object()
-    String = object()
-
-
 class OutputOptions:
-    def __init__(self, header_only: bool, write_json: bool, prefix: str, json_return: CppJsonReturn, write_imgui: bool, imgui_headers: typing.List[str], imgui_add: str, imgui_remove: str):
+    def __init__(self, header_only: bool, write_json: bool, prefix: str, write_imgui: bool, imgui_headers: typing.List[str], imgui_add: str, imgui_remove: str):
         # opinionated: remove header_only
         self.header_only = header_only
         self.write_json = write_json
         # todo: this needs to come from the args
         self.prefix = prefix
-        self.json_return = json_return
         self.write_imgui = write_imgui
         self.imgui_headers = imgui_headers
         self.imgui_add = imgui_add

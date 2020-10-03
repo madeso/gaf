@@ -1,6 +1,3 @@
 #define GAF_TEST_HEADER_ONLY @GAF_TEST_HEADER_ONLY@
 #define GAF_TEST_JSON @GAF_TEST_JSON@
 
-#cmakedefine GAF_JSON_RETURN_Bool
-#cmakedefine GAF_JSON_RETURN_Char
-#cmakedefine GAF_JSON_RETURN_String
