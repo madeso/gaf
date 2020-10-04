@@ -50,6 +50,13 @@ function(add_sample)
         target_link_libraries(${APP_NAME} PUBLIC rapidjson)
         target_compile_definitions(${APP_NAME} PUBLIC -DGAF_TEST_JSON)
     endif()
+
+    add_custom_command(TARGET ${APP_NAME}
+        POST_BUILD
+        COMMAND ${APP_NAME}
+        WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}
+        COMMENT "Running ${APP_NAME} tests"
+    )
 endfunction()
 
 add_sample(BASE_NAME defaultvalues)
