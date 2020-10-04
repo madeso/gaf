@@ -16,7 +16,7 @@ include(gaf.cmake)
 add_subdirectory(cpp_externals)
 
 function(add_sample)
-    set(options)
+    set(options JSON)
     set(oneValueArgs BASE_NAME CC_NAME)
     set(multiValueArgs)
     cmake_parse_arguments(ARG
@@ -28,12 +28,28 @@ function(add_sample)
     if("${ARG_CC_NAME}" STREQUAL "")
         set(ARG_CC_NAME ${ARG_BASE_NAME}.cc)
     endif()
-    # message(STATUS "Base: ${ARG_BASE_NAME} for ${ARG_CC_NAME}")
-    # {custom_underscore}
-    GAF_GENERATE_CPP(GAF_SOURCES GAF_HEADERS ${CMAKE_CURRENT_SOURCE_DIR}/examples/${ARG_BASE_NAME}.c)
-    add_executable(${ARG_BASE_NAME} ${CMAKE_CURRENT_SOURCE_DIR}/cpp_samples/${ARG_CC_NAME} ${GAF_SOURCES} ${GAF_HEADERS})
-    target_include_directories(${ARG_BASE_NAME} PUBLIC ${CMAKE_CURRENT_BINARY_DIR})
-    target_link_libraries(${ARG_BASE_NAME} PUBLIC catch)
+
+    set(APP_NAME ${ARG_BASE_NAME})
+    if(${ARG_JSON})
+        set(APP_NAME ${APP_NAME}_json)
+    endif()
+
+    # todo(Gustav): split imgui and json to seperate commands
+
+    if(${ARG_JSON})
+        GAF_GENERATE_CPP(JSON SOURCES GAF_SOURCES HEADERS GAF_HEADERS FILES ${CMAKE_CURRENT_SOURCE_DIR}/examples/${ARG_BASE_NAME}.c)
+    else()
+        GAF_GENERATE_CPP(SOURCES GAF_SOURCES HEADERS GAF_HEADERS FILES ${CMAKE_CURRENT_SOURCE_DIR}/examples/${ARG_BASE_NAME}.c)
+    endif()
+
+    add_executable(${APP_NAME} ${CMAKE_CURRENT_SOURCE_DIR}/cpp_samples/${ARG_CC_NAME} ${GAF_SOURCES} ${GAF_HEADERS})
+    target_include_directories(${APP_NAME} PUBLIC ${CMAKE_CURRENT_BINARY_DIR})
+    target_link_libraries(${APP_NAME} PUBLIC catch)
+
+    if(${ARG_JSON})
+        target_link_libraries(${APP_NAME} PUBLIC rapidjson)
+        target_compile_definitions(${APP_NAME} PUBLIC -DGAF_TEST_JSON)
+    endif()
 endfunction()
 
 add_sample(BASE_NAME defaultvalues)
@@ -43,6 +59,12 @@ add_sample(BASE_NAME comments2)
 add_sample(BASE_NAME comments3)
 add_sample(BASE_NAME underscore)
 add_sample(BASE_NAME package)
-# add_sample(twostructs, json_test=True),
-# add_sample(master, json_test=True),
-# add_sample(enum, json_test=True)
+
+add_sample(BASE_NAME twostructs)
+add_sample(JSON BASE_NAME twostructs)
+
+add_sample(BASE_NAME master)
+add_sample(JSON BASE_NAME master)
+
+add_sample(BASE_NAME enum)
+add_sample(JSON BASE_NAME enum)

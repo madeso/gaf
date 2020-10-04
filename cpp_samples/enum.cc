@@ -1,8 +1,6 @@
 #define CATCH_CONFIG_MAIN
 #include "catch.hpp"
 
-#include "config.h"
-
 #include "gaf_enum.h"
 #include "readjsonsource.h"
 
