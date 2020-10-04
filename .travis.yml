@@ -6,7 +6,9 @@ script:
   - $CXX --version
   - cmake --version
   - python3 --version
-  - ./test.py all
+  - mkdir build
+  - cd build
+  - cmake --build .. --config Release
 
 
 matrix:

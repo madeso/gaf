@@ -13,4 +13,6 @@ install:
   - cmd: '%PYTHON%\python.exe --version'
 
 build_script:
-  - cmd: '%PYTHON%\python.exe c:\projects\gaf\test.py all'
+  - cmd: 'mkdir build'
+  - cmd: 'cd build'
+  - cmd: 'cmake -DPYTHON_EXECUTABLE:FILEPATH=%PYTHON%\python.exe --build .. --config Release'
