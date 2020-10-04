@@ -1,9 +1,7 @@
 #define CATCH_CONFIG_MAIN
 #include "catch.hpp"
 
-#include "config.h"
-
-#include "mygaf.h"
+#include "gaf_twostructs.h"
 #include "readjsonsource.h"
 
 TEST_CASE("constructor") {

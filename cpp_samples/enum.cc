@@ -3,7 +3,7 @@
 
 #include "config.h"
 
-#include "mygaf.h"
+#include "gaf_enum.h"
 #include "readjsonsource.h"
 
 TEST_CASE("Person")

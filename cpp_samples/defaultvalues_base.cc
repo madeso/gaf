@@ -1,11 +1,8 @@
 #define CATCH_CONFIG_MAIN
 #include "catch.hpp"
 
-#include "config.h"
-
-#include "mygaf.h"
-
-TEST_CASE("constructor") {
+TEST_CASE("constructor")
+{
   const Foo foo;
   REQUIRE(foo.hello == 12);
   REQUIRE(foo.world == 3.14f);

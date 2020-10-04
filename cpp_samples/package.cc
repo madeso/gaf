@@ -1,23 +1,18 @@
 #define CATCH_CONFIG_MAIN
 #include "catch.hpp"
 
-#include "config.h"
-
-#include "mygaf.h"
+#include "gaf_package.h"
 
 TEST_CASE("constructor") {
-  Foo foo;
-  CHECK(foo.hello == 0);
-  CHECK(foo.world == Approx(0.0f));
-  CHECK(foo.dog == "");
+  const test::Foo foo;
+  REQUIRE(foo.hello == 0);
+  REQUIRE(foo.world == 0.0f);
 }
 
 TEST_CASE("setter") {
-  Foo foo;
+  test::Foo foo;
   foo.hello = 42;
   foo.world = 4.2f;
-  foo.dog = "dog";
   REQUIRE(foo.hello == 42);
   REQUIRE(foo.world == 4.2f);
-  CHECK(foo.dog == "dog");
 }

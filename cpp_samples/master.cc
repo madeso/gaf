@@ -1,9 +1,7 @@
 #define CATCH_CONFIG_MAIN
 #include "catch.hpp"
 
-#include "config.h"
-
-#include "mygaf.h"
+#include "gaf_master.h"
 #include "readjsonsource.h"
 
 using Catch::Matchers::Equals;

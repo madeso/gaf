@@ -121,15 +121,13 @@ def main():
                     if run.json_test:
                         cmd.write('--include-json\n')
 
-                cpp_version = '11'
-
                 with open(os.path.join(code_root_folder, 'CMakeLists.txt'), 'w') as cmake_file:
                     test_cpp_folder = os.path.join(root_folder, 'test-cpp')
                     underscore = 'SET(Gaf_CUSTOM_PREFIX gaf_)' if code.test_underscore else 'SET(Gaf_CUSTOM_NAME mygaf)'
                     cmake_file.write('''
                     cmake_minimum_required(VERSION 3.1)
                     project(gaf)
-                    set (CMAKE_CXX_STANDARD {cppversion})
+                    set (CMAKE_CXX_STANDARD 11)
                     set(CMAKE_CXX_STANDARD_REQUIRED ON)
                     if (MSVC)
                         add_compile_options(/W4)
@@ -149,7 +147,6 @@ def main():
                     include_directories(${{CMAKE_CURRENT_BINARY_DIR}})
                     add_executable(app ../../test-cpp/{cpp} {gaf_sources}${{GAF_HEADERS}})
                     '''.format(
-                        cppversion=cpp_version,
                         gaf=escape_path(code.gaf),
                         cpp=code.test,
                         config=escape_path(os.path.join(test_cpp_folder, 'config_in.h')),
