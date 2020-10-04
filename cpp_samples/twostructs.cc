@@ -4,6 +4,10 @@
 #include "gaf_twostructs.h"
 #include "readjsonsource.h"
 
+#if GAF_TEST_JSON
+#include "gaf_rapidjson_twostructs.h"
+#endif
+
 TEST_CASE("constructor") {
   Foo foo;
   REQUIRE(foo.hello == 0);

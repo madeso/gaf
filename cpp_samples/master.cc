@@ -4,6 +4,10 @@
 #include "gaf_master.h"
 #include "readjsonsource.h"
 
+#if GAF_TEST_JSON
+#include "gaf_rapidjson_master.h"
+#endif
+
 using Catch::Matchers::Equals;
 template<typename T>
 struct Vector : public std::vector<T>

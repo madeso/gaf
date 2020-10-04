@@ -4,6 +4,10 @@
 #include "gaf_enum.h"
 #include "readjsonsource.h"
 
+#if GAF_TEST_JSON
+#include "gaf_rapidjson_enum.h"
+#endif
+
 TEST_CASE("Person")
 {
   Person dude;

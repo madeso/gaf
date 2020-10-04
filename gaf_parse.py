@@ -1,24 +1,30 @@
 #!/usr/bin/env python3
 
 import typing
+import os
 
 from gaf_types import StandardType, is_default_type, Struct, TypeList, File, Type, Member, Enum
 
 
 class ParseError(Exception):
+    """
+    Exception that is thrown when a parse error occurs.
+    """
     def __init__(self, message):
+        Exception.__init__(self)
         self.message = message
 
 
 class CharFile:
+    """representation of a file loaded to memory"""
     def __init__(self, f):
-        import os
         self.name = os.path.abspath(f.name)
         self.data = f.read()
         self.index = 0
         self.line = 1
 
     def read(self) -> str:
+        """read a single character from the file"""
         c = self.data[self.index]
         self.index += 1
         if c == '\n':
@@ -26,23 +32,28 @@ class CharFile:
         return c
 
     def peek(self, count: int) -> typing.Optional[str]:
+        """peek ahead of the current position and return it's character or None"""
         if self.index + count >= len(self.data):
             return None
         return self.data[self.index + count]
 
     def report_error(self, error):
+        """raise a parse error at the current line and byte offset"""
         raise ParseError('{fi}({ln}): {err}'.format(err=error, ln=self.line, fi=self.name))
 
 
 def read_char(f: CharFile) -> str:
+    """util function to read a char from a file"""
     return f.read()
 
 
 def peek_char(f: CharFile, count: int = 0) -> typing.Optional[str]:
+    """util function to peeek ahead in a file"""
     return f.peek(count)
 
 
 def is_space(ch: str) -> bool:
+    """function to check if the character is a space or not"""
     if ch == ' ':
         return True
     if ch == '\n':
@@ -55,6 +66,7 @@ def is_space(ch: str) -> bool:
 
 
 def is_ident(first: bool, ch: typing.Optional[str]) -> bool:
+    """util function to chechk if the optional character is part of a identifier or not"""
     if ch is None:
         return False
     if 'a' <= ch <= 'z':
@@ -69,12 +81,19 @@ def is_ident(first: bool, ch: typing.Optional[str]) -> bool:
     return False
 
 
+def is_number(n: str) -> bool:
+    """checks if a character is a number"""
+    return n in '0123456789'
+
+
 def read_white_spaces(f: CharFile):
+    """skips white space in a file"""
     while is_space(peek_char(f)):
         read_char(f)
 
 
 def read_spaces(f: CharFile):
+    """skips white space or comments"""
     while True:
         read_white_spaces(f)
         if peek_char(f, 0) == '/' and peek_char(f, 1) == '/':
@@ -96,6 +115,7 @@ def read_spaces(f: CharFile):
 
 
 def read_ident(f: CharFile) -> str:
+    """reads a ident from file, skips spaces before"""
     read_spaces(f)
     ident = ''
     first = True
@@ -108,6 +128,7 @@ def read_ident(f: CharFile) -> str:
 
 
 def read_single_char(f: CharFile, ch: str):
+    """skips spaces and expects a single char from the file"""
     read_spaces(f)
     r = read_char(f)
     if r == ch:
@@ -116,11 +137,8 @@ def read_single_char(f: CharFile, ch: str):
         raise f.report_error('expecting char {c}, but found {r}'.format(c=ch, r=r))
 
 
-def is_number(n: str) -> bool:
-    return n in '0123456789'
-
-
 def read_number(f: CharFile) -> str:
+    """read a number (typical integer) like 0 42 or 123"""
     ret = ''
     while is_number(peek_char(f)[0]):
         ret += read_char(f)
@@ -130,10 +148,12 @@ def read_number(f: CharFile) -> str:
 
 
 def read_default_value_int(f: CharFile) -> str:
+    """read a integer"""
     return read_number(f)
 
 
 def read_default_value_double(f: CharFile) -> str:
+    """read a double"""
     dec = read_number(f)
     read_single_char(f, '.')
     frac = read_number(f)
@@ -141,6 +161,7 @@ def read_default_value_double(f: CharFile) -> str:
 
 
 def read_default_value_string(f: CharFile) -> str:
+    """read a string"""
     read_single_char(f, '"')
     r = '"'
     while peek_char(f) is not '"':
@@ -155,6 +176,7 @@ def read_default_value_string(f: CharFile) -> str:
 
 
 def read_default_value(f: CharFile, t: Type, fi: File) -> str:
+    """read default values for a property"""
     read_spaces(f)
 
     p = peek_char(f)
@@ -205,6 +227,7 @@ def read_default_value(f: CharFile, t: Type, fi: File) -> str:
 
 
 def read_struct(f: CharFile, type_list: TypeList, fi: File) -> Struct:
+    """read a single struct"""
     struct_name = read_ident(f)
     struct = Struct(struct_name)
 
@@ -284,6 +307,7 @@ def read_struct(f: CharFile, type_list: TypeList, fi: File) -> Struct:
 
 
 def read_enum(f: CharFile, type_list: TypeList) -> Enum:
+    """read a single enum"""
     enum_name = read_ident(f)
     e = Enum(enum_name)
 
@@ -322,6 +346,7 @@ def read_enum(f: CharFile, type_list: TypeList) -> Enum:
 
 
 def read_several_structs(f: CharFile) -> File:
+    """parse a file"""
     file = File()
     read_spaces(f)
     type_list = TypeList()

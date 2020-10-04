@@ -4,7 +4,7 @@ SET(GAF_ROOT_DIR ${CMAKE_CURRENT_LIST_DIR})
 # https://github.com/Kitware/CMake/blob/master/Modules/FindProtobuf.cmake
 
 function(GAF_GENERATE_CPP)
-    set(options IMGUI JSON)
+    set(options IMGUI RAPIDJSON)
     set(oneValueArgs SOURCES HEADERS)
     set(multiValueArgs FILES)
     cmake_parse_arguments(ARG
@@ -29,28 +29,32 @@ function(GAF_GENERATE_CPP)
         get_filename_component(ABS_FIL ${FIL} ABSOLUTE)
         get_filename_component(FIL_WE ${FIL} NAME_WE)
 
-        SET(GAF_EXTRA_ARGS "")
+        SET(GAF_EXTENSION_ARG "cpp")
         SET(FIL_NAME ${FIL_WE})
+
+        SET(GAF_PREFIX "gaf_")
 
         # todo(Gustav): does this work?
         if(${ARG_IMGUI})
-            SET(GAF_EXTRA_ARGS "${GAF_EXTRA_ARGS};--include-imgui")
+            SET(GAF_EXTENSION_ARG "imgui")
+            SET(GAF_PREFIX "gaf_imgui_")
         endif()
 
-        if(${ARG_IMGUI})
-            SET(GAF_EXTRA_ARGS "${GAF_EXTRA_ARGS};--include-json")
+        if(${ARG_RAPIDJSON})
+            SET(GAF_EXTENSION_ARG "rapidjson")
+            SET(GAF_PREFIX "gaf_rapidjson_")
         endif()
 
-        list(APPEND SOURCES "${CMAKE_CURRENT_BINARY_DIR}/gaf_${FIL_NAME}.cc")
-        list(APPEND HEADERS "${CMAKE_CURRENT_BINARY_DIR}/gaf_${FIL_NAME}.h")
+        list(APPEND SOURCES "${CMAKE_CURRENT_BINARY_DIR}/${GAF_PREFIX}${FIL_NAME}.cc")
+        list(APPEND HEADERS "${CMAKE_CURRENT_BINARY_DIR}/${GAF_PREFIX}${FIL_NAME}.h")
 
         SET(ABSOLUTE_GAF ${GAF_ROOT_DIR}/gaf.py)
 
         add_custom_command(
-            OUTPUT "${CMAKE_CURRENT_BINARY_DIR}/gaf_${FIL_NAME}.cc"
-            "${CMAKE_CURRENT_BINARY_DIR}/gaf_${FIL_NAME}.h"
+            OUTPUT "${CMAKE_CURRENT_BINARY_DIR}/${GAF_PREFIX}${FIL_NAME}.cc"
+            "${CMAKE_CURRENT_BINARY_DIR}/${GAF_PREFIX}${FIL_NAME}.h"
             COMMAND ${PYTHON_EXECUTABLE}
-            ARGS ${ABSOLUTE_GAF} gen ${ABS_FIL} ${CMAKE_CURRENT_BINARY_DIR} ${GAF_EXTRA_ARGS}
+            ARGS ${ABSOLUTE_GAF} generate ${ABS_FIL} ${CMAKE_CURRENT_BINARY_DIR} ${GAF_EXTENSION_ARG}
             DEPENDS ${ABS_FIL} ${ABSOLUTE_GAF} ${PYTHON_EXECUTABLE} ${GAF_ROOT_DIR}/gaf_cpp.py ${GAF_ROOT_DIR}/gaf_parse.py ${GAF_ROOT_DIR}/gaf_types.py
             COMMENT "Running C++ GAF compiler on ${FIL}"
             VERBATIM

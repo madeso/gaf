@@ -2,6 +2,7 @@
 
 import enum
 import typing
+import abc
 
 
 @enum.unique
@@ -220,12 +221,18 @@ def get_unique_types(f: File) -> typing.Set[Type]:
     return set(m.typename for m in merge(s.members for s in f.structs))
 
 
-class OutputOptions:
-    def __init__(self, write_json: bool, prefix: str, write_imgui: bool, imgui_headers: typing.List[str], imgui_add: str, imgui_remove: str):
-        self.write_json = write_json
-        # todo: this needs to come from the args
-        self.prefix = prefix
-        self.write_imgui = write_imgui
-        self.imgui_headers = imgui_headers
-        self.imgui_add = imgui_add
-        self.imgui_remove = imgui_remove
+class Plugin(abc.ABC):
+    @abc.abstractmethod
+    def get_name(self) -> str:
+        """get the name of the plugin"""
+        pass
+
+    @abc.abstractmethod
+    def add_arguments(self, parser):
+        """add options to the argument parser"""
+        pass
+    
+    @abc.abstractmethod
+    def run_plugin(self, file, name, args):
+        """run the actual plugin"""
+        pass
