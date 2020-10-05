@@ -8,7 +8,8 @@ script:
   - python3 --version
   - mkdir build
   - cd build
-  - cmake --build .. --config Release
+  - cmake ..
+  - cmake --build . --config Release
 
 
 matrix:

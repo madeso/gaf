@@ -15,4 +15,5 @@ install:
 build_script:
   - cmd: 'mkdir build'
   - cmd: 'cd build'
-  - cmd: 'cmake -DPYTHON_EXECUTABLE:FILEPATH=%PYTHON%\python.exe --build .. --config Release'
+  - cmd: 'cmake -DPYTHON_EXECUTABLE:FILEPATH=%PYTHON%\python.exe ..'
+  - cmd: 'cmake --build . --config Release'
