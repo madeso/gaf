@@ -1,10 +1,9 @@
 # GAF
 "We care about performance, except when we don't"
 
-
-
-[![Travis Status](https://travis-ci.org/madeso/gaf.svg?branch=master)](https://travis-ci.org/madeso/gaf)
-[![Appveyor status](https://ci.appveyor.com/api/projects/status/github/madeso/gaf?branch=master&svg=true)](https://ci.appveyor.com/project/madeso/gaf)
+[![windows](https://github.com/madeso/gaf/workflows/windows/badge.svg)](https://github.com/madeso/gaf/actions?query=workflow%3Awindows)
+[![linux](https://github.com/madeso/gaf/workflows/linux/badge.svg)](https://github.com/madeso/gaf/actions?query=workflow%3Alinux)
+[![macos](https://github.com/madeso/gaf/workflows/macos/badge.svg)](https://github.com/madeso/gaf/actions?query=workflow%3Amacos)
 
 
 # What is it
