@@ -15,6 +15,10 @@ endif()
 include(gaf.cmake)
 add_subdirectory(cpp_externals)
 
+include(CTest)
+include(cpp_externals/catch/Catch.cmake)
+
+
 function(add_sample)
     set(options RAPIDJSON)
     set(oneValueArgs BASE_NAME CC_NAME)
@@ -51,12 +55,7 @@ function(add_sample)
         target_compile_definitions(${APP_NAME} PUBLIC -DGAF_TEST_JSON)
     endif()
 
-    add_custom_command(TARGET ${APP_NAME}
-        POST_BUILD
-        COMMAND ${APP_NAME}
-        WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}
-        COMMENT "Running ${APP_NAME} tests"
-    )
+    catch_discover_tests(${APP_NAME})
 endfunction()
 
 add_sample(BASE_NAME defaultvalues)
