@@ -14,6 +14,7 @@ endif()
 
 include(gaf.cmake)
 add_subdirectory(external)
+add_subdirectory(src)
 
 include(CTest)
 include(external/catch/Catch.cmake)
