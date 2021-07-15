@@ -13,10 +13,10 @@ endif()
 # SET(GAF_TEST_JSON {json})
 
 include(gaf.cmake)
-add_subdirectory(cpp_externals)
+add_subdirectory(external)
 
 include(CTest)
-include(cpp_externals/catch/Catch.cmake)
+include(external/catch/Catch.cmake)
 
 
 function(add_sample)
@@ -38,11 +38,11 @@ function(add_sample)
         set(APP_NAME ${APP_NAME}_json)
     endif()
 
-    GAF_GENERATE_CPP(SOURCES GAF_SOURCES HEADERS GAF_HEADERS FILES ${CMAKE_CURRENT_SOURCE_DIR}/examples/${ARG_BASE_NAME}.c)
-    set(src ${CMAKE_CURRENT_SOURCE_DIR}/cpp_samples/${ARG_CC_NAME} ${GAF_SOURCES} ${GAF_HEADERS})
+    GAF_GENERATE_CPP(SOURCES GAF_SOURCES HEADERS GAF_HEADERS FILES ${CMAKE_CURRENT_SOURCE_DIR}/examples/gaf/${ARG_BASE_NAME}.c)
+    set(src ${CMAKE_CURRENT_SOURCE_DIR}/examples/cpp/${ARG_CC_NAME} ${GAF_SOURCES} ${GAF_HEADERS})
 
     if(${ARG_RAPIDJSON})
-        GAF_GENERATE_CPP(RAPIDJSON SOURCES GAF_JSON_SOURCES HEADERS GAF_JSON_HEADERS FILES ${CMAKE_CURRENT_SOURCE_DIR}/examples/${ARG_BASE_NAME}.c)
+        GAF_GENERATE_CPP(RAPIDJSON SOURCES GAF_JSON_SOURCES HEADERS GAF_JSON_HEADERS FILES ${CMAKE_CURRENT_SOURCE_DIR}/examples/gaf/${ARG_BASE_NAME}.c)
         set(src ${src} ${GAF_JSON_SOURCES} ${GAF_JSON_HEADERS})
     endif()
 
