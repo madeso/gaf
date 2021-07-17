@@ -1,16 +1,18 @@
 # this is only for examples and testing
 cmake_minimum_required(VERSION 3.1)
-project(gaf)
+project(gaf CXX)
 
-set (CMAKE_CXX_STANDARD 11)
-set(CMAKE_CXX_STANDARD_REQUIRED ON)
-if (MSVC)
-    add_compile_options(/W4)
-else()
-    add_compile_options(-Wall -Wextra -Wpedantic)
-endif()
+set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${CMAKE_CURRENT_SOURCE_DIR}/tools/cmake/modules")
+include(tools/cmake/standard_project_settings.cmake)
+include(tools/cmake/compiler_warnings.cmake)
 
-# SET(GAF_TEST_JSON {json})
+set(CMAKE_CXX_EXTENSIONS OFF)
+
+add_library(project_options INTERFACE)
+target_compile_features(project_options INTERFACE cxx_std_17)
+
+add_library(project_warnings INTERFACE)
+set_project_warnings(project_warnings)
 
 include(gaf.cmake)
 add_subdirectory(external)
@@ -49,7 +51,7 @@ function(add_sample)
 
     add_executable(${APP_NAME} ${src})
     target_include_directories(${APP_NAME} PUBLIC ${CMAKE_CURRENT_BINARY_DIR})
-    target_link_libraries(${APP_NAME} PUBLIC catch)
+    target_link_libraries(${APP_NAME} PUBLIC catch PRIVATE project_options project_warnings)
 
     if(${ARG_RAPIDJSON})
         target_link_libraries(${APP_NAME} PUBLIC rapidjson)
