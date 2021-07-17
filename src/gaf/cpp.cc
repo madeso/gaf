@@ -666,10 +666,8 @@ void add_enum_json_function(const Enum& e, Out* sources, bool type_enum=false)
 Out generate_json(const File& f, const std::string& name)
 {
     auto sources = Out{};
-    const auto headerguard = "GENERATED_JSON_" + name;
     
-    sources.add_header(fmt::format("#ifndef {}_H\n", headerguard));
-    sources.add_header(fmt::format("#define {}_H\n", headerguard));
+    sources.add_header("#pragma once\n");
     sources.add_header("\n");
 
     sources.add_header("#include <string>\n");
@@ -743,7 +741,6 @@ Out generate_json(const File& f, const std::string& name)
         sources.add_header("\n");
     }
     sources.add_header("\n");
-    sources.add_header(fmt::format("#endif  // {}_H\n", headerguard));
 
     return sources;
 }
@@ -752,10 +749,8 @@ Out generate_json(const File& f, const std::string& name)
 Out generate_imgui(const File& f, const std::string& name, const ImguiOptions& opt)
 {
     auto sources = Out{};
-    const auto headerguard = "GENERATED_IMGUI_" + name;
 
-    sources.add_header(fmt::format("#ifndef {}_H\n", headerguard));
-    sources.add_header(fmt::format("#define {}_H\n", headerguard));
+    sources.add_header("#pragma once\n");
     sources.add_header("\n");
     sources.add_header(fmt::format("#include \"gaf_{}.h\"\n", name));
     sources.add_header("\n");
@@ -817,7 +812,6 @@ Out generate_imgui(const File& f, const std::string& name, const ImguiOptions& o
         sources.add_header("\n");
     }
     sources.add_header("\n");
-    sources.add_header(fmt::format("#endif  // {}_H\n", headerguard));
 
     return sources;
 }
@@ -842,11 +836,9 @@ bool any(const T& t, const C& c)
     return std::any_of(t.begin(), t.end(), c);
 }
 
-Out generate_cpp(const File& f, const std::string& name)
+Out generate_cpp(const File& f)
 {
     auto sources = Out{};
-
-    const auto headerguard = "GENERATED_" + name;
 
     // get all standard types used for typedefing later on...
     const auto unique_types = get_unique_types(f);
@@ -866,8 +858,7 @@ Out generate_cpp(const File& f, const std::string& name)
     const auto has_dynamic_arrays = any(map<bool>(f.structs, [](const auto& s){ return filter(s->members, [](const auto& m) { return m.is_dynamic_array; }).empty(); }), [](bool b){return b;});
     const auto has_optional = any(map<bool>(f.structs, [](const auto& s){ return filter(s->members, [](const auto& m) { return m.is_optional; }).empty(); }), [](bool b){return b;});
 
-    sources.add_header(fmt::format("#ifndef {}_H\n", headerguard));
-    sources.add_header(fmt::format("#define {}_H\n", headerguard));
+    sources.add_header("#pragma once\n");
     sources.add_header("\n");
 
     bool added_include = false;
@@ -946,7 +937,6 @@ Out generate_cpp(const File& f, const std::string& name)
         sources.add_header("\n");
     }
     sources.add_header("\n");
-    sources.add_header(fmt::format("#endif  // {}_H\n", headerguard));
 
     return sources;
 }
@@ -998,7 +988,7 @@ std::string CppPlugin::get_name()
 
 int CppPlugin::run_plugin(const File& file, Writer* writer, std::string& output_folder, Args&, const std::string& name)
 {
-    auto out = generate_cpp(file, name);
+    auto out = generate_cpp(file);
     write_cpp(&out, writer, output_folder, name, "gaf_", file.package_name, {"<limits>"});
 
     return 0;
