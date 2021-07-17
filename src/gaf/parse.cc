@@ -8,18 +8,9 @@
 #include <streambuf>
 #include <cassert>
 
+#include "fmt/format.h"
+
 #include "gaf/parse.h"
-
-
-// todo(Gustav): replace with fmtlib
-namespace fmt
-{
-    template<typename ...T>
-    std::string format(const std::string& f, T...)
-    {
-        return f;
-    }
-}
 
 
 std::string read_file_to_string(const std::string& path)

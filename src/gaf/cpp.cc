@@ -7,26 +7,12 @@
 #include <algorithm>
 #include <iostream>
 
+#include "fmt/format.h"
+
 #include "gaf/types.h"
 #include "gaf/array.h"
 
 // from gaf_types import StandardType, Struct, get_unique_types, File, Member, Enum, TypeList, Plugin
-
-// todo(Gustav): replace with fmtlib
-namespace fmt
-{
-    template<typename ...T>
-    std::string format(const std::string& f, T...)
-    {
-        return f;
-    }
-
-    template<typename T>
-    int arg(const std::string&, T)
-    {
-        return 2;
-    }
-}
 
 struct ImguiOptions
 {
@@ -475,7 +461,7 @@ std::string determine_new_value(const Member& m)
     if(tl.is_valid_type(t.name) and t.standard_type != StandardType::String)
     {
         const auto nt = tl.get_type(t.name);
-        return fmt::format("new {}({})", t.get_cpp_type(), nt.default_value);
+        return fmt::format("new {}({})", t.get_cpp_type(), *nt.default_value);
     }
     else
     {
@@ -618,7 +604,7 @@ void write_default_constructor_for_cpp(const Struct& s, Out* sources)
         auto default_value = *m.defaultvalue;
         if(m.type_name.is_enum)
         {
-            default_value = fmt::format("{}::{}", m.type_name.name, m.defaultvalue);
+            default_value = fmt::format("{}::{}", m.type_name.name, *m.defaultvalue);
         }
         sources->add_source(fmt::format("  {} {}({})\n", sep, m.name, default_value));
         sep = ',';
