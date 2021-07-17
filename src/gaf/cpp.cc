@@ -11,6 +11,7 @@
 
 #include "gaf/types.h"
 #include "gaf/array.h"
+#include "gaf/args.h"
 
 // from gaf_types import StandardType, Struct, get_unique_types, File, Member, Enum, TypeList, Plugin
 
@@ -986,8 +987,13 @@ std::string CppPlugin::get_name()
     return "cpp";
 }
 
-int CppPlugin::run_plugin(const File& file, Writer* writer, std::string& output_folder, Args&, const std::string& name)
+int CppPlugin::run_plugin(const File& file, Writer* writer, std::string& output_folder, Args& args, const std::string& name)
 {
+    if(auto r = no_arguments(args); r != 0)
+    {
+        return r;
+    }
+
     auto out = generate_cpp(file);
     write_cpp(&out, writer, output_folder, name, "gaf_", file.package_name, {"<limits>"});
 
@@ -999,8 +1005,13 @@ std::string RapidJsonPlugin::get_name()
     return "rapidjson";
 }
 
-int RapidJsonPlugin::run_plugin(const File& file, Writer* writer, std::string& output_folder, Args&, const std::string& name)
+int RapidJsonPlugin::run_plugin(const File& file, Writer* writer, std::string& output_folder, Args& args, const std::string& name)
 {
+    if(auto r = no_arguments(args); r != 0)
+    {
+        return r;
+    }
+
     auto out = generate_json(file, name);
     write_cpp(&out, writer, output_folder, name, "gaf_rapidjson_", file.package_name, {"<sstream>", "\"rapidjson/document.h\""});
 
@@ -1012,19 +1023,38 @@ std::string ImguiPlugin::get_name()
     return "imgui";
 }
 
-int ImguiPlugin::run_plugin(const File& file, Writer* writer, std::string& output_folder, Args&, const std::string& name)
+int ImguiPlugin::run_plugin(const File& file, Writer* writer, std::string& output_folder, Args& args, const std::string& name)
 {
-    // parser.add_argument('--imgui-headers', nargs='+', help='use this header instead of the standard imgui');
-    // parser.add_argument('--imgui-add', help='the imgui add item button text');
-    // parser.add_argument('--imgui-remove', help='the imgui remove item button text');
-    // 
-    // imgui_headers = args.imgui_headers if args.imgui_headers is not None else ['"imgui.h"'];
-    // imgui_add = args.imgui_add if args.imgui_add is not None else '"Add"';
-    // imgui_remove = args.imgui_remove if args.imgui_remove is not None else '"Remove"';
+    std::vector<std::string> imgui_headers = {"\"imgui.h\""};
+    std::string imgui_add = "\"Add\"";
+    std::string imgui_remove = "\"Remove\"";
+
+    while(args.has_more())
+    {
+        const auto c = args.read();
+        if(c == "--imgui-add")
+        {
+            imgui_add = args.read();
+        }
+        else if(c == "--imgui-remove")
+        {
+            imgui_remove = args.read();
+        }
+        else if(c == "--imgui-headers")
+        {
+            imgui_headers.clear();
+            while(is_option(args.peek()) == false)
+            {
+                imgui_headers.emplace_back(args.read());
+            }
+        }
+        else
+        {
+            std::cerr << "invalid option " << c << "\n";
+            return -42;
+        }
+    }
     
-    const auto imgui_headers = std::vector<std::string>{"\"imgui.h\""};
-    const auto imgui_add = "\"Add\"";
-    const auto imgui_remove = "\"Remove\"";
     
     auto out = generate_imgui(file, name, ImguiOptions{imgui_add, imgui_remove});
     write_cpp(&out, writer, output_folder, name, "gaf_imgui_", file.package_name, imgui_headers);

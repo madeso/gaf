@@ -24,6 +24,11 @@ int on_display_command(Args& args, const Plugins&)
         return -42;
     }
 
+    if(auto r = no_arguments(args); r != 0)
+    {
+        return r;
+    }
+
     while(args.has_more())
     {
         const auto r = args.read();

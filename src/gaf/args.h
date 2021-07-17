@@ -15,3 +15,6 @@ struct Args
 
     bool has_more() const;
 };
+
+int no_arguments(Args& args);
+bool is_option(const std::string& str);
