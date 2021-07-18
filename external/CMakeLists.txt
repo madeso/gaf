@@ -10,3 +10,4 @@ add_library(fmt STATIC
     fmt-8.0.1/src/os.cc
 )
 target_include_directories(fmt PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/fmt-8.0.1/include)
+target_compile_features(fmt PRIVATE cxx_std_17)
