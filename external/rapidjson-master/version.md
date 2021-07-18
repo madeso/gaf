@@ -1,0 +1,3 @@
+Why is there no recent release?
+
+https://github.com/Tencent/rapidjson/commit/48fbd8cd202ca54031fe799db2ad44ffa8e77c13
