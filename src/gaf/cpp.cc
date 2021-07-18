@@ -122,7 +122,7 @@ VarValue get_cpp_parse_from_rapidjson_base(Out* sources, StandardType t, const s
         std::ostringstream line;
         const auto err = json_return_error(fmt::format("read value for {} was not a integer", name), json);
         line << indent << "if(" << json << ".IsInt64()==false) " << err << "} \n";
-        const auto var = fmt::format("c->{m}", member);
+        const auto var = fmt::format("c->{}", member);
         const auto val = fmt::format("{}.GetInt64()", json);
         sources->add_source(line.str());
         return VarValue{var, val};
@@ -146,7 +146,7 @@ VarValue get_cpp_parse_from_rapidjson_base(Out* sources, StandardType t, const s
         std::ostringstream line;
         const auto err = json_return_error(fmt::format("read value for {} was not a bool", name), json);
         line << indent << "if(" << json << ".IsBool()==false) " << err << "} \n";
-        const auto var = fmt::format("c->{m}", member);
+        const auto var = fmt::format("c->{}", member);
         const auto val = fmt::format("{}.GetBool()", json);
         sources->add_source(line.str());
         return VarValue{var, val};
@@ -156,7 +156,7 @@ VarValue get_cpp_parse_from_rapidjson_base(Out* sources, StandardType t, const s
         std::ostringstream line;
         const auto err = json_return_error(fmt::format("read value for {} was not a string", name), json);
         line << indent << "if(" << json << ".IsString()==false) " << err << "} \n";
-        const auto var = fmt::format("c->{m}", member);
+        const auto var = fmt::format("c->{}", member);
         const auto val = fmt::format("{}.GetString()", json);
         sources->add_source(line.str());
         return VarValue{var, val};
