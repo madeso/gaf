@@ -150,6 +150,11 @@ int on_generate_command(Args& args, const Plugins& plugins)
     }
 
     std::cerr << "unknown plugin " << command << "\n";
+    std::cout << "Valid plugins:\n";
+    for(const auto& p: plugins)
+    {
+        std::cout << " - " << p->get_name() << "\n";
+    }
     return -42;
 }
 
@@ -174,7 +179,7 @@ int run_main(Args& args, const Plugins& plugins)
     }
     else
     {
-        std::cerr << "invalid command " << command << "\n";
+        std::cerr << "invalid command " << command << ", either display or generate\n";
         return -42;
     }
     
