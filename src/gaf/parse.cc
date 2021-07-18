@@ -136,20 +136,20 @@ void read_spaces(CharFile* f)
     while(true)
     {
         read_white_spaces(f);
-        if(peek_char(f, 0) == '/' and peek_char(f, 1) == '/')
+        if(peek_char(f, 0) == '/' && peek_char(f, 1) == '/')
         {
             while(peek_char(f) != '\n')
             {
                 read_char(f);
             }
         }
-        else if(peek_char(f, 0) == '/' and peek_char(f, 1) == '*')
+        else if(peek_char(f, 0) == '/' && peek_char(f, 1) == '*')
         {
             auto slash = read_char(f);
             auto star = read_char(f);
             assert(slash == '/');
             assert(star == '*');
-            while(peek_char(f, 0) != '*' or peek_char(f, 1) != '/')
+            while(peek_char(f, 0) != '*' || peek_char(f, 1) != '/')
             {
                 read_char(f);
             }
@@ -385,7 +385,7 @@ std::shared_ptr<Struct> read_struct(CharFile* f, TypeList* type_list, File* fi)
             }
             const auto valid_type = type_list->is_valid_type(ty) ? type_list->get_type(ty) : Type::create_error_type();
             const auto s = fi->find_struct(ty);
-            if(s != nullptr and is_optional == false)
+            if(s != nullptr && is_optional == false)
             {
                 if(not s->is_defined)
                 {

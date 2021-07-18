@@ -182,7 +182,7 @@ std::shared_ptr<Constant> File::find_constant(const std::string& name, std::opti
                 return c;
             }
             }
-        else if(c->name == name and c->type == *ty)
+        else if(c->name == name && c->type == *ty)
         {
             return c;
         }

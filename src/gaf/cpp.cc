@@ -459,7 +459,7 @@ std::string determine_new_value(const Member& m)
     const auto t = m.type_name;
     auto tl = TypeList{};
     tl.add_default_types();
-    if(tl.is_valid_type(t.name) and t.standard_type != StandardType::String)
+    if(tl.is_valid_type(t.name) && t.standard_type != StandardType::String)
     {
         const auto nt = tl.get_type(t.name);
         return fmt::format("new {}({})", t.get_cpp_type(), *nt.default_value);
