@@ -20,8 +20,6 @@ function(GAF_GENERATE_CPP)
         return()
     endif()
 
-    find_package(PythonInterp 3 REQUIRED)
-
     set(SOURCES)
     set(HEADERS)
 
@@ -48,14 +46,12 @@ function(GAF_GENERATE_CPP)
         list(APPEND SOURCES "${CMAKE_CURRENT_BINARY_DIR}/${GAF_PREFIX}${FIL_NAME}.cc")
         list(APPEND HEADERS "${CMAKE_CURRENT_BINARY_DIR}/${GAF_PREFIX}${FIL_NAME}.h")
 
-        SET(ABSOLUTE_GAF ${GAF_ROOT_DIR}/gaf.py)
-
         add_custom_command(
             OUTPUT "${CMAKE_CURRENT_BINARY_DIR}/${GAF_PREFIX}${FIL_NAME}.cc"
             "${CMAKE_CURRENT_BINARY_DIR}/${GAF_PREFIX}${FIL_NAME}.h"
-            COMMAND ${PYTHON_EXECUTABLE}
-            ARGS ${ABSOLUTE_GAF} generate ${ABS_FIL} ${CMAKE_CURRENT_BINARY_DIR} ${GAF_EXTENSION_ARG}
-            DEPENDS ${ABS_FIL} ${ABSOLUTE_GAF} ${PYTHON_EXECUTABLE} ${GAF_ROOT_DIR}/gaf_cpp.py ${GAF_ROOT_DIR}/gaf_parse.py ${GAF_ROOT_DIR}/gaf_types.py
+            COMMAND gaf
+            ARGS generate ${ABS_FIL} ${CMAKE_CURRENT_BINARY_DIR} ${GAF_EXTENSION_ARG}
+            DEPENDS ${ABS_FIL}
             COMMENT "Running C++ GAF compiler on ${FIL}"
             VERBATIM
         )
