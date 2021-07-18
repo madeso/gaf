@@ -387,7 +387,7 @@ std::shared_ptr<Struct> read_struct(CharFile* f, TypeList* type_list, File* fi)
             const auto s = fi->find_struct(ty);
             if(s != nullptr && is_optional == false)
             {
-                if(not s->is_defined)
+                if(s->is_defined == false)
                 {
                     f->report_error(fmt::format("Struct {} is not defined yet for {}.{}. Define or use optional", ty, struct_name, name));
                 }

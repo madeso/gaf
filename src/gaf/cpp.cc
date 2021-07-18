@@ -473,7 +473,7 @@ std::string determine_new_value(const Member& m)
 
 void write_single_member_to_source(const Member& m, Out* sources, const ImguiOptions& opt)
 {
-    if(not m.is_dynamic_array)
+    if(m.is_dynamic_array == false)
     {
         if(m.is_optional)
         {
