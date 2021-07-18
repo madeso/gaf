@@ -3,6 +3,7 @@ cmake_minimum_required(VERSION 3.1)
 project(gaf CXX)
 
 set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${CMAKE_CURRENT_SOURCE_DIR}/tools/cmake/modules")
+
 include(tools/cmake/standard_project_settings.cmake)
 include(tools/cmake/compiler_warnings.cmake)
 

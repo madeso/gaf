@@ -6,6 +6,7 @@
 #include <cassert>
 #include <algorithm>
 #include <iostream>
+#include <filesystem>
 
 #include "fmt/format.h"
 
@@ -942,9 +943,16 @@ Out generate_cpp(const File& f)
     return sources;
 }
 
+std::string get_file_path(const std::string& folder, const std::string& name)
+{
+    const auto r = std::filesystem::path{folder} / std::filesystem::path{name};
+    const auto a = std::filesystem::absolute(r);
+    return a.native();
+}
+
 void write_cpp(Out* sources, Writer* writer, const std::string& out_dir, const std::string& name, const std::string& prefix, const std::string& package_name, const std::vector<std::string>& includes)
 {
-    if(auto out = writer->open(out_dir + prefix + name + ".h"); out != nullptr)
+    if(auto out = writer->open(get_file_path(out_dir, prefix + name + ".h")); out != nullptr)
     {
         for(const auto& s: sources->header)
         {
@@ -952,7 +960,7 @@ void write_cpp(Out* sources, Writer* writer, const std::string& out_dir, const s
         }
     }
 
-    if(auto out = writer->open(out_dir + prefix + name + ".cc"); out != nullptr)
+    if(auto out = writer->open(get_file_path(out_dir, prefix + name + ".cc")); out != nullptr)
     {
         out->write(fmt::format("#include \"{}.h\"\n", prefix + name));
         out->write("\n");

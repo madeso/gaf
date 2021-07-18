@@ -2,6 +2,7 @@
 
 #include <iostream>
 #include <fstream>
+#include <filesystem>
 
 #include "gaf/args.h"
 #include "gaf/types.h"
@@ -138,8 +139,7 @@ int on_generate_command(Args& args, const Plugins& plugins)
         std::cerr << "unable to read file " << input << "\n";
         return -42;
     }
-    // name = os.path.splitext(os.path.basename(file.name))[0]
-    const auto name = file.name;
+    const auto name = std::filesystem::path(file.name).stem();
 
     for(auto& plugin: plugins)
     {

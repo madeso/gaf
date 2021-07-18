@@ -1,3 +1,5 @@
+find_package(Filesystem REQUIRED)
+
 set(src
     gaf/main.cc
     gaf/cpp.cc
@@ -15,4 +17,5 @@ target_link_libraries(gaf
         project_options
         project_warnings
         fmt
+        std::filesystem
 )
