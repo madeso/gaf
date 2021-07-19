@@ -8,7 +8,7 @@
 #include "gaf_rapidjson_enum.h"
 #endif
 
-TEST_CASE("Person")
+TEST_CASE("enum Person")
 {
   Person dude;
   
@@ -16,7 +16,7 @@ TEST_CASE("Person")
   CHECK(dude.favoriteProject == Project::Protobuf);
 }
 
-TEST_CASE("enum types")
+TEST_CASE("enum enum types")
 {
   Happiness happiness = Happiness::HAPPY;
   Project project = Project::Gaf;
@@ -32,7 +32,7 @@ TEST_CASE("enum types")
 // todo: need to add json loading tests
 #if GAF_TEST_JSON
 
-TEST_CASE("json_basic")
+TEST_CASE("enum json_basic")
 {
   Happiness happiness = Happiness::INDIFFERENT;Project project = Project::Other;
 
@@ -43,7 +43,7 @@ TEST_CASE("json_basic")
   REQUIRE(person.favoriteProject == project);
 }
 
-TEST_CASE("json_missing_project")
+TEST_CASE("enum json_missing_project")
 {
   Person person;
   const std::string load = ReadJsonSource(&person, " {\"happiness\": 12} ");
@@ -51,7 +51,7 @@ TEST_CASE("json_missing_project")
 }
 
 
-TEST_CASE("json_empty_document")
+TEST_CASE("enum json_empty_document")
 {
   Person person;
   const std::string load = ReadJsonSource(&person, "{}");
@@ -59,7 +59,7 @@ TEST_CASE("json_empty_document")
 }
 
 
-TEST_CASE("json_as_ints")
+TEST_CASE("enum json_as_ints")
 {
   Person person;
   const std::string load = ReadJsonSource(&person, " {\"happiness\": 1, \"favoriteProject\": 2} ");

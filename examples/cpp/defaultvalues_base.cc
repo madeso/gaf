@@ -1,7 +1,7 @@
 #define CATCH_CONFIG_MAIN
 #include "catch.hpp"
 
-TEST_CASE("constructor")
+TEST_CASE("default values constructor")
 {
   const Foo foo;
   REQUIRE(foo.hello == 12);

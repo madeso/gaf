@@ -8,7 +8,7 @@
 #include "gaf_rapidjson_twostructs.h"
 #endif
 
-TEST_CASE("constructor") {
+TEST_CASE("twostructs constructor") {
   Foo foo;
   REQUIRE(foo.hello == 0);
   REQUIRE(foo.world == 0.0f);
@@ -20,7 +20,7 @@ TEST_CASE("constructor") {
   REQUIRE(bar.b == false);
 }
 
-TEST_CASE("setter") {
+TEST_CASE("twostructs setter") {
   Foo foo;
   foo.hello = 42;
   foo.world = 4.2f;
@@ -44,7 +44,7 @@ TEST_CASE("setter") {
 
 #if GAF_TEST_JSON
 
-TEST_CASE("json_basic") {
+TEST_CASE("twostructs json_basic") {
   Foo foo;
   const std::string load = ReadJsonSource(&foo, " {\"hello\": 12, \"world\": 2.4} ");
   REQUIRE(load == "");
@@ -52,7 +52,7 @@ TEST_CASE("json_basic") {
   REQUIRE(foo.world == 2.4f);
 }
 
-TEST_CASE("json_double_can_be_ints") {
+TEST_CASE("twostructs json_double_can_be_ints") {
   Foo foo;
   const std::string load = ReadJsonSource(&foo, " {\"hello\": 12, \"world\": 2} ");
   REQUIRE(load == "");
@@ -60,21 +60,21 @@ TEST_CASE("json_double_can_be_ints") {
   REQUIRE(foo.world == 2.0f);
 }
 
-TEST_CASE("json_missing_world") {
+TEST_CASE("twostructs json_missing_world") {
   Foo foo;
   const std::string load = ReadJsonSource(&foo, " {\"hello\": 12} ");
   REQUIRE(load != "");
 }
 
 
-TEST_CASE("json_empty_document") {
+TEST_CASE("twostructs json_empty_document") {
   Foo foo;
   const std::string load = ReadJsonSource(&foo, "{}");
   REQUIRE(load != "");
 }
 
 
-TEST_CASE("json_advanced") {
+TEST_CASE("twostructs json_advanced") {
   Bar bar;
   const std::string load = ReadJsonSource(&bar, "{\"bar\": \"cat and dog\", \"b\": true, \"foo\": {\"hello\": 12, \"world\": 2.4}}");
   REQUIRE(load == "");

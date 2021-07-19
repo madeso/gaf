@@ -3,7 +3,7 @@
 
 #include "gaf_underscore.h"
 
-TEST_CASE("constructor") {
+TEST_CASE("underscore constructor") {
   Foo foo;
   CHECK(foo.hello == 0);
   CHECK(foo.world == Approx(0.0f));
@@ -11,7 +11,7 @@ TEST_CASE("constructor") {
   CHECK(foo.cat == false);
 }
 
-TEST_CASE("setter") {
+TEST_CASE("underscore setter") {
   Foo foo;
   foo.hello = 42;
   foo.world = 4.2f;

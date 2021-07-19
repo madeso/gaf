@@ -27,7 +27,7 @@ TEST_CASE("custom vector equals works") {
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 // standard
 
-TEST_CASE("std constructor") {
+TEST_CASE("master std constructor") {
   Standard fb;
   REQUIRE(fb.a == 0);
   REQUIRE(fb.b == 0);
@@ -46,7 +46,7 @@ TEST_CASE("std constructor") {
 
 #if GAF_TEST_JSON
 
-TEST_CASE("std json") {
+TEST_CASE("master std json") {
   Standard fb;
   const std::string load = ReadJsonSource(&fb,
     "{\
@@ -86,7 +86,7 @@ TEST_CASE("std json") {
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 // arrays
 
-TEST_CASE("array constructor") {
+TEST_CASE("master array constructor") {
   Arrays fb;
   REQUIRE(fb.a.size() == 0);
   REQUIRE(fb.b.size() == 0);
@@ -106,14 +106,14 @@ TEST_CASE("array constructor") {
 
 #if GAF_TEST_JSON
 
-TEST_CASE("array empty json") {
+TEST_CASE("master array empty json") {
   Arrays advanced;
 
   const std::string load = ReadJsonSource(&advanced, "{}");
   REQUIRE(load != "");
 }
 
-TEST_CASE("array basic json") {
+TEST_CASE("master array basic json") {
   Arrays fb;
   const std::string load = ReadJsonSource(&fb,
     "{\
@@ -151,7 +151,7 @@ TEST_CASE("array basic json") {
 }
 
 // todo: parse standard too
-TEST_CASE("arrays advanced json") {
+TEST_CASE("master arrays advanced json") {
   Arrays fb;
   const std::string load = ReadJsonSource(&fb,
     "{\
@@ -196,7 +196,7 @@ TEST_CASE("arrays advanced json") {
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 // optional
 
-TEST_CASE("pointer constructor") {
+TEST_CASE("master pointer constructor") {
   Foo foo;
   REQUIRE(foo.value == nullptr);
 
@@ -205,7 +205,7 @@ TEST_CASE("pointer constructor") {
   REQUIRE(bar.foo == nullptr);
 }
 
-TEST_CASE("optional constructor") {
+TEST_CASE("master optional constructor") {
   Bar foo;
   REQUIRE(foo.value == 0);
 
@@ -216,7 +216,7 @@ TEST_CASE("optional constructor") {
 
 #if GAF_TEST_JSON
 
-TEST_CASE("pointer json_basic") {
+TEST_CASE("master pointer json_basic") {
   Foo foo;
   const std::string load = ReadJsonSource(&foo, " {\"value\": 12} ");
   REQUIRE(load == "");
@@ -224,14 +224,14 @@ TEST_CASE("pointer json_basic") {
   REQUIRE(*foo.value == 12);
 }
 
-TEST_CASE("optional json_basic") {
+TEST_CASE("master optional json_basic") {
   Bar foo;
   const std::string load = ReadJsonSource(&foo, " {\"value\": 12} ");
   REQUIRE(load == "");
   REQUIRE(foo.value == 12);
 }
 
-TEST_CASE("pointer json_missing_foo") {
+TEST_CASE("master pointer json_missing_foo") {
   FooRoot bar;
   const std::string load = ReadJsonSource(&bar, " {\"name\": \"good dog\"} ");
   REQUIRE(load == "");
@@ -240,7 +240,7 @@ TEST_CASE("pointer json_missing_foo") {
   REQUIRE(bar.foo == nullptr);
 }
 
-TEST_CASE("optional json_missing_foo") {
+TEST_CASE("master optional json_missing_foo") {
   BarRoot bar;
   const std::string load = ReadJsonSource(&bar, " {\"name\": \"good dog\"} ");
   REQUIRE(load == "");
@@ -248,14 +248,14 @@ TEST_CASE("optional json_missing_foo") {
   REQUIRE(bar.foo.value == 0);
 }
 
-TEST_CASE("pointer json_invalid_value_for_name") {
+TEST_CASE("master pointer json_invalid_value_for_name") {
   // optional means optional, not accept if invalid
   FooRoot bar;
   const std::string load = ReadJsonSource(&bar, " {\"name\": 3} ");
   REQUIRE(load != "");
 }
 
-TEST_CASE("optional json_invalid_value_for_name") {
+TEST_CASE("master optional json_invalid_value_for_name") {
   // optional means optional, not accept if invalid
   BarRoot bar;
   const std::string load = ReadJsonSource(&bar, " {\"name\": 3} ");
@@ -263,7 +263,7 @@ TEST_CASE("optional json_invalid_value_for_name") {
 }
 
 
-TEST_CASE("pointer json_empty_document") {
+TEST_CASE("master pointer json_empty_document") {
   FooRoot bar;
   const std::string load = ReadJsonSource(&bar, "{}");
   REQUIRE(load == "");
@@ -271,7 +271,7 @@ TEST_CASE("pointer json_empty_document") {
   REQUIRE(bar.foo == nullptr);
 }
 
-TEST_CASE("optional json_empty_document") {
+TEST_CASE("master optional json_empty_document") {
   BarRoot bar;
   const std::string load = ReadJsonSource(&bar, "{}");
   REQUIRE(load == "");
@@ -280,7 +280,7 @@ TEST_CASE("optional json_empty_document") {
 }
 
 
-TEST_CASE("pointer json_optional_struct") {
+TEST_CASE("master pointer json_optional_struct") {
   FooRoot bar;
   const std::string load = ReadJsonSource(&bar, "{\"foo\": {\"value\": 5}}");
   REQUIRE(load == "");
@@ -290,7 +290,7 @@ TEST_CASE("pointer json_optional_struct") {
   CHECK(*bar.foo->value == 5);
 }
 
-TEST_CASE("optional json_optional_struct") {
+TEST_CASE("master optional json_optional_struct") {
   BarRoot bar;
   const std::string load = ReadJsonSource(&bar, "{\"foo\": {\"value\": 5}}");
   REQUIRE(load == "");
