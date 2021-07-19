@@ -15,11 +15,19 @@
 
 using Plugins = std::vector<std::shared_ptr<Plugin>>;
 
+void write_errors(const CharFile& f)
+{
+    for(const auto& e: f.errors)
+    {
+        std::cerr << e << "\n";
+    }
+}
+
 int on_display_command(Args& args, const Plugins&)
 {
-    const auto file = args.read();
+    const auto input = args.read();
 
-    if(file == "")
+    if(input == "")
     {
         std::cerr << "missing file\n";
         return -42;
@@ -37,18 +45,16 @@ int on_display_command(Args& args, const Plugins&)
         return -42;
     }
     
-    auto f = CharFile{file};
-    auto s = read_several_structs(&f);
-    if(s)
+    auto file = CharFile{input};
+    auto parsed_file = read_several_structs(&file);
+    if(parsed_file == nullptr)
     {
-        std::cout << *s;
-    }
-    else
-    {
-        std::cerr << "Failed to read file\n";
+        std::cerr << "unable to read file " << input << "\n";
+        write_errors(file);
+        return -42;
     }
     
-
+    std::cout << *parsed_file;
     return 0;
 }
 
@@ -137,8 +143,10 @@ int on_generate_command(Args& args, const Plugins& plugins)
     if(parsed_file == nullptr)
     {
         std::cerr << "unable to read file " << input << "\n";
+        write_errors(file);
         return -42;
     }
+
     const auto name = std::filesystem::path(file.name).stem();
 
     for(auto& plugin: plugins)

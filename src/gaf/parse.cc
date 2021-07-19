@@ -53,7 +53,7 @@ char CharFile::peek(int count) const
 void CharFile::report_error(const std::string& message)
 {
     std::ostringstream ss;
-    ss << name << "(" << line << ")" << message;
+    ss << name << "(" << line << "): " << message;
     errors.emplace_back(ss.str());
 }
 
@@ -567,6 +567,11 @@ std::shared_ptr<File> read_several_structs(CharFile* f)
 
         // place file marker at the next non whitespace or at eof
         read_spaces(f);
+    }
+
+    if(f->errors.empty() == false)
+    {
+        return nullptr;
     }
     return file;
 }
