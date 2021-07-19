@@ -257,6 +257,8 @@ std::string read_default_value(CharFile* f, const Type& t, File* fi)
     {
         const auto ident = read_ident(f);
 
+        std::optional<std::string> extra_error = {};
+
         if(t.standard_type == StandardType::Bool)
         {
             if(ident == "true")
@@ -269,8 +271,7 @@ std::string read_default_value(CharFile* f, const Type& t, File* fi)
             }
             else
             {
-                f->report_error(fmt::format("{} is not a valid bool", ident));
-                return "false";
+                extra_error = fmt::format("{} is not a valid bool", ident);
             }
         }
         if(t.is_enum)
@@ -287,14 +288,17 @@ std::string read_default_value(CharFile* f, const Type& t, File* fi)
             }
             else
             {
-                f->report_error(fmt::format("{} is not a valid enum value of {}", ident, t.name));
-                return "";
+                extra_error = fmt::format("{} is not a valid enum value of {}", ident, t.name);
             }
         }
         auto c = fi->find_constant(ident, t);
         if(c == nullptr)
         {
             f->report_error(fmt::format("failed to find constant named {} with a type {}", ident, t.name));
+            if(extra_error)
+            {
+                f->report_error(*extra_error);
+            }
             return "";
         }
         return c->value;
