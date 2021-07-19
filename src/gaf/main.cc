@@ -147,7 +147,7 @@ int on_generate_command(Args& args, const Plugins& plugins)
         return -42;
     }
 
-    const auto name = std::filesystem::path(file.name).stem();
+    const auto name = std::filesystem::path(file.name).stem().string();
 
     for(auto& plugin: plugins)
     {
