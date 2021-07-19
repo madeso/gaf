@@ -203,7 +203,7 @@ std::string read_number(CharFile* f)
     {
         ret += read_char(f);
     }
-    if(ret.empty() == 0)
+    if(ret.empty())
     {
         f->report_error(fmt::format("Expected number, found {}", peek_char(f)));
         return "0";
