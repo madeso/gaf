@@ -947,7 +947,7 @@ std::string get_file_path(const std::string& folder, const std::string& name)
 {
     const auto r = std::filesystem::path{folder} / std::filesystem::path{name};
     const auto a = std::filesystem::absolute(r);
-    return a.native();
+    return a.string();
 }
 
 void write_cpp(Out* sources, Writer* writer, const std::string& out_dir, const std::string& name, const std::string& prefix, const std::string& package_name, const std::vector<std::string>& includes)
