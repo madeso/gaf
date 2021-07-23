@@ -253,5 +253,5 @@ PrettyFileOut::PrettyFileOut(std::unique_ptr<FileOut>&& d)
 
 void PrettyFileOut::write(const std::string& line)
 {
-    dest->write(line);
+    dest->write(line + "\n");
 }
