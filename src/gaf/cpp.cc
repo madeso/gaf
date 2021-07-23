@@ -581,7 +581,7 @@ void write_member_variables_for_cpp(Out* sources, const Struct& s)
             sources->add_header(fmt::format("  {} {};\n", type_name, m.name));
         }
     }
-    sources->add_header(fmt::format("}}; // class {}\n", s.name));
+    sources->add_header("};\n");
 }
 
 template<typename T, typename Predicate>
@@ -689,7 +689,7 @@ Out generate_json(const File& f, const std::string& name)
     {
         for(const auto& s: f.typedefs)
         {
-            sources.add_header(fmt::format("class {};\n", s->name));
+            sources.add_header(fmt::format("struct {};\n", s->name));
         }
         sources.add_header("\n");
     }
@@ -767,7 +767,7 @@ Out generate_imgui(const File& f, const std::string& name, const ImguiOptions& o
     {
         for(const auto& s: f.typedefs)
         {
-            sources.add_header(fmt::format("class {};\n", s->name));
+            sources.add_header(fmt::format("struct {};\n", s->name));
         }
         sources.add_header("\n");
     }
@@ -909,7 +909,7 @@ Out generate_cpp(const File& f)
     {
         for(const auto& s: f.typedefs)
         {
-            sources.add_header(fmt::format("class {};\n", s->name));
+            sources.add_header(fmt::format("struct {};\n", s->name));
         }
         sources.add_header("\n");
     }
@@ -925,8 +925,7 @@ Out generate_cpp(const File& f)
 
     for(const auto& s: f.structs_defined)
     {
-        sources.add_header(fmt::format("class {} {{\n", s->name));
-        sources.add_header(" public:\n");
+        sources.add_header(fmt::format("struct {} {{\n", s->name));
         write_default_constructor_for_cpp(*s, &sources);
 
         write_member_variables_for_cpp(&sources, *s);
