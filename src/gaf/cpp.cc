@@ -739,7 +739,7 @@ Out generate_json(const File& f, const std::string& name)
 
     if(f.package_name.empty() == false)
     {
-        sources.add_header(fmt::format("}} // namespace {}\n", f.package_name));
+        sources.add_header("}\n");
         sources.add_header("\n");
     }
     sources.add_header("\n");
@@ -810,7 +810,7 @@ Out generate_imgui(const File& f, const std::string& name, const ImguiOptions& o
     
     if(f.package_name.empty() == false)
     {
-        sources.add_header(fmt::format("}} // namespace {}\n", f.package_name));
+        sources.add_header("}\n");
         sources.add_header("\n");
     }
     sources.add_header("\n");
@@ -934,7 +934,7 @@ Out generate_cpp(const File& f)
 
     if(f.package_name.empty() == false)
     {
-        sources.add_header(fmt::format("}} // namespace {}\n", f.package_name));
+        sources.add_header("}\n");
         sources.add_header("\n");
     }
     sources.add_header("\n");
@@ -982,7 +982,7 @@ void write_cpp(Out* sources, Writer* writer, const std::string& out_dir, const s
 
         if(package_name.empty() == false)
         {
-            out->write(fmt::format("}} // namespace {}\n", package_name));
+            out->write("}\n");
             out->write("\n");
         }
     }
