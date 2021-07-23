@@ -29,16 +29,17 @@ struct Lines
 
     void add(const std::string& str)
     {
-        if(str.find('\n') == std::string::npos)
-        {
-        }
-        else
+        const auto has_newline = str.find('\n') != std::string::npos;
+        const auto starts_with_space = str.find_first_not_of(" ") != 0;
+        const auto is_valid = str.empty() || (!has_newline && !starts_with_space);
+        if(!is_valid)
         {
             int i = 0;
             i+= 1;
+            std::cerr << "failed <" << str << ">\n";
         }
         
-        assert(str.find('\n') == std::string::npos);
+        assert(is_valid);
         lines.emplace_back(str);
     }
 };
@@ -90,7 +91,7 @@ std::string json_return_ok()
 }
 
 
-VarValue get_cpp_parse_from_rapidjson_helper_int(Out* sources, StandardType t, const std::string& member, const std::string& indent, const std::string& name, const std::string& json)
+VarValue get_cpp_parse_from_rapidjson_helper_int(Out* sources, StandardType t, const std::string& member, const std::string& name, const std::string& json)
 {
     const auto rti=json_return_error(fmt::format("read value for {} was not a integer", name), json);
     const auto rtl=json_return_error(fmt::format("read value for {} was to low", name), "gafv");
@@ -104,7 +105,7 @@ VarValue get_cpp_parse_from_rapidjson_helper_int(Out* sources, StandardType t, c
     return VarValue{var, val};
 }
 
-VarValue get_cpp_parse_from_rapidjson_helper_float(Out* sources, const std::string& member, const std::string& indent, const std::string& name, const std::string& json)
+VarValue get_cpp_parse_from_rapidjson_helper_float(Out* sources, const std::string& member, const std::string& name, const std::string& json)
 {
     const auto err = json_return_error(fmt::format("read value for {} was not a number", name), json);
     sources->source.add(fmt::format("if({}.IsNumber()==false) {}", json, err));
@@ -113,17 +114,17 @@ VarValue get_cpp_parse_from_rapidjson_helper_float(Out* sources, const std::stri
     return VarValue{var, val};
 }
 
-VarValue get_cpp_parse_from_rapidjson_base(Out* sources, StandardType t, const std::string& member, const std::string& indent, const std::string& name, const std::string& json)
+VarValue get_cpp_parse_from_rapidjson_base(Out* sources, StandardType t, const std::string& member, const std::string& name, const std::string& json)
 {
     switch(t)
     {
     // todo: verify that all int parsing ranges are correct
     case StandardType::Int8:
-        return get_cpp_parse_from_rapidjson_helper_int(sources, t, member, indent, name, json);
+        return get_cpp_parse_from_rapidjson_helper_int(sources, t, member, name, json);
     case StandardType::Int16:
-        return get_cpp_parse_from_rapidjson_helper_int(sources, t, member, indent, name, json);
+        return get_cpp_parse_from_rapidjson_helper_int(sources, t, member, name, json);
     case StandardType::Int32:
-        return get_cpp_parse_from_rapidjson_helper_int(sources, t, member, indent, name, json);
+        return get_cpp_parse_from_rapidjson_helper_int(sources, t, member, name, json);
     case StandardType::Int64:
     {
         const auto err = json_return_error(fmt::format("read value for {} was not a integer", name), json);
@@ -133,19 +134,19 @@ VarValue get_cpp_parse_from_rapidjson_base(Out* sources, StandardType t, const s
         return VarValue{var, val};
     }
     case StandardType::Uint8:
-        return get_cpp_parse_from_rapidjson_helper_int(sources, t, member, indent, name, json);
+        return get_cpp_parse_from_rapidjson_helper_int(sources, t, member, name, json);
     case StandardType::Uint16:
-        return get_cpp_parse_from_rapidjson_helper_int(sources, t, member, indent, name, json);
+        return get_cpp_parse_from_rapidjson_helper_int(sources, t, member, name, json);
     case StandardType::Uint32:
-        return get_cpp_parse_from_rapidjson_helper_int(sources, t, member, indent, name, json);
+        return get_cpp_parse_from_rapidjson_helper_int(sources, t, member, name, json);
     case StandardType::Uint64:
-        return get_cpp_parse_from_rapidjson_helper_int(sources, t, member, indent, name, json);
+        return get_cpp_parse_from_rapidjson_helper_int(sources, t, member, name, json);
     case StandardType::Float:
-        return get_cpp_parse_from_rapidjson_helper_float(sources, member, indent, name, json);
+        return get_cpp_parse_from_rapidjson_helper_float(sources, member, name, json);
     case StandardType::Double:
-        return get_cpp_parse_from_rapidjson_helper_float(sources, member, indent, name, json);
+        return get_cpp_parse_from_rapidjson_helper_float(sources, member, name, json);
     case StandardType::Byte:
-        return get_cpp_parse_from_rapidjson_helper_int(sources, t, member, indent, name, json);
+        return get_cpp_parse_from_rapidjson_helper_int(sources, t, member, name, json);
     case StandardType::Bool:
     {
         const auto err = json_return_error(fmt::format("read value for {} was not a bool", name), json);
@@ -170,7 +171,7 @@ VarValue get_cpp_parse_from_rapidjson_base(Out* sources, StandardType t, const s
 
 
 void get_cpp_parse_from_rapidjson(Out* sources, const StandardType& t, const std::string& member,
-                                  const std::string& indent, const std::string& name, const Member& member_type)
+                                  const std::string& name, const Member& member_type)
 {
     if(member_type.is_dynamic_array)
     {
@@ -179,30 +180,30 @@ void get_cpp_parse_from_rapidjson(Out* sources, const StandardType& t, const std
         sources->source.add(fmt::format("if(!arr.IsArray()) {}", err));
         sources->source.add("for (rapidjson::SizeType i=0; i<arr.Size(); i++)");
         sources->source.add("{");
-        const auto vv = get_cpp_parse_from_rapidjson_base(sources, t, member, indent + "  ", name, "arr[i]");
-        sources->source.add(fmt::format("{}  {}.push_back({});", indent, vv.variable, vv.value));
-        sources->source.add(indent + "}");
+        const auto vv = get_cpp_parse_from_rapidjson_base(sources, t, member, name, "arr[i]");
+        sources->source.add(fmt::format("{}.push_back({});", vv.variable, vv.value));
+        sources->source.add("}");
     }
     else
     {
-        const auto vv = get_cpp_parse_from_rapidjson_base(sources, t, member, indent, name, "iter->value");
+        const auto vv = get_cpp_parse_from_rapidjson_base(sources, t, member, name, "iter->value");
         if(member_type.is_optional)
         {
-            sources->source.add(fmt::format("{}{} = std::make_shared<{}>({});", indent, vv.variable, get_cpp_type(t), vv.value));
+            sources->source.add(fmt::format("{} = std::make_shared<{}>({});", vv.variable, get_cpp_type(t), vv.value));
         }
         else
         {
-            sources->source.add(fmt::format("{}{} = {};", indent, vv.variable, vv.value));
+            sources->source.add(fmt::format("{} = {};", vv.variable, vv.value));
         }
     }
 }
 
 
-void write_json_member(const Member& m, Out* sources, const std::string& indent)
+void write_json_member(const Member& m, Out* sources)
 {
     if(m.type_name.standard_type != StandardType::INVALID)
     {
-        get_cpp_parse_from_rapidjson(sources, m.type_name.standard_type, m.name, indent, m.name, m);;
+        get_cpp_parse_from_rapidjson(sources, m.type_name.standard_type, m.name, m.name, m);;
     }
     else
     {
@@ -210,17 +211,17 @@ void write_json_member(const Member& m, Out* sources, const std::string& indent)
         {
             const auto lines = make_array<std::string>
             (
-                "{i}const rapidjson::Value& arr = iter->value;",
-                "{i}if(!arr.IsArray()) {err}",
-                "{i}for (rapidjson::SizeType i=0; i<arr.Size(); i++)",
-                "{i}{{",
-                "{i}  {type} temp;",
-                "{i}  gaf_ss.str(\"\");",
-                "{i}  gaf_ss << gaf_path << \".{name}[\" << i << \"]\";",
-                "{i}  {rv} r = ReadFromJsonValue(&temp,arr[i], gaf_ss.str());",
-                "{i}  if(r{false}) {{ return r; }}",
-                "{i}  c->{name}.push_back(temp);",
-                "{i}}}"
+                "const rapidjson::Value& arr = iter->value;",
+                "if(!arr.IsArray()) {err}",
+                "for (rapidjson::SizeType i=0; i<arr.Size(); i++)",
+                "{{",
+                "{type} temp;",
+                "gaf_ss.str(\"\");",
+                "gaf_ss << gaf_path << \".{name}[\" << i << \"]\";",
+                "{rv} r = ReadFromJsonValue(&temp,arr[i], gaf_ss.str());",
+                "if(r{false}) {{ return r; }}",
+                "c->{name}.push_back(temp);",
+                "}}"
             );
             for(const auto& line: lines)
             {
@@ -230,7 +231,6 @@ void write_json_member(const Member& m, Out* sources, const std::string& indent)
                     fmt::format
                     (
                         line,
-                        fmt::arg("i", indent),
                         fmt::arg("name", m.name),
                         fmt::arg("type", m.type_name.name),
                         fmt::arg("err", err),
@@ -244,15 +244,15 @@ void write_json_member(const Member& m, Out* sources, const std::string& indent)
         {
             const auto lines = make_array<std::string>
             (
-                "{i}c->{name} = std::make_shared<{type}>();"
-                "{i}gaf_ss.str(\"\");"
-                "{i}gaf_ss << gaf_path << \".{name}\";"
-                "{i}{rv} r = ReadFromJsonValue(c->{name}.get(),iter->value, gaf_ss.str());"
-                "{i}if(r{false})"
-                "{i}{{"
-                "{i}  c->{name}.reset();"
-                "{i}  return r;"
-                "{i}}}"
+                "c->{name} = std::make_shared<{type}>();"
+                "gaf_ss.str(\"\");"
+                "gaf_ss << gaf_path << \".{name}\";"
+                "{rv} r = ReadFromJsonValue(c->{name}.get(),iter->value, gaf_ss.str());"
+                "if(r{false})"
+                "{{"
+                "  c->{name}.reset();"
+                "  return r;"
+                "}}"
             );
             for(const auto& line: lines)
             {
@@ -261,7 +261,6 @@ void write_json_member(const Member& m, Out* sources, const std::string& indent)
                     fmt::format
                     (
                         line,
-                        fmt::arg("i", indent),
                         fmt::arg("name", m.name),
                         fmt::arg("type", m.type_name.name),
                         fmt::arg("false", json_is_false()),
@@ -274,13 +273,13 @@ void write_json_member(const Member& m, Out* sources, const std::string& indent)
         {
             const auto lines = make_array<std::string>
             (
-                "{i}gaf_ss.str("");"
-                "{i}gaf_ss << gaf_path << \".{name}\";"
-                "{i}{rv} r = ReadFromJsonValue(&c->{name},iter->value, gaf_ss.str());"
-                "{i}if(r{false})"
-                "{i}{{"
-                "{i}  return r;"
-                "{i}}}"
+                "gaf_ss.str("");"
+                "gaf_ss << gaf_path << \".{name}\";"
+                "{rv} r = ReadFromJsonValue(&c->{name},iter->value, gaf_ss.str());"
+                "if(r{false})"
+                "{{"
+                "  return r;"
+                "}}"
             );
             for(const auto& line: lines)
             {
@@ -289,7 +288,6 @@ void write_json_member(const Member& m, Out* sources, const std::string& indent)
                     fmt::format
                     (
                         line,
-                        fmt::arg("i", indent),
                         fmt::arg("name", m.name),
                         fmt::arg("false", json_is_false()),
                         fmt::arg("rv", json_return_value())
@@ -304,30 +302,31 @@ void write_json_member(const Member& m, Out* sources, const std::string& indent)
 void write_json_source_for_cpp(Out* sources, const Struct& s)
 {
     sources->source.add(fmt::format("{} ReadFromJsonValue({}* c, const rapidjson::Value& value, const std::string& gaf_path) {{", json_return_value(), s.name));
-    sources->source.add("  std::stringstream gaf_ss;");
-    sources->source.add(fmt::format("  if(!value.IsObject()) {}", json_return_error(fmt::format("tried to read {} but value was not a object", s.name), "value")));
-    sources->source.add("  rapidjson::Value::ConstMemberIterator iter;");
+    sources->source.add("std::stringstream gaf_ss;");
+    sources->source.add(fmt::format("if(!value.IsObject()) {}", json_return_error(fmt::format("tried to read {} but value was not a object", s.name), "value")));
+    sources->source.add("rapidjson::Value::ConstMemberIterator iter;");
     for(const auto& m: s.members)
     {
-        sources->source.add(fmt::format("  iter = value.FindMember(\"{}\");", m.name));
-        sources->source.add("  if(iter != value.MemberEnd()) {");
-        write_json_member(m, sources, "    ");
-        sources->source.add("  }");
+        sources->source.add(fmt::format("iter = value.FindMember(\"{}\");", m.name));
+        sources->source.add("if(iter != value.MemberEnd()) {");
+        write_json_member(m, sources);
+        sources->source.add("}");
         if(m.missing_is_fail || m.is_optional)
         {
-            sources->source.add("  else {");
+            sources->source.add("else");
+            sources->source.add("{");
             if(m.is_optional)
             {
-                sources->source.add(fmt::format("    c->{}.reset();", m.name));
+                sources->source.add(fmt::format("c->{}.reset();", m.name));
             }
             else
             {
-                sources->source.add(fmt::format("    {}", json_return_error(fmt::format("missing {} in json object", m.name), "value")));
+                sources->source.add(fmt::format("{}", json_return_error(fmt::format("missing {} in json object", m.name), "value")));
             }
-            sources->source.add("  }");
+            sources->source.add("}");
         }
     }
-    sources->source.add(fmt::format("  return {};", json_return_ok()));
+    sources->source.add(fmt::format("return {};", json_return_ok()));
     sources->source.add("}");
     sources->source.add("");
 }
@@ -356,68 +355,68 @@ std::string determine_pushback_value(const Member& m)
 
 void add_imgui_delete_button(const Member&, Out* sources, const ImguiOptions& opt)
 {
-    sources->source.add(fmt::format("      if( ImGui::Button({}) )", opt.imgui_remove));
-    sources->source.add("      {");
-    sources->source.add("        delete_index = i;");
-    sources->source.add("        please_delete = true;");
-    sources->source.add("      }");
+    sources->source.add(fmt::format("if( ImGui::Button({}) )", opt.imgui_remove));
+    sources->source.add("{");
+    sources->source.add("delete_index = i;");
+    sources->source.add("please_delete = true;");
+    sources->source.add("}");
 }
 
 
-void write_single_imgui_member_to_source(const std::string& name, const std::string& var, const StandardType& t, Out* sources, const std::string& indent, const Member& m, bool add_delete, const ImguiOptions& opt)
+void write_single_imgui_member_to_source(const std::string& name, const std::string& var, const StandardType& t, Out* sources, const Member& m, bool add_delete, const ImguiOptions& opt)
 {
     switch(t)
     {
     case StandardType::Int8:
-        sources->source.add(fmt::format("{}ImGui::Edit({}, {});", indent, name, var));
+        sources->source.add(fmt::format("{}ImGui::Edit({}, {});", name, var));
         return;
     case StandardType::Int16:
-        sources->source.add(fmt::format("{}ImGui::Edit({}, {});", indent, name, var));
+        sources->source.add(fmt::format("{}ImGui::Edit({}, {});", name, var));
         return;
     case StandardType::Int32:
-        sources->source.add(fmt::format("{}ImGui::InputInt({}, {});", indent, name, var));
+        sources->source.add(fmt::format("{}ImGui::InputInt({}, {});", name, var));
         return;
     case StandardType::Int64:
-        sources->source.add(fmt::format("{}ImGui::Edit({}, {});", indent, name, var));
+        sources->source.add(fmt::format("{}ImGui::Edit({}, {});", name, var));
         return;
     case StandardType::Uint8:
-        sources->source.add(fmt::format("{}ImGui::Edit({}, {});", indent, name, var));
+        sources->source.add(fmt::format("{}ImGui::Edit({}, {});", name, var));
         return;
     case StandardType::Uint16:
-        sources->source.add(fmt::format("{}ImGui::Edit({}, {});", indent, name, var));
+        sources->source.add(fmt::format("{}ImGui::Edit({}, {});", name, var));
         return;
     case StandardType::Uint32:
-        sources->source.add(fmt::format("{}ImGui::Edit({}, {});", indent, name, var));
+        sources->source.add(fmt::format("{}ImGui::Edit({}, {});", name, var));
         return;
     case StandardType::Uint64:
-        sources->source.add(fmt::format("{}ImGui::Edit({}, {});", indent, name, var));
+        sources->source.add(fmt::format("{}ImGui::Edit({}, {});", name, var));
         return;
     case StandardType::Float:
-        sources->source.add(fmt::format("{}ImGui::InputFloat({}, {});", indent, name, var));
+        sources->source.add(fmt::format("{}ImGui::InputFloat({}, {});", name, var));
         return;
     case StandardType::Double:
-        sources->source.add(fmt::format("{}ImGui::InputDouble({}, {});", indent, name, var));
+        sources->source.add(fmt::format("{}ImGui::InputDouble({}, {});", name, var));
         return;
     case StandardType::Byte:
-        sources->source.add(fmt::format("{}ImGui::Edit({}, {});", indent, name, var));
+        sources->source.add(fmt::format("{}ImGui::Edit({}, {});", name, var));
         return;
     case StandardType::Bool:
-        sources->source.add(fmt::format("{}ImGui::Checkbox({}, {});", indent, name, var));
+        sources->source.add(fmt::format("{}ImGui::Checkbox({}, {});", name, var));
         return;
     case StandardType::String:
-        sources->source.add(fmt::format("{}{{", indent));
-        sources->source.add(fmt::format("{}  char gaf_temp[1024];", indent));
-        sources->source.add(fmt::format("{}  strcpy(gaf_temp, ({})->c_str());", indent, var));
-        sources->source.add(fmt::format("{}  if(ImGui::InputText({}, gaf_temp, 1024))", indent, name));
-        sources->source.add(fmt::format("{}  {{", indent));
-        sources->source.add(fmt::format("{}    *({}) = gaf_temp;", indent, var));
-        sources->source.add(fmt::format("{}  }}", indent));
-        sources->source.add(fmt::format("{}}}", indent));
+        sources->source.add("{");
+        sources->source.add("char gaf_temp[1024];");
+        sources->source.add(fmt::format("strcpy(gaf_temp, ({})->c_str());", var));
+        sources->source.add(fmt::format("if(ImGui::InputText({}, gaf_temp, 1024))", name));
+        sources->source.add("{");
+        sources->source.add(fmt::format("*({}) = gaf_temp;", var));
+        sources->source.add("}");
+        sources->source.add("}");
         return;
     default:
         if(m.type_name.is_enum)
         {
-            sources->source.add(fmt::format("{}RunImgui({}, {});", indent, var, name));
+            sources->source.add(fmt::format("{}RunImgui({}, {});", var, name));
         }
         else
         {
@@ -425,28 +424,27 @@ void write_single_imgui_member_to_source(const std::string& name, const std::str
             (
                 fmt::format
                 (
-                    "{}if(ImGui::TreeNodeEx({}, ImGuiTreeNodeFlags_DefaultOpen{}))",
-                    indent,
+                    "if(ImGui::TreeNodeEx({}, ImGuiTreeNodeFlags_DefaultOpen{}))",
                     name,
                     add_delete ? "| ImGuiTreeNodeFlags_FramePadding" : ""
                 )
             );
-            sources->source.add(fmt::format("{}{{", indent));
+            sources->source.add("{");
             if(add_delete)
             {
-                sources->source.add(fmt::format("{}  ImGui::SameLine();", indent));
+                sources->source.add("ImGui::SameLine();");
                 add_imgui_delete_button(m, sources, opt);
             }
-            sources->source.add(fmt::format("{}  RunImgui({});", indent, var));
-            sources->source.add(fmt::format("{}  ImGui::TreePop();", indent));
-            sources->source.add(fmt::format("{}}}", indent));
+            sources->source.add(fmt::format("RunImgui({});", var));
+            sources->source.add("ImGui::TreePop();");
+            sources->source.add("}");
             if(add_delete)
             {
-                sources->source.add(fmt::format("{}else", indent));
-                sources->source.add(fmt::format("{}{{", indent));
-                sources->source.add(fmt::format("{}  ImGui::SameLine();", indent));
+                sources->source.add("else");
+                sources->source.add("{");
+                sources->source.add("ImGui::SameLine();");
                 add_imgui_delete_button(m, sources, opt);
-                sources->source.add(fmt::format("{}}}", indent));
+                sources->source.add("}");
             }
         }
         return;
@@ -477,22 +475,22 @@ void write_single_member_to_source(const Member& m, Out* sources, const ImguiOpt
     {
         if(m.is_optional)
         {
-            sources->source.add(fmt::format("    if(c->{})", m.name));
-            sources->source.add(fmt::format("    {"));
+            sources->source.add(fmt::format("if(c->{})", m.name));
+            sources->source.add(fmt::format("{"));
             write_single_imgui_member_to_source
             (
                 fmt::format("\"{}\"", m.name),
                 fmt::format("c->{}.get()", m.name),
                 m.type_name.standard_type,
-                sources, "      ", m, false, opt
+                sources, m, false, opt
             );
-            sources->source.add(fmt::format("      if(ImGui::Button(\"Clear {}\")) {{ c->{name}.reset(); }}", m.name));
-            sources->source.add("    }");
-            sources->source.add("    else");
-            sources->source.add("    {");
-            sources->source.add(fmt::format("      if(ImGui::Button(\"Set {0}\")) {{ c->{0}.reset({1}); }}", m.name, determine_new_value(m)));
-            sources->source.add("    }");
-            sources->source.add("    ");
+            sources->source.add(fmt::format("if(ImGui::Button(\"Clear {}\")) {{ c->{name}.reset(); }}", m.name));
+            sources->source.add("}");
+            sources->source.add("else");
+            sources->source.add("{");
+            sources->source.add(fmt::format("if(ImGui::Button(\"Set {0}\")) {{ c->{0}.reset({1}); }}", m.name, determine_new_value(m)));
+            sources->source.add("}");
+            sources->source.add("");
         }
         else
         {
@@ -501,49 +499,49 @@ void write_single_member_to_source(const Member& m, Out* sources, const ImguiOpt
                 fmt::format("\"{}\"", m.name),
                 fmt::format("&c->{}", m.name),
                 m.type_name.standard_type,
-                sources, "  ", m, false, opt
+                sources, m, false, opt
             );
         }
     }
     else
     {
         const auto short_version = m.type_name.standard_type != StandardType::INVALID || m.type_name.is_enum;
-        sources->source.add(fmt::format("  if(ImGui::TreeNodeEx(\"{}\", ImGuiTreeNodeFlags_DefaultOpen | ImGuiTreeNodeFlags_FramePadding))", m.name));
-        sources->source.add("  {");
-        sources->source.add("    ImGui::SameLine();");
-        sources->source.add(fmt::format("    if(ImGui::Button({}))", opt.imgui_add));
-        sources->source.add("    {");
-        sources->source.add(fmt::format("      c->{}.push_back({});", m.name, determine_pushback_value(m)));
-        sources->source.add("    }");
-        sources->source.add("    std::size_t delete_index = 0;");
-        sources->source.add("    bool please_delete = false;");
-        sources->source.add(fmt::format("    for(std::size_t i=0; i<c->{}.size(); i+= 1)", m.name));
-        sources->source.add("    {");
-        sources->source.add("      std::stringstream gaf_ss;");
-        sources->source.add(fmt::format("      gaf_ss << \"{}[\" << i << \"]\";", m.name));
-        sources->source.add("      ImGui::PushID(i);");
-        write_single_imgui_member_to_source("gaf_ss.str().c_str()", fmt::format("&c->{}[i]", m.name), m.type_name.standard_type, sources, "      ", m, !short_version, opt);
+        sources->source.add(fmt::format("if(ImGui::TreeNodeEx(\"{}\", ImGuiTreeNodeFlags_DefaultOpen | ImGuiTreeNodeFlags_FramePadding))", m.name));
+        sources->source.add("{");
+        sources->source.add("ImGui::SameLine();");
+        sources->source.add(fmt::format("if(ImGui::Button({}))", opt.imgui_add));
+        sources->source.add("{");
+        sources->source.add(fmt::format("c->{}.push_back({});", m.name, determine_pushback_value(m)));
+        sources->source.add("}");
+        sources->source.add("std::size_t delete_index = 0;");
+        sources->source.add("bool please_delete = false;");
+        sources->source.add(fmt::format("for(std::size_t i=0; i<c->{}.size(); i+= 1)", m.name));
+        sources->source.add("{");
+        sources->source.add("std::stringstream gaf_ss;");
+        sources->source.add(fmt::format("gaf_ss << \"{}[\" << i << \"]\";", m.name));
+        sources->source.add("ImGui::PushID(i);");
+        write_single_imgui_member_to_source("gaf_ss.str().c_str()", fmt::format("&c->{}[i]", m.name), m.type_name.standard_type, sources, m, !short_version, opt);
         if(short_version)
         {
-            sources->source.add(fmt::format("      ImGui::SameLine();"));
+            sources->source.add(fmt::format("ImGui::SameLine();"));
             add_imgui_delete_button(m, sources, opt);
         }
-        sources->source.add("      ImGui::PopID();");
-        sources->source.add("    }");
-        sources->source.add("    if(please_delete)");
-        sources->source.add("    {");
-        sources->source.add(fmt::format("      c->{0}.erase(c->{0}.begin()+delete_index);", m.name));
-        sources->source.add("    }");
-        sources->source.add("    ImGui::TreePop();");
-        sources->source.add("  }");
-        sources->source.add("  else");
-        sources->source.add("  {");
-        sources->source.add("    ImGui::SameLine();");
-        sources->source.add(fmt::format("    if(ImGui::Button({}))", opt.imgui_add));
-        sources->source.add("    {");
-        sources->source.add(fmt::format("      c->{}.push_back({});", m.name, determine_pushback_value(m)));
-        sources->source.add("    }");
-        sources->source.add("  }");
+        sources->source.add("ImGui::PopID();");
+        sources->source.add("}");
+        sources->source.add("if(please_delete)");
+        sources->source.add("{");
+        sources->source.add(fmt::format("c->{0}.erase(c->{0}.begin()+delete_index);", m.name));
+        sources->source.add("}");
+        sources->source.add("ImGui::TreePop();");
+        sources->source.add("}");
+        sources->source.add("else");
+        sources->source.add("{");
+        sources->source.add("ImGui::SameLine();");
+        sources->source.add(fmt::format("if(ImGui::Button({}))", opt.imgui_add));
+        sources->source.add("{");
+        sources->source.add(fmt::format("c->{}.push_back({});", m.name, determine_pushback_value(m)));
+        sources->source.add("}");
+        sources->source.add("}");
     }
 }
 
@@ -569,15 +567,15 @@ void write_member_variables_for_cpp(Out* sources, const Struct& s)
         const auto type_name = m.type_name.name;
         if(m.is_optional)
         {
-            sources->header.add(fmt::format("  std::shared_ptr<{}> {};", type_name, m.name));
+            sources->header.add(fmt::format("std::shared_ptr<{}> {};", type_name, m.name));
         }
         else if(m.is_dynamic_array)
         {
-            sources->header.add(fmt::format("  std::vector<{}> {};", type_name, m.name));
+            sources->header.add(fmt::format("std::vector<{}> {};", type_name, m.name));
         }
         else
         {
-            sources->header.add(fmt::format("  {} {};", type_name, m.name));
+            sources->header.add(fmt::format("{} {};", type_name, m.name));
         }
     }
     sources->header.add("};");
@@ -596,7 +594,7 @@ void write_default_constructor_for_cpp(const Struct& s, Out* sources)
     const auto common_members = filter(s.members, [](const Member& x) {return x.defaultvalue.has_value();});
     if(common_members.empty()) { return; }
 
-    sources->header.add(fmt::format("  {}();", s.name));
+    sources->header.add(fmt::format("{}();", s.name));
     sources->header.add("");
     sources->source.add(fmt::format("{0}::{0}()", s.name));
     auto sep = ':';
@@ -607,7 +605,7 @@ void write_default_constructor_for_cpp(const Struct& s, Out* sources)
         {
             default_value = fmt::format("{}::{}", m.type_name.name, *m.defaultvalue);
         }
-        sources->source.add(fmt::format("  {} {}({})", sep, m.name, default_value));
+        sources->source.add(fmt::format("{} {}({})", sep, m.name, default_value));
         sep = ',';
     }
     sources->source.add("{}");
@@ -623,7 +621,7 @@ void iterate_enum(const Enum& e, Out* sources, bool prefix_prop=false)
     {
         const auto last = index == e.values.size();
         const auto comma = last ? "" : ",";
-        sources->header.add(fmt::format("  {}{}{}", prefix, v, comma));
+        sources->header.add(fmt::format("{}{}{}", prefix, v, comma));
         index += 1;
     }
 }
@@ -643,22 +641,22 @@ void add_enum_json_function(const Enum& e, Out* sources, bool type_enum=false)
     sources->header.add(fmt::format("{} ReadFromJsonValue({}* c, const rapidjson::Value& value{});", json_return_value(), enum_type, arg));
     sources->source.add(fmt::format("{} ReadFromJsonValue({}* c, const rapidjson::Value& value{})", json_return_value(), enum_type, arg));
     sources->source.add("{");
-    sources->source.add("  std::stringstream gaf_ss;");
-    sources->source.add(fmt::format("  if(value.IsString()==false) {};", json_return_error(fmt::format("read value for {} was not a string", e.name), "value")));
+    sources->source.add("std::stringstream gaf_ss;");
+    sources->source.add(fmt::format("if(value.IsString()==false) {};", json_return_error(fmt::format("read value for {} was not a string", e.name), "value")));
     for(const auto& v: e.values)
     {
         sources->source.add
         (
             fmt::format
             (
-                "  if(strcmp(value.GetString(), \"{v}\")==0) {{ *c = {p}{v}; return {ok};}}",
+                "if(strcmp(value.GetString(), \"{v}\")==0) {{ *c = {p}{v}; return {ok};}}",
                 fmt::arg("v", v),
                 fmt::arg("p", value_prefix),
                 fmt::arg("ok", json_return_ok())
             )
         );
     }
-    sources->source.add(fmt::format("  {}", json_return_error(fmt::format("read string for {} was not valid", e.name), "value")));
+    sources->source.add(fmt::format("{}", json_return_error(fmt::format("read string for {} was not valid", e.name), "value")));
     sources->source.add("}");
     sources->source.add("");
 }
@@ -711,16 +709,16 @@ Out generate_json(const File& f, const std::string& name)
     sources.header.add("std::string GafToString(const rapidjson::Value& val);");
     sources.source.add("std::string GafToString(const rapidjson::Value& val)");
     sources.source.add("{");
-    sources.source.add("  if(val.IsNull()) { return \"Null\"; };");
-    sources.source.add("  if(val.IsFalse()) { return \"False\"; };");
-    sources.source.add("  if(val.IsTrue()) { return \"True\"; };");
-    sources.source.add("  if(val.IsObject()) { return \"Object\"; };");
-    sources.source.add("  if(val.IsArray()) { return \"Array\"; };");
-    sources.source.add("  if(val.IsUint64()) { std::stringstream ss; ss << \"uint of \" << val.GetUint64(); return ss.str(); };");
-    sources.source.add("  if(val.IsInt64()) { std::stringstream ss; ss << \"int of \" << val.GetInt64(); return ss.str(); };");
-    sources.source.add("  if(val.IsDouble()) { std::stringstream ss; ss << \"double of \" << val.GetDouble(); return ss.str(); };");
-    sources.source.add("  if(val.IsString()) { std::stringstream ss; ss << \"string of \" << val.GetString(); return ss.str(); };");
-    sources.source.add("  return \"<unknown>\";");
+    sources.source.add("if(val.IsNull()) { return \"Null\"; };");
+    sources.source.add("if(val.IsFalse()) { return \"False\"; };");
+    sources.source.add("if(val.IsTrue()) { return \"True\"; };");
+    sources.source.add("if(val.IsObject()) { return \"Object\"; };");
+    sources.source.add("if(val.IsArray()) { return \"Array\"; };");
+    sources.source.add("if(val.IsUint64()) { std::stringstream ss; ss << \"uint of \" << val.GetUint64(); return ss.str(); };");
+    sources.source.add("if(val.IsInt64()) { std::stringstream ss; ss << \"int of \" << val.GetInt64(); return ss.str(); };");
+    sources.source.add("if(val.IsDouble()) { std::stringstream ss; ss << \"double of \" << val.GetDouble(); return ss.str(); };");
+    sources.source.add("if(val.IsString()) { std::stringstream ss; ss << \"string of \" << val.GetString(); return ss.str(); };");
+    sources.source.add("return \"<unknown>\";");
     sources.source.add("}");
     sources.source.add("");
 
@@ -728,9 +726,9 @@ Out generate_json(const File& f, const std::string& name)
     sources.header.add("std::string GafToString(int64_t val);");
     sources.source.add("std::string GafToString(int64_t val)");
     sources.source.add("{");
-    sources.source.add("  std::stringstream ss;");
-    sources.source.add("  ss << val;");
-    sources.source.add("  return ss.str();");
+    sources.source.add("std::stringstream ss;");
+    sources.source.add("ss << val;");
+    sources.source.add("return ss.str();");
     sources.source.add("}");
     sources.source.add("");
 
@@ -778,22 +776,22 @@ Out generate_imgui(const File& f, const std::string& name, const ImguiOptions& o
         sources.source.add("{");
         for(const auto& v: e->values)
         {
-            sources.source.add(fmt::format("  if(en == {0}{1}) {{ return \"{1}\"; }}", get_value_prefix_opt(*e), v));
+            sources.source.add(fmt::format("if(en == {0}{1}) {{ return \"{1}\"; }}", get_value_prefix_opt(*e), v));
         }
-        sources.source.add("  return \"<invalid value>\";");
+        sources.source.add("return \"<invalid value>\";");
         sources.source.add("}");
 
         sources.header.add(fmt::format("void RunImgui({}* en, const char* label);", e->name));
         sources.source.add(fmt::format("void RunImgui({}* en, const char* label)", e->name));
         sources.source.add("{");
-        sources.source.add("  if(ImGui::BeginCombo(label, ToString(*en)))");
-        sources.source.add("  {");
+        sources.source.add("if(ImGui::BeginCombo(label, ToString(*en)))");
+        sources.source.add("{");
         for(const auto& v: e->values)
         {
-            sources.source.add(fmt::format("    if(ImGui::Selectable(\"{0}\", *en == {1}{0})) {{ *en = {prefix}{val}; }}", v, get_value_prefix_opt(*e)));
+            sources.source.add(fmt::format("if(ImGui::Selectable(\"{0}\", *en == {1}{0})) {{ *en = {prefix}{val}; }}", v, get_value_prefix_opt(*e)));
         }
-        sources.source.add("    ImGui::EndCombo();");
-        sources.source.add("  }");
+        sources.source.add("ImGui::EndCombo();");
+        sources.source.add("}");
         sources.source.add("}");
         sources.header.add("");
         sources.source.add("");
