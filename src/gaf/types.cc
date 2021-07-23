@@ -3,8 +3,7 @@
 #include <set>
 #include <ostream>
 #include <cassert>
-
-
+#include <algorithm>
 
 
 Type::Type
@@ -248,10 +247,27 @@ std::vector<Type> get_unique_types(const File& f)
 
 PrettyFileOut::PrettyFileOut(std::unique_ptr<FileOut>&& d)
     : dest(std::move(d))
+    , indent(0)
 {
 }
 
 void PrettyFileOut::write(const std::string& line)
 {
-    dest->write(line + "\n");
+    const auto dec = std::count(line.begin(), line.end(), '}');
+    const auto inc = std::count(line.begin(), line.end(), '{');
+    indent -= dec;
+    if(dec > 0) { indent += inc; }
+    const auto current = [this, &line]() -> int
+    {
+        if(line.empty()) { return 0;}
+        switch(line[0])
+        {
+        case ':': case ',':
+            return indent + 1;
+        default:
+            return indent;
+        }
+    }();
+    dest->write(std::string(current * 4, ' ') + line + "\n");
+    if(dec <= 0) { indent += inc; }
 }

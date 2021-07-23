@@ -160,6 +160,7 @@ struct FileOut
 struct PrettyFileOut : FileOut
 {
     std::unique_ptr<FileOut> dest;
+    int indent;
     
     explicit PrettyFileOut(std::unique_ptr<FileOut>&& d);
     void write(const std::string& line) override;
