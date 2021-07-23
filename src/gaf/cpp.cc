@@ -15,7 +15,6 @@
 #include "gaf/array.h"
 #include "gaf/args.h"
 
-// from gaf_types import StandardType, Struct, get_unique_types, File, Member, Enum, TypeList, Plugin
 
 struct ImguiOptions
 {
@@ -564,7 +563,7 @@ void write_member_variables_for_cpp(Out* sources, const Struct& s)
     for(const auto& m: s.members)
     {
         // m.type_name.is_enum
-        const auto type_name = m.type_name.name;
+        const auto type_name = m.type_name.get_cpp_type();
         if(m.is_optional)
         {
             sources->header.add(fmt::format("std::shared_ptr<{}> {};", type_name, m.name));
@@ -840,65 +839,24 @@ Out generate_cpp(const File& f)
     auto sources = Out{};
 
     // get all standard types used for typedefing later on...
-    const auto unique_types = get_unique_types(f);
-    const auto default_types = filter
-    (
-        unique_types,
-        [](const Type& t)
-        {
-            return get_cpp_type(t.standard_type) != "" && t.name != t.get_cpp_type();
-        }
-    );
-
-    const auto has_string = is_in(StandardType::String, map<StandardType>(unique_types, [](const Type& t) {return t.standard_type;}));
-
-    // has_dynamic_arrays = any(m for s in f.structs for m in s.members if m.is_dynamic_array);
-    // has_optional = any(m for s in f.structs for m in s.members if m.is_optional);
-    const auto has_dynamic_arrays = any(map<bool>(f.structs, [](const auto& s){ return filter(s->members, [](const auto& m) { return m.is_dynamic_array; }).empty(); }), [](bool b){return b;});
-    const auto has_optional = any(map<bool>(f.structs, [](const auto& s){ return filter(s->members, [](const auto& m) { return m.is_optional; }).empty(); }), [](bool b){return b;});
+    const auto headers = get_headers_types(f);
 
     sources.header.add("#pragma once");
     sources.header.add("");
 
-    bool added_include = false;
-    if(default_types.empty() == false)
+
+    if(headers.empty() == false)
     {
-        added_include = true;
-        sources.header.add("#include <cstdint>");
-    }
-    if(has_string)
-    {
-        added_include = true;
-        sources.header.add("#include <string>");
-    }
-        
-    if(has_dynamic_arrays)
-    {
-        added_include = true;
-        sources.header.add("#include <vector>");
-    }
-    if(has_optional)
-    {
-        added_include = true;
-        sources.header.add("#include <memory>");
-    }
-    if(added_include)
-    {
+        for(const auto& header: headers)
+        {
+            sources.header.add(fmt::format("#include {}", header));
+        }
         sources.header.add("");
     }
 
     if(f.package_name.empty() == false)
     {
         sources.header.add(fmt::format("namespace {} {{", f.package_name));
-        sources.header.add("");
-    }
-
-    if(default_types.empty() == false)
-    {
-        for(const auto& t: default_types)
-        {
-            sources.header.add(fmt::format("typedef {} {};", t.get_cpp_type(), t.name));
-        }
         sources.header.add("");
     }
 
