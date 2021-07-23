@@ -246,3 +246,12 @@ std::vector<Type> get_unique_types(const File& f)
     return r;
 }
 
+PrettyFileOut::PrettyFileOut(std::unique_ptr<FileOut>&& d)
+    : dest(std::move(d))
+{
+}
+
+void PrettyFileOut::write(const std::string& line)
+{
+    dest->write(line);
+}

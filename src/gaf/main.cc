@@ -74,7 +74,7 @@ struct ConsoleWriter : Writer
 {
     std::unique_ptr<FileOut> open(const std::string& f) override
     {
-        return std::make_unique<ConsoleFileOut>(f);
+        return std::make_unique<PrettyFileOut>(std::make_unique<ConsoleFileOut>(f));
     }
 };
 
@@ -97,7 +97,7 @@ struct FileWriter : Writer
 {
     std::unique_ptr<FileOut> open(const std::string& f) override
     {
-        return std::make_unique<FileFileOut>(f);
+        return std::make_unique<PrettyFileOut>(std::make_unique<FileFileOut>(f));
     }
 };
 

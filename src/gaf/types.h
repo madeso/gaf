@@ -157,6 +157,14 @@ struct FileOut
     virtual void write(const std::string& line) = 0;
 };
 
+struct PrettyFileOut : FileOut
+{
+    std::unique_ptr<FileOut> dest;
+    
+    explicit PrettyFileOut(std::unique_ptr<FileOut>&& d);
+    void write(const std::string& line) override;
+};
+
 struct Writer
 {
     virtual ~Writer() = default;
