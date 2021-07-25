@@ -1,6 +1,7 @@
 package test;
 
-struct Foo {
-  int32 hello;
-  float world;
+struct Foo
+{
+    int32 hello;
+    float world;
 }

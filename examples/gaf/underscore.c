@@ -1,6 +1,7 @@
-struct Foo {
-  int32 hello;
-  float world;
-  string dog;
-  bool cat;
+struct Foo
+{
+    int32 hello;
+    float world;
+    string dog;
+    bool cat;
 }

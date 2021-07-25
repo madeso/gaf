@@ -1,7 +1,8 @@
 /***************************************/
-struct Foo {
-  //////////////////////////////////////////
-  int32 hello;
-  float world;
-  string dog;
+struct Foo
+{
+    //////////////////////////////////////////
+    int32 hello;
+    float world;
+    string dog;
 }
