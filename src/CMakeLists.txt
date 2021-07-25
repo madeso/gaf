@@ -2,11 +2,16 @@ find_package(Filesystem REQUIRED)
 
 set(src
     gaf/main.cc
-    gaf/cpp.cc
     gaf/args.h gaf/args.cc
-    # gaf/main.cc
-    gaf/parse.cc
+    
     gaf/types.h gaf/types.cc
+    gaf/parse.cc gaf/parse.h
+    gaf/generator.cc gaf/generator.h
+
+    gaf/gen_cpp.cc gaf/gen_cpp.h
+    gaf/gen_imgui.cc gaf/gen_imgui.h
+    gaf/gen_rapidjson.cc gaf/gen_rapidjson.h
+
 )
 source_group("" FILES ${src})
 

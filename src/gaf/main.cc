@@ -5,9 +5,12 @@
 #include <iostream>
 
 #include "gaf/args.h"
-#include "gaf/cpp.h"
 #include "gaf/parse.h"
 #include "gaf/types.h"
+
+#include "gaf/gen_cpp.h"
+#include "gaf/gen_rapidjson.h"
+#include "gaf/gen_imgui.h"
 
 // from gaf_cpp import CppPlugin, RapidJsonPlugin, ImguiPlugin
 // from gaf_parse import CharFile, read_several_structs, ParseError
