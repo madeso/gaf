@@ -599,6 +599,11 @@ void write_default_constructor_for_cpp(const Struct& s, Out* sources)
     auto sep = ':';
     for(const auto& m: common_members)
     {
+        if(m.is_optional)
+        {
+            continue;
+        }
+        
         auto default_value = *m.defaultvalue;
         if(m.type_name.is_enum)
         {
