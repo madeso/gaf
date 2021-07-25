@@ -808,7 +808,7 @@ Out generate_cpp(const File& f)
     {
         sources.header.add(fmt::format("enum class {} {{", e->name));
         iterate_enum(*e, &sources);
-        sources.header.add(fmt::format("}}; // enum {}", e->name));
+        sources.header.add("};");
 
         sources.header.add("");
     }
