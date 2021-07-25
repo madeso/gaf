@@ -1,3 +1,15 @@
+struct Struct
+{
+    int32 value;
+}
+
+enum Enum
+{
+    A, B, C
+}
+
+///////////////////////////////////////////////////////////////////////////////
+
 struct Standard
 {
   int8 a;
@@ -16,7 +28,12 @@ struct Standard
   float g;
   double h;
   string i;
+
+  Struct j;
+  Enum k;
 }
+
+///////////////////////////////////////////////////////////////////////////////
 
 struct Arrays
 {
@@ -37,10 +54,36 @@ struct Arrays
   double h[];
   string i[];
 
-  Standard standard[];
+  Struct j[];
+  Enum k[];
 }
 
-////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+///////////////////////////////////////////////////////////////////////////////
+
+struct Optionals
+{
+  int8? a;
+  int16? b;
+  int32? c;
+  int64? d;
+
+  uint8? ua;
+  uint16? ub;
+  uint32? uc;
+  uint64? ud;
+
+  byte? e;
+  bool? f;
+
+  float? g;
+  double? h;
+  string? i;
+
+  Struct? j;
+  Enum? k;
+}
+
+///////////////////////////////////////////////////////////////////////////////
 
 struct FooRoot;
 
@@ -62,6 +105,4 @@ struct BarRoot {
   string name?;
   Bar foo?;
 }
-
-
 

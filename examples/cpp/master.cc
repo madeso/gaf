@@ -42,6 +42,8 @@ TEST_CASE("master std constructor") {
   REQUIRE(fb.g == 0);
   REQUIRE(fb.h == 0);
   REQUIRE(fb.i == "");
+  REQUIRE(fb.j.value == 0);
+  REQUIRE(fb.k == Enum::A);
 }
 
 #if GAF_TEST_JSON
@@ -62,7 +64,10 @@ TEST_CASE("master std json") {
     \"f\": true,\
     \"g\": 10.0,\
     \"h\": 11.0,\
-    \"i\": \"dog\"}"
+    \"i\": \"dog\",\
+    \"j\": {\"value\": 3},\
+    \"k\": \"C\"\
+    }"
   );
   REQUIRE(load == "");
 
@@ -79,6 +84,8 @@ TEST_CASE("master std json") {
   REQUIRE(fb.g == 10.0f);
   REQUIRE(fb.h == 11.0);
   REQUIRE(fb.i == "dog");
+  REQUIRE(fb.j.value == 3);
+  REQUIRE(fb.k == Enum::C);
 }
 
 #endif
@@ -101,7 +108,8 @@ TEST_CASE("master array constructor") {
   REQUIRE(fb.g.size() == 0);
   REQUIRE(fb.h.size() == 0);
   REQUIRE(fb.i.size() == 0);
-  REQUIRE(fb.standard.size() == 0);
+  REQUIRE(fb.j.size() == 0);
+  REQUIRE(fb.k.size() == 0);
 }
 
 #if GAF_TEST_JSON
@@ -130,7 +138,8 @@ TEST_CASE("master array basic json") {
     \"g\": [],\
     \"h\": [],\
     \"i\": [],\
-    \"standard\": []}"
+    \"j\": [],\
+    \"k\": []}"
   );
   REQUIRE(load == "");
 
@@ -147,7 +156,8 @@ TEST_CASE("master array basic json") {
   REQUIRE(fb.g.size() == 0);
   REQUIRE(fb.h.size() == 0);
   REQUIRE(fb.i.size() == 0);
-  REQUIRE(fb.standard.size() == 0);
+  REQUIRE(fb.j.size() == 0);
+  REQUIRE(fb.k.size() == 0);
 }
 
 // todo: parse standard too
@@ -168,7 +178,8 @@ TEST_CASE("master arrays advanced json") {
     \"g\": [19, 20],\
     \"h\": [21, 22],\
     \"i\": [\"cat\", \"dog\"],\
-    \"standard\": []}"
+    \"j\": [],\
+    \"k\": [\"A\", \"C\"]}"
   );
   REQUIRE(load == "");
 
@@ -188,6 +199,12 @@ TEST_CASE("master arrays advanced json") {
   REQUIRE_THAT(fb.h, Equals(Vector<double>() << 21 << 22));
 
   REQUIRE_THAT(fb.i, Equals(Vector<std::string>() << "cat" << "dog"));
+
+  // todo(Gustav): add json loading check
+  // REQUIRE_THAT(fb.j, Equals(std::vector<Struct>{}));
+  REQUIRE(fb.j.size() == 0);
+
+  REQUIRE_THAT(fb.k, Equals(Vector<Enum>() << Enum::A << Enum::C));
 }
 
 
