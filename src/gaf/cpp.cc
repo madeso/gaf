@@ -574,10 +574,21 @@ void write_member_variables_for_cpp(Out* sources, const Struct& s)
         }
         else
         {
-            sources->header.add(fmt::format("{} {};", type_name, m.name));
+            if(m.defaultvalue.has_value())
+            {
+                auto default_value = *m.defaultvalue;
+                if(m.type_name.is_enum)
+                {
+                    default_value = fmt::format("{}::{}", m.type_name.name, *m.defaultvalue);
+                }
+                sources->header.add(fmt::format("{} {} = {};", type_name, m.name, default_value));
+            }
+            else
+            {
+                sources->header.add(fmt::format("{} {};", type_name, m.name));
+            }
         }
     }
-    sources->header.add("};");
 }
 
 template<typename T, typename Predicate>
@@ -586,34 +597,6 @@ std::vector<T> filter(const std::vector<T>& src, const Predicate& p)
     std::vector<T> r;
     std::copy_if(src.begin(), src.end(), std::back_inserter(r), p);
     return r;
-}
-
-void write_default_constructor_for_cpp(const Struct& s, Out* sources)
-{
-    const auto common_members = filter(s.members, [](const Member& x) {return x.defaultvalue.has_value();});
-    if(common_members.empty()) { return; }
-
-    sources->header.add(fmt::format("{}();", s.name));
-    sources->header.add("");
-    sources->source.add(fmt::format("{0}::{0}()", s.name));
-    auto sep = ':';
-    for(const auto& m: common_members)
-    {
-        if(m.is_optional)
-        {
-            continue;
-        }
-        
-        auto default_value = *m.defaultvalue;
-        if(m.type_name.is_enum)
-        {
-            default_value = fmt::format("{}::{}", m.type_name.name, *m.defaultvalue);
-        }
-        sources->source.add(fmt::format("{} {}({})", sep, m.name, default_value));
-        sep = ',';
-    }
-    sources->source.add("{}");
-    sources->source.add("");
 }
 
 
@@ -886,9 +869,9 @@ Out generate_cpp(const File& f)
     for(const auto& s: f.structs_defined)
     {
         sources.header.add(fmt::format("struct {} {{", s->name));
-        write_default_constructor_for_cpp(*s, &sources);
 
         write_member_variables_for_cpp(&sources, *s);
+        sources.header.add("};");
         sources.header.add("");
     }
 
