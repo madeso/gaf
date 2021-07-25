@@ -429,6 +429,10 @@ std::shared_ptr<Struct> read_struct(CharFile* f, TypeList* type_list, File* fi)
                 {
                     f->report_error("structs cant have default values yet");
                 }
+                if(mem.is_optional)
+                {
+                    f->report_error("optionals always default to empty");
+                }
                 if(mem.is_dynamic_array)
                 {
                     f->report_error("dynamic arrays cant have default values yet");
