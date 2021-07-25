@@ -51,7 +51,7 @@ function(GAF_GENERATE_CPP)
             "${CMAKE_CURRENT_BINARY_DIR}/${GAF_PREFIX}${FIL_NAME}.h"
             COMMAND gaf
             ARGS generate ${ABS_FIL} ${CMAKE_CURRENT_BINARY_DIR} ${GAF_EXTENSION_ARG}
-            DEPENDS ${ABS_FIL}
+            DEPENDS ${ABS_FIL} gaf
             COMMENT "Running C++ GAF compiler on ${FIL}"
             VERBATIM
         )
