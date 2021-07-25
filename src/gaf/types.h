@@ -1,12 +1,12 @@
 #pragma once
 
-#include <string_view>
-#include <string>
-#include <optional>
-#include <vector>
 #include <map>
 #include <memory>
+#include <optional>
 #include <set>
+#include <string>
+#include <string_view>
+#include <vector>
 
 struct Args;
 
@@ -30,22 +30,22 @@ enum class StandardType
 
 constexpr std::string_view get_cpp_type(StandardType type)
 {
-    switch(type)
+    switch (type)
     {
-        case StandardType::Int8: return "std::int8_t";
-        case StandardType::Int16: return "std::int16_t";
-        case StandardType::Int32: return "std::int32_t";
-        case StandardType::Int64: return "std::int64_t";
-        case StandardType::Uint8: return "std::uint8_t";
-        case StandardType::Uint16: return "std::uint16_t";
-        case StandardType::Uint32: return "std::uint32_t";
-        case StandardType::Uint64: return "std::uint64_t";
-        case StandardType::Float: return "float";
-        case StandardType::Double: return "double";
-        case StandardType::Byte: return "char";
-        case StandardType::Bool: return "bool";
-        case StandardType::String: return "std::string";
-        default: return "";
+    case StandardType::Int8: return "std::int8_t";
+    case StandardType::Int16: return "std::int16_t";
+    case StandardType::Int32: return "std::int32_t";
+    case StandardType::Int64: return "std::int64_t";
+    case StandardType::Uint8: return "std::uint8_t";
+    case StandardType::Uint16: return "std::uint16_t";
+    case StandardType::Uint32: return "std::uint32_t";
+    case StandardType::Uint64: return "std::uint64_t";
+    case StandardType::Float: return "float";
+    case StandardType::Double: return "double";
+    case StandardType::Byte: return "char";
+    case StandardType::Bool: return "bool";
+    case StandardType::String: return "std::string";
+    default: return "";
     }
 }
 
@@ -57,15 +57,13 @@ struct Type
     std::optional<std::string> default_value;
     bool is_enum;
 
-    Type
-    (
+    Type(
         StandardType s,
         std::string n,
         bool i,
         std::optional<std::string> d = {},
-        bool e = false
-    );
-    
+        bool e = false);
+
     std::string get_cpp_type() const;
 
     static Type create_error_type();
@@ -115,22 +113,17 @@ struct Enum
     void add_value(const std::string& v);
 };
 
-
 struct Constant
 {
     std::string name;
     Type type;
     std::string value;
 
-    Constant
-    (
+    Constant(
         const std::string& n,
         const Type& t,
-        const std::string& v
-    );
+        const std::string& v);
 };
-
-
 
 struct File
 {
@@ -161,7 +154,7 @@ struct PrettyFileOut : FileOut
 {
     std::unique_ptr<FileOut> dest;
     int indent;
-    
+
     explicit PrettyFileOut(std::unique_ptr<FileOut>&& d);
     void write(const std::string& line) override;
 };
@@ -181,6 +174,5 @@ struct Plugin
 };
 
 std::set<std::string> get_headers_types(const File& f);
-
 
 std::ostream& operator<<(std::ostream& s, const File& f);

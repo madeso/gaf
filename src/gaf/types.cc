@@ -1,19 +1,16 @@
 #include "gaf/types.h"
 
-#include <set>
-#include <ostream>
-#include <cassert>
 #include <algorithm>
+#include <cassert>
+#include <ostream>
+#include <set>
 
-
-Type::Type
-(
+Type::Type(
     StandardType s,
     std::string n,
     bool i,
     std::optional<std::string> d,
-    bool e
-)
+    bool e)
     : standard_type(s)
     , name(n)
     , is_int(i)
@@ -24,7 +21,7 @@ Type::Type
 
 std::string Type::get_cpp_type() const
 {
-    if(standard_type == StandardType::INVALID)
+    if (standard_type == StandardType::INVALID)
     {
         return name;
     }
@@ -42,12 +39,11 @@ Type Type::create_error_type()
 
 bool operator==(const Type& lhs, const Type& rhs)
 {
-    return
-        lhs.standard_type == rhs.standard_type &&
-        lhs.name == rhs.name &&
-        lhs.is_int == rhs.is_int &&
-        lhs.default_value == rhs.default_value &&
-        lhs.is_enum == rhs.is_enum;
+    return lhs.standard_type == rhs.standard_type &&
+           lhs.name == rhs.name &&
+           lhs.is_int == rhs.is_int &&
+           lhs.default_value == rhs.default_value &&
+           lhs.is_enum == rhs.is_enum;
 }
 
 void TypeList::add_type(const Type& t)
@@ -86,14 +82,12 @@ Type TypeList::get_type(const std::string& name) const
     return found->second;
 }
 
-
 bool is_default_type(const std::string& tn)
 {
     auto tl = TypeList{};
     tl.add_default_types();
     return tl.is_valid_type(tn);
 }
-
 
 Member::Member(const std::string& n, const Type& t)
     : name(n)
@@ -107,7 +101,7 @@ Member::Member(const std::string& n, const Type& t)
 
 std::ostream& operator<<(std::ostream& s, const Member& self)
 {
-    if(self.defaultvalue.has_value() == false)
+    if (self.defaultvalue.has_value() == false)
         s << self.type_name.name << " " << self.name << ";";
     else
         s << self.type_name.name << " " << self.name << " = " << *self.defaultvalue << ";";
@@ -118,7 +112,7 @@ std::ostream& operator<<(std::ostream& s, const Struct& self)
 {
     s << "struct " << self.name << "\n{\n";
 
-    for(const auto& m: self.members)
+    for (const auto& m : self.members)
     {
         s << "    " << m << "\n";
     }
@@ -126,7 +120,6 @@ std::ostream& operator<<(std::ostream& s, const Struct& self)
 
     return s;
 }
-
 
 Struct::Struct(const std::string& n)
     : name(n)
@@ -137,7 +130,6 @@ Enum::Enum(const std::string& n)
     : name(n)
 {
 }
-
 
 bool Enum::is_value(const std::string& v) const
 {
@@ -151,14 +143,10 @@ void Enum::add_value(const std::string& v)
     assert(inserted);
 }
 
-
-
-Constant::Constant
-(
+Constant::Constant(
     const std::string& n,
     const Type& t,
-    const std::string& v
-)
+    const std::string& v)
     : name(n)
     , type(t)
     , value(v)
@@ -172,16 +160,16 @@ void File::add_constant(const std::string& n, const Type& t, const std::string& 
 
 std::shared_ptr<Constant> File::find_constant(const std::string& name, std::optional<Type> ty) const
 {
-    for(const auto& c : constants)
+    for (const auto& c : constants)
     {
-        if(ty.has_value() == false)
+        if (ty.has_value() == false)
         {
-            if(c->name == name)
+            if (c->name == name)
             {
                 return c;
             }
-            }
-        else if(c->name == name && c->type == *ty)
+        }
+        else if (c->name == name && c->type == *ty)
         {
             return c;
         }
@@ -191,9 +179,9 @@ std::shared_ptr<Constant> File::find_constant(const std::string& name, std::opti
 
 std::shared_ptr<Enum> File::find_enum(const std::string& name) const
 {
-    for(const auto& e : enums)
+    for (const auto& e : enums)
     {
-        if(e->name == name)
+        if (e->name == name)
         {
             return e;
         }
@@ -203,9 +191,9 @@ std::shared_ptr<Enum> File::find_enum(const std::string& name) const
 
 std::shared_ptr<Struct> File::find_struct(const std::string& name) const
 {
-    for(const auto& e: structs)
+    for (const auto& e : structs)
     {
-        if(e->name == name)
+        if (e->name == name)
         {
             return e;
         }
@@ -215,17 +203,16 @@ std::shared_ptr<Struct> File::find_struct(const std::string& name) const
 
 std::ostream& operator<<(std::ostream& s, const File& f)
 {
-    if(f.package_name.empty() == false)
+    if (f.package_name.empty() == false)
     {
         s << "package " << f.package_name << ";\n";
     }
-    for(const auto& x: f.structs)
+    for (const auto& x : f.structs)
     {
         s << *x << '\n';
     }
     return s;
 }
-
 
 std::set<std::string> get_headers_types(const File& f)
 {
@@ -235,37 +222,37 @@ std::set<std::string> get_headers_types(const File& f)
         r.emplace(i);
     };
 
-    for(const auto& s: f.structs)
+    for (const auto& s : f.structs)
     {
-        for(const auto& m: s->members)
+        for (const auto& m : s->members)
         {
             const auto& t = m.type_name;
 
-            switch(t.standard_type)
+            switch (t.standard_type)
             {
-                case StandardType::Int8:
-                case StandardType::Int16:
-                case StandardType::Int32:
-                case StandardType::Int64:
-                case StandardType::Uint8:
-                case StandardType::Uint16:
-                case StandardType::Uint32:
-                case StandardType::Uint64:
-                    include("<cstdint>");
-                    break;
+            case StandardType::Int8:
+            case StandardType::Int16:
+            case StandardType::Int32:
+            case StandardType::Int64:
+            case StandardType::Uint8:
+            case StandardType::Uint16:
+            case StandardType::Uint32:
+            case StandardType::Uint64:
+                include("<cstdint>");
+                break;
 
-                case StandardType::String:
-                    include("<string>");
-                    break;
-                default:
-                    break;
+            case StandardType::String:
+                include("<string>");
+                break;
+            default:
+                break;
             }
-        
-            if(m.is_dynamic_array)
+
+            if (m.is_dynamic_array)
             {
                 include("<vector>");
             }
-            if(m.is_optional)
+            if (m.is_optional)
             {
                 include("<memory>");
             }
@@ -285,18 +272,28 @@ void PrettyFileOut::write(const std::string& line)
     const auto dec = std::count(line.begin(), line.end(), '}');
     const auto inc = std::count(line.begin(), line.end(), '{');
     indent -= dec;
-    if(dec > 0) { indent += inc; }
+    if (dec > 0)
+    {
+        indent += inc;
+    }
     const auto current = [this, &line]() -> int
     {
-        if(line.empty()) { return 0;}
-        switch(line[0])
+        if (line.empty())
         {
-        case ':': case ',':
+            return 0;
+        }
+        switch (line[0])
+        {
+        case ':':
+        case ',':
             return indent + 1;
         default:
             return indent;
         }
     }();
     dest->write(std::string(current * 4, ' ') + line + "\n");
-    if(dec <= 0) { indent += inc; }
+    if (dec <= 0)
+    {
+        indent += inc;
+    }
 }

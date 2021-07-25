@@ -1,11 +1,10 @@
 #pragma once
 
 #include <memory>
-#include <vector>
 #include <string>
+#include <vector>
 
 struct File;
-
 
 /** Representation of a file loaded to memory.
  */

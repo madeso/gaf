@@ -1,13 +1,13 @@
 // GAme Format Parser
 
-#include <iostream>
-#include <fstream>
 #include <filesystem>
+#include <fstream>
+#include <iostream>
 
 #include "gaf/args.h"
-#include "gaf/types.h"
-#include "gaf/parse.h"
 #include "gaf/cpp.h"
+#include "gaf/parse.h"
+#include "gaf/types.h"
 
 // from gaf_cpp import CppPlugin, RapidJsonPlugin, ImguiPlugin
 // from gaf_parse import CharFile, read_several_structs, ParseError
@@ -17,7 +17,7 @@ using Plugins = std::vector<std::shared_ptr<Plugin>>;
 
 void write_errors(const CharFile& f)
 {
-    for(const auto& e: f.errors)
+    for (const auto& e : f.errors)
     {
         std::cerr << e << "\n";
     }
@@ -27,33 +27,33 @@ int on_display_command(Args& args, const Plugins&)
 {
     const auto input = args.read();
 
-    if(input == "")
+    if (input == "")
     {
         std::cerr << "missing file\n";
         return -42;
     }
 
-    if(auto r = no_arguments(args); r != 0)
+    if (auto r = no_arguments(args); r != 0)
     {
         return r;
     }
 
-    while(args.has_more())
+    while (args.has_more())
     {
         const auto r = args.read();
         std::cerr << "invalid argument " << r << "\n";
         return -42;
     }
-    
+
     auto file = CharFile{input};
     auto parsed_file = read_several_structs(&file);
-    if(parsed_file == nullptr)
+    if (parsed_file == nullptr)
     {
         std::cerr << "unable to read file " << input << "\n";
         write_errors(file);
         return -42;
     }
-    
+
     std::cout << *parsed_file;
     return 0;
 }
@@ -62,11 +62,14 @@ struct ConsoleFileOut : FileOut
 {
     std::string file;
 
-    explicit ConsoleFileOut(const std::string& f) : file(f) {}
+    explicit ConsoleFileOut(const std::string& f)
+        : file(f)
+    {
+    }
 
     void write(const std::string& line) override
     {
-        std::cout << "'"<< file << "': " << line;
+        std::cout << "'" << file << "': " << line;
     }
 };
 
@@ -108,7 +111,7 @@ int on_generate_command(Args& args, const Plugins& plugins)
     auto command = args.read();
 
     bool debug = false;
-    if(args.peek() == "--debug")
+    if (args.peek() == "--debug")
     {
         debug = true;
         args.read();
@@ -118,21 +121,22 @@ int on_generate_command(Args& args, const Plugins& plugins)
     auto console_writer = ConsoleWriter{};
 
     Writer* writer = &file_writer;
-    if(debug) writer = &console_writer;
+    if (debug)
+        writer = &console_writer;
 
-    if(input == "")
+    if (input == "")
     {
         std::cerr << "missing file\n";
         return -42;
     }
 
-    if(folder == "")
+    if (folder == "")
     {
         std::cerr << "missing folder\n";
         return -42;
     }
 
-    if(command == "")
+    if (command == "")
     {
         std::cerr << "missing command\n";
         return -42;
@@ -140,7 +144,7 @@ int on_generate_command(Args& args, const Plugins& plugins)
 
     auto file = CharFile{input};
     const auto parsed_file = read_several_structs(&file);
-    if(parsed_file == nullptr)
+    if (parsed_file == nullptr)
     {
         std::cerr << "unable to read file " << input << "\n";
         write_errors(file);
@@ -149,9 +153,9 @@ int on_generate_command(Args& args, const Plugins& plugins)
 
     const auto name = std::filesystem::path(file.name).stem().string();
 
-    for(auto& plugin: plugins)
+    for (auto& plugin : plugins)
     {
-        if(command == plugin->get_name())
+        if (command == plugin->get_name())
         {
             return plugin->run_plugin(*parsed_file, writer, folder, args, name);
         }
@@ -159,17 +163,16 @@ int on_generate_command(Args& args, const Plugins& plugins)
 
     std::cerr << "unknown plugin " << command << "\n";
     std::cout << "Valid plugins:\n";
-    for(const auto& p: plugins)
+    for (const auto& p : plugins)
     {
         std::cout << " - " << p->get_name() << "\n";
     }
     return -42;
 }
 
-
 int run_main(Args& args, const Plugins& plugins)
 {
-    if(args.peek() == "")
+    if (args.peek() == "")
     {
         std::cerr << args.app << " <command>\n";
         return -42;
@@ -177,11 +180,11 @@ int run_main(Args& args, const Plugins& plugins)
 
     const auto command = args.read();
 
-    if(command == "display")
+    if (command == "display")
     {
         on_display_command(args, plugins);
     }
-    else if(command == "generate")
+    else if (command == "generate")
     {
         return on_generate_command(args, plugins);
     }
@@ -190,26 +193,21 @@ int run_main(Args& args, const Plugins& plugins)
         std::cerr << "invalid command " << command << ", either display or generate\n";
         return -42;
     }
-    
+
     return 0;
 }
 
-
-int main(int argc, char *argv[])
+int main(int argc, char* argv[])
 {
     auto args = Args{argv[0]};
-    for(int i=1; i<argc; i+=1)
+    for (int i = 1; i < argc; i += 1)
     {
         args.args.emplace_back(argv[i]);
     }
 
-    return run_main
-    (
+    return run_main(
         args,
-        {
-            std::make_shared<CppPlugin>(),
-            std::make_shared<RapidJsonPlugin>(),
-            std::make_shared<ImguiPlugin>()
-        }
-    );
+        {std::make_shared<CppPlugin>(),
+         std::make_shared<RapidJsonPlugin>(),
+         std::make_shared<ImguiPlugin>()});
 }

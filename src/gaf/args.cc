@@ -9,7 +9,7 @@ Args::Args(const std::string& a)
 
 std::string Args::peek() const
 {
-    if(index >= args.size())
+    if (index >= args.size())
     {
         return "";
     }
@@ -30,7 +30,7 @@ bool Args::has_more() const
 
 int no_arguments(Args& args)
 {
-    while(args.has_more())
+    while (args.has_more())
     {
         const auto r = args.read();
         std::cerr << "invalid argument " << r << "\n";
@@ -42,9 +42,9 @@ int no_arguments(Args& args)
 
 bool is_option(const std::string& str)
 {
-    if(str.empty() == false)
+    if (str.empty() == false)
     {
-        if(str[0] == '-')
+        if (str[0] == '-')
         {
             return true;
         }

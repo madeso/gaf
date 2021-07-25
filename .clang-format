@@ -1,0 +1,16 @@
+Language: Cpp
+BasedOnStyle: Google
+IndentWidth: 4
+ColumnLimit: 0
+FixNamespaceComments: false
+UseTab: Never
+BreakBeforeBraces: Allman
+AllowShortIfStatementsOnASingleLine: false
+IndentCaseLabels: false
+BreakConstructorInitializers: BeforeComma
+AllowShortCaseLabelsOnASingleLine: true
+ConstructorInitializerAllOnOneLineOrOnePerLine: false
+NamespaceIndentation: All
+AllowShortFunctionsOnASingleLine: All
+AllowShortBlocksOnASingleLine: Always
+SortIncludes: false
