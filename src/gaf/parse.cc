@@ -510,7 +510,7 @@ std::shared_ptr<File> read_several_structs(CharFile* f)
             auto s = read_struct(f, &type_list, file.get());
             if (file->find_struct(s->name) == nullptr)
             {
-                file->structs.emplace_back(s);
+                file->named_structs.insert({s->name, s});
             }
 
             if (s->is_defined)
@@ -550,7 +550,7 @@ std::shared_ptr<File> read_several_structs(CharFile* f)
             {
                 f->report_error(fmt::format("tried to change package name from {} to {}", file->package_name, package_name));
             }
-            if (file->structs.empty() == false)
+            if (file->named_structs.empty() == false)
             {
                 f->report_error("cant change package name after adding structs");
             }

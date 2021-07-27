@@ -191,14 +191,15 @@ std::shared_ptr<Enum> File::find_enum(const std::string& name) const
 
 std::shared_ptr<Struct> File::find_struct(const std::string& name) const
 {
-    for (const auto& e : structs)
+    auto found = named_structs.find(name);
+    if(found == named_structs.end())
     {
-        if (e->name == name)
-        {
-            return e;
-        }
+        return nullptr;
     }
-    return nullptr;
+    else
+    {
+        return found->second;
+    }
 }
 
 std::ostream& operator<<(std::ostream& s, const File& f)
@@ -207,7 +208,7 @@ std::ostream& operator<<(std::ostream& s, const File& f)
     {
         s << "package " << f.package_name << ";\n";
     }
-    for (const auto& x : f.structs)
+    for (const auto& x : f.structs_defined)
     {
         s << *x << '\n';
     }
@@ -222,7 +223,7 @@ std::set<std::string> get_headers_types(const File& f)
         r.emplace(i);
     };
 
-    for (const auto& s : f.structs)
+    for (const auto& s : f.structs_defined)
     {
         for (const auto& m : s->members)
         {
