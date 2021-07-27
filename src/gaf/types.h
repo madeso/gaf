@@ -127,7 +127,7 @@ struct Constant
 
 struct File
 {
-    std::map<std::string, std::shared_ptr<Struct>> named_structs;
+    std::map<std::string, std::shared_ptr<Struct>> named_structs; // also contains forward-declared structs
     std::vector<std::shared_ptr<Struct>> typedefs;
     std::vector<std::shared_ptr<Struct>> structs;
     std::vector<std::shared_ptr<Enum>> enums;
