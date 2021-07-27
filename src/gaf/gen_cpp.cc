@@ -54,6 +54,54 @@ namespace cpp
         }
     }
 
+
+    std::set<std::string> get_headers_types(const File& f)
+    {
+        std::set<std::string> r;
+        const auto include = [&r](const std::string& i)
+        {
+            r.emplace(i);
+        };
+
+        for (const auto& s : f.structs_defined)
+        {
+            for (const auto& m : s->members)
+            {
+                const auto& t = m.type_name;
+
+                switch (t.standard_type)
+                {
+                case StandardType::Int8:
+                case StandardType::Int16:
+                case StandardType::Int32:
+                case StandardType::Int64:
+                case StandardType::Uint8:
+                case StandardType::Uint16:
+                case StandardType::Uint32:
+                case StandardType::Uint64:
+                    include("<cstdint>");
+                    break;
+
+                case StandardType::String:
+                    include("<string>");
+                    break;
+                default:
+                    break;
+                }
+
+                if (m.is_dynamic_array)
+                {
+                    include("<vector>");
+                }
+                if (m.is_optional)
+                {
+                    include("<memory>");
+                }
+            }
+        }
+        return r;
+    }
+
     Out generate_cpp(const File& f)
     {
         auto sources = Out{};

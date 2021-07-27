@@ -173,6 +173,4 @@ struct Plugin
     virtual int run_plugin(const File& file, Writer* writer, std::string& output_folder, Args& args, const std::string& name) = 0;
 };
 
-std::set<std::string> get_headers_types(const File& f);
-
 std::ostream& operator<<(std::ostream& s, const File& f);
