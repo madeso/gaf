@@ -293,7 +293,7 @@ namespace imgui
             sources.source.add("");
         }
 
-        for (const auto& s : f.structs_defined)
+        for (const auto& s : f.structs)
         {
             write_imgui_source_for_cpp(&sources, *s, opt);
 

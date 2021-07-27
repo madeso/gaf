@@ -515,7 +515,7 @@ std::shared_ptr<File> read_several_structs(CharFile* f)
 
             if (s->is_defined)
             {
-                file->structs_defined.emplace_back(s);
+                file->structs.emplace_back(s);
             }
             else
             {

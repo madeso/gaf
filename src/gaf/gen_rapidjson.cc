@@ -340,7 +340,7 @@ namespace json
             add_enum_json_function(*e, &sources);
         }
 
-        for (const auto& s : f.structs_defined)
+        for (const auto& s : f.structs)
         {
             write_json_source_for_cpp(&sources, *s);
 

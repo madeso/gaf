@@ -129,7 +129,7 @@ struct File
 {
     std::map<std::string, std::shared_ptr<Struct>> named_structs;
     std::vector<std::shared_ptr<Struct>> typedefs;
-    std::vector<std::shared_ptr<Struct>> structs_defined;
+    std::vector<std::shared_ptr<Struct>> structs;
     std::vector<std::shared_ptr<Enum>> enums;
     std::vector<std::shared_ptr<Constant>> constants;
     std::string package_name;

@@ -208,7 +208,7 @@ std::ostream& operator<<(std::ostream& s, const File& f)
     {
         s << "package " << f.package_name << ";\n";
     }
-    for (const auto& x : f.structs_defined)
+    for (const auto& x : f.structs)
     {
         s << *x << '\n';
     }

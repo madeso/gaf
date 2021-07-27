@@ -63,7 +63,7 @@ namespace cpp
             r.emplace(i);
         };
 
-        for (const auto& s : f.structs_defined)
+        for (const auto& s : f.structs)
         {
             for (const auto& m : s->members)
             {
@@ -145,7 +145,7 @@ namespace cpp
             sources.header.add("");
         }
 
-        for (const auto& s : f.structs_defined)
+        for (const auto& s : f.structs)
         {
             sources.header.add(fmt::format("struct {} {{", s->name));
 
