@@ -18,19 +18,6 @@ namespace json
         std::string value;
     };
 
-
-    // todo(Gustav): remove this
-    std::string json_return_value()
-    {
-        return "std::string";
-    }
-
-    // todo(Gustav): remove this
-    std::string json_is_false()
-    {
-        return ".empty() == false";
-    }
-
     std::string json_return_error(const std::string& err, const std::string& val)
     {
         std::ostringstream ss;
@@ -41,11 +28,6 @@ namespace json
             << val
             << "); return gaf_ss.str(); }";
         return ss.str();
-    }
-
-    std::string json_return_ok()
-    {
-        return "\"\"";
     }
 
     VarValue get_cpp_parse_from_rapidjson_helper_int(Out* sources, StandardType t, const std::string& member, const std::string& name, const std::string& json)
@@ -159,7 +141,6 @@ namespace json
         if (m.type_name.standard_type != StandardType::INVALID)
         {
             get_cpp_parse_from_rapidjson(sources, m.type_name.standard_type, m.name, m.name, m);
-            ;
         }
         else
         {
@@ -186,8 +167,8 @@ namespace json
                             fmt::arg("name", m.name),
                             fmt::arg("type", m.type_name.name),
                             fmt::arg("err", err),
-                            fmt::arg("false", json_is_false()),
-                            fmt::arg("rv", json_return_value())));
+                            fmt::arg("false", ".empty() == false"),
+                            fmt::arg("rv", "std::string")));
                 }
             }
             else if (m.is_optional)
@@ -209,8 +190,8 @@ namespace json
                             line,
                             fmt::arg("name", m.name),
                             fmt::arg("type", m.type_name.name),
-                            fmt::arg("false", json_is_false()),
-                            fmt::arg("rv", json_return_value())));
+                            fmt::arg("false", ".empty() == false"),
+                            fmt::arg("rv", "std::string")));
                 }
             }
             else
@@ -230,8 +211,8 @@ namespace json
                         fmt::format(
                             line,
                             fmt::arg("name", m.name),
-                            fmt::arg("false", json_is_false()),
-                            fmt::arg("rv", json_return_value())));
+                            fmt::arg("false", ".empty() == false"),
+                            fmt::arg("rv", "std::string")));
                 }
             }
         }
@@ -241,7 +222,7 @@ namespace json
 
     void write_json_source_for_cpp(Out* sources, const Struct& s)
     {
-        sources->source.add(fmt::format("{} ReadFromJsonValue({}* c, const rapidjson::Value& value, const std::string& gaf_path) {{", json_return_value(), s.name));
+        sources->source.add(fmt::format("{} ReadFromJsonValue({}* c, const rapidjson::Value& value, const std::string& gaf_path) {{", "std::string", s.name));
         sources->source.add("std::stringstream gaf_ss;");
         sources->source.add(fmt::format("if(!value.IsObject()) {}", json_return_error(fmt::format("tried to read {} but value was not a object", s.name), "value")));
         sources->source.add("rapidjson::Value::ConstMemberIterator iter;");
@@ -266,7 +247,7 @@ namespace json
                 sources->source.add("}");
             }
         }
-        sources->source.add(fmt::format("return {};", json_return_ok()));
+        sources->source.add(fmt::format("return {};", "\"\""));
         sources->source.add("}");
         sources->source.add("");
     }
@@ -285,8 +266,8 @@ namespace json
         const auto enum_type = type_enum ? fmt::format("{}::Type", e.name) : e.name;
         const auto value_prefix = get_value_prefix_opt(e);
         const auto arg = ", const std::string& gaf_path";
-        sources->header.add(fmt::format("{} ReadFromJsonValue({}* c, const rapidjson::Value& value{});", json_return_value(), enum_type, arg));
-        sources->source.add(fmt::format("{} ReadFromJsonValue({}* c, const rapidjson::Value& value{})", json_return_value(), enum_type, arg));
+        sources->header.add(fmt::format("{} ReadFromJsonValue({}* c, const rapidjson::Value& value{});", "std::string", enum_type, arg));
+        sources->source.add(fmt::format("{} ReadFromJsonValue({}* c, const rapidjson::Value& value{})", "std::string", enum_type, arg));
         sources->source.add("{");
         sources->source.add("std::stringstream gaf_ss;");
         sources->source.add(fmt::format("if(value.IsString()==false) {};", json_return_error(fmt::format("read value for {} was not a string", e.name), "value")));
@@ -297,7 +278,7 @@ namespace json
                     "if(strcmp(value.GetString(), \"{v}\")==0) {{ *c = {p}{v}; return {ok};}}",
                     fmt::arg("v", v),
                     fmt::arg("p", value_prefix),
-                    fmt::arg("ok", json_return_ok())));
+                    fmt::arg("ok", "\"\"")));
         }
         sources->source.add(fmt::format("{}", json_return_error(fmt::format("read string for {} was not valid", e.name), "value")));
         sources->source.add("}");
@@ -346,7 +327,7 @@ namespace json
 
             sources.header.add("");
             const auto arg = ", const std::string& gaf_path";
-            sources.header.add(fmt::format("{} ReadFromJsonValue({}* c, const rapidjson::Value& value{});", json_return_value(), s->name, arg));
+            sources.header.add(fmt::format("{} ReadFromJsonValue({}* c, const rapidjson::Value& value{});", "std::string", s->name, arg));
             sources.header.add("");
         }
 
