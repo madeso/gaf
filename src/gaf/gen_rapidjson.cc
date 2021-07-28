@@ -1,7 +1,6 @@
 #include "gaf/gen_rapidjson.h"
 
 #include <array>
-#include <sstream>
 #include <cassert>
 #include "fmt/format.h"
 
@@ -20,14 +19,15 @@ namespace json
 
     std::string json_return_error(const std::string& err, const std::string& val)
     {
-        std::ostringstream ss;
-        ss
-            << "{ gaf_ss.str(\"\"); gaf_ss << \""
-            << err
-            << ", path: \" << gaf_path << \", value: \" << GafToString("
-            << val
-            << "); return gaf_ss.str(); }";
-        return ss.str();
+        return fmt::format
+        (
+            "{{"
+            "gaf_ss.str(\"\");"
+            "gaf_ss << \"{}, path: \" << gaf_path << \", value: \" << GafToString({});"
+            "return gaf_ss.str();"
+            "}}",
+            err, val
+        );
     }
 
     VarValue get_cpp_parse_from_rapidjson_helper_int(Out* sources, StandardType t, const std::string& member, const std::string& name, const std::string& json)
@@ -242,7 +242,7 @@ namespace json
                 }
                 else
                 {
-                    sources->source.add(fmt::format("{}", json_return_error(fmt::format("missing {} in json object", m.name), "value")));
+                    sources->source.add(json_return_error(fmt::format("missing {} in json object", m.name), "value"));
                 }
                 sources->source.add("}");
             }
@@ -280,7 +280,7 @@ namespace json
                     fmt::arg("p", value_prefix),
                     fmt::arg("ok", "\"\"")));
         }
-        sources->source.add(fmt::format("{}", json_return_error(fmt::format("read string for {} was not valid", e.name), "value")));
+        sources->source.add(json_return_error(fmt::format("read string for {} was not valid", e.name), "value"));
         sources->source.add("}");
         sources->source.add("");
     }
