@@ -6,16 +6,6 @@
 
 #include "fmt/format.h"
 
-/*
-#include <algorithm>
-#include <sstream>
-#include <string>
-#include <vector>
-
-#include "gaf/args.h"
-#include "gaf/array.h"
-#include "gaf/types.h"
-*/
 
 void Lines::add(const std::string& str)
 {
@@ -33,6 +23,10 @@ void Lines::add(const std::string& str)
     lines.emplace_back(str);
 }
 
+void Lines::addfv(fmt::string_view format, fmt::format_args args)
+{
+    add(fmt::vformat(format, args));
+}
 
 std::string get_file_path(const std::string& folder, const std::string& name)
 {
@@ -56,17 +50,17 @@ Lines complete_source(const Lines& source, const std::string& name, const std::s
 {
     Lines ret;
 
-    ret.add(fmt::format("#include \"{}.h\"", prefix + name));
+    ret.addf("#include \"{}.h\"", prefix + name);
     ret.add("");
     for (const auto& inc : includes)
     {
-        ret.add(fmt::format("#include {}", inc));
+        ret.addf("#include {}", inc);
     }
     ret.add("");
 
     if (package_name.empty() == false)
     {
-        ret.add(fmt::format("namespace {} {{", package_name));
+        ret.addf("namespace {} {{", package_name);
         ret.add("");
     }
 

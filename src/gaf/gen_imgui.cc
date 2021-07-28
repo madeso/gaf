@@ -38,7 +38,7 @@ namespace imgui
 
     void add_imgui_delete_button(const Member&, Out* sources, const ImguiOptions& opt)
     {
-        sources->source.add(fmt::format("if( ImGui::Button({}) )", opt.imgui_remove));
+        sources->source.addf("if( ImGui::Button({}) )", opt.imgui_remove);
         sources->source.add("{");
         sources->source.add("delete_index = i;");
         sources->source.add("please_delete = true;");
@@ -50,55 +50,55 @@ namespace imgui
         switch (t)
         {
         case StandardType::Int8:
-            sources->source.add(fmt::format("{}ImGui::Edit({}, {});", name, var));
+            sources->source.addf("{}ImGui::Edit({}, {});", name, var);
             return;
         case StandardType::Int16:
-            sources->source.add(fmt::format("{}ImGui::Edit({}, {});", name, var));
+            sources->source.addf("{}ImGui::Edit({}, {});", name, var);
             return;
         case StandardType::Int32:
-            sources->source.add(fmt::format("{}ImGui::InputInt({}, {});", name, var));
+            sources->source.addf("{}ImGui::InputInt({}, {});", name, var);
             return;
         case StandardType::Int64:
-            sources->source.add(fmt::format("{}ImGui::Edit({}, {});", name, var));
+            sources->source.addf("{}ImGui::Edit({}, {});", name, var);
             return;
         case StandardType::Uint8:
-            sources->source.add(fmt::format("{}ImGui::Edit({}, {});", name, var));
+            sources->source.addf("{}ImGui::Edit({}, {});", name, var);
             return;
         case StandardType::Uint16:
-            sources->source.add(fmt::format("{}ImGui::Edit({}, {});", name, var));
+            sources->source.addf("{}ImGui::Edit({}, {});", name, var);
             return;
         case StandardType::Uint32:
-            sources->source.add(fmt::format("{}ImGui::Edit({}, {});", name, var));
+            sources->source.addf("{}ImGui::Edit({}, {});", name, var);
             return;
         case StandardType::Uint64:
-            sources->source.add(fmt::format("{}ImGui::Edit({}, {});", name, var));
+            sources->source.addf("{}ImGui::Edit({}, {});", name, var);
             return;
         case StandardType::Float:
-            sources->source.add(fmt::format("{}ImGui::InputFloat({}, {});", name, var));
+            sources->source.addf("{}ImGui::InputFloat({}, {});", name, var);
             return;
         case StandardType::Double:
-            sources->source.add(fmt::format("{}ImGui::InputDouble({}, {});", name, var));
+            sources->source.addf("{}ImGui::InputDouble({}, {});", name, var);
             return;
         case StandardType::Byte:
-            sources->source.add(fmt::format("{}ImGui::Edit({}, {});", name, var));
+            sources->source.addf("{}ImGui::Edit({}, {});", name, var);
             return;
         case StandardType::Bool:
-            sources->source.add(fmt::format("{}ImGui::Checkbox({}, {});", name, var));
+            sources->source.addf("{}ImGui::Checkbox({}, {});", name, var);
             return;
         case StandardType::String:
             sources->source.add("{");
             sources->source.add("char gaf_temp[1024];");
-            sources->source.add(fmt::format("strcpy(gaf_temp, ({})->c_str());", var));
-            sources->source.add(fmt::format("if(ImGui::InputText({}, gaf_temp, 1024))", name));
+            sources->source.addf("strcpy(gaf_temp, ({})->c_str());", var);
+            sources->source.addf("if(ImGui::InputText({}, gaf_temp, 1024))", name);
             sources->source.add("{");
-            sources->source.add(fmt::format("*({}) = gaf_temp;", var));
+            sources->source.addf("*({}) = gaf_temp;", var);
             sources->source.add("}");
             sources->source.add("}");
             return;
         default:
             if (m.type_name.is_enum)
             {
-                sources->source.add(fmt::format("{}RunImgui({}, {});", var, name));
+                sources->source.addf("{}RunImgui({}, {});", var, name);
             }
             else
             {
@@ -113,7 +113,7 @@ namespace imgui
                     sources->source.add("ImGui::SameLine();");
                     add_imgui_delete_button(m, sources, opt);
                 }
-                sources->source.add(fmt::format("RunImgui({});", var));
+                sources->source.addf("RunImgui({});", var);
                 sources->source.add("ImGui::TreePop();");
                 sources->source.add("}");
                 if (add_delete)
@@ -152,18 +152,18 @@ namespace imgui
         {
             if (m.is_optional)
             {
-                sources->source.add(fmt::format("if(c->{})", m.name));
-                sources->source.add(fmt::format("{"));
+                sources->source.addf("if(c->{})", m.name);
+                sources->source.addf("{");
                 write_single_imgui_member_to_source(
                     fmt::format("\"{}\"", m.name),
                     fmt::format("c->{}.get()", m.name),
                     m.type_name.standard_type,
                     sources, m, false, opt);
-                sources->source.add(fmt::format("if(ImGui::Button(\"Clear {}\")) {{ c->{name}.reset(); }}", m.name));
+                sources->source.addf("if(ImGui::Button(\"Clear {}\")) {{ c->{name}.reset(); }}", m.name);
                 sources->source.add("}");
                 sources->source.add("else");
                 sources->source.add("{");
-                sources->source.add(fmt::format("if(ImGui::Button(\"Set {0}\")) {{ c->{0}.reset({1}); }}", m.name, determine_new_value(m)));
+                sources->source.addf("if(ImGui::Button(\"Set {0}\")) {{ c->{0}.reset({1}); }}", m.name, determine_new_value(m));
                 sources->source.add("}");
                 sources->source.add("");
             }
@@ -179,40 +179,40 @@ namespace imgui
         else
         {
             const auto short_version = m.type_name.standard_type != StandardType::INVALID || m.type_name.is_enum;
-            sources->source.add(fmt::format("if(ImGui::TreeNodeEx(\"{}\", ImGuiTreeNodeFlags_DefaultOpen | ImGuiTreeNodeFlags_FramePadding))", m.name));
+            sources->source.addf("if(ImGui::TreeNodeEx(\"{}\", ImGuiTreeNodeFlags_DefaultOpen | ImGuiTreeNodeFlags_FramePadding))", m.name);
             sources->source.add("{");
             sources->source.add("ImGui::SameLine();");
-            sources->source.add(fmt::format("if(ImGui::Button({}))", opt.imgui_add));
+            sources->source.addf("if(ImGui::Button({}))", opt.imgui_add);
             sources->source.add("{");
-            sources->source.add(fmt::format("c->{}.push_back({});", m.name, determine_pushback_value(m)));
+            sources->source.addf("c->{}.push_back({});", m.name, determine_pushback_value(m));
             sources->source.add("}");
             sources->source.add("std::size_t delete_index = 0;");
             sources->source.add("bool please_delete = false;");
-            sources->source.add(fmt::format("for(std::size_t i=0; i<c->{}.size(); i+= 1)", m.name));
+            sources->source.addf("for(std::size_t i=0; i<c->{}.size(); i+= 1)", m.name);
             sources->source.add("{");
             sources->source.add("std::stringstream gaf_ss;");
-            sources->source.add(fmt::format("gaf_ss << \"{}[\" << i << \"]\";", m.name));
+            sources->source.addf("gaf_ss << \"{}[\" << i << \"]\";", m.name);
             sources->source.add("ImGui::PushID(i);");
             write_single_imgui_member_to_source("gaf_ss.str().c_str()", fmt::format("&c->{}[i]", m.name), m.type_name.standard_type, sources, m, !short_version, opt);
             if (short_version)
             {
-                sources->source.add(fmt::format("ImGui::SameLine();"));
+                sources->source.addf("ImGui::SameLine();");
                 add_imgui_delete_button(m, sources, opt);
             }
             sources->source.add("ImGui::PopID();");
             sources->source.add("}");
             sources->source.add("if(please_delete)");
             sources->source.add("{");
-            sources->source.add(fmt::format("c->{0}.erase(c->{0}.begin()+delete_index);", m.name));
+            sources->source.addf("c->{0}.erase(c->{0}.begin()+delete_index);", m.name);
             sources->source.add("}");
             sources->source.add("ImGui::TreePop();");
             sources->source.add("}");
             sources->source.add("else");
             sources->source.add("{");
             sources->source.add("ImGui::SameLine();");
-            sources->source.add(fmt::format("if(ImGui::Button({}))", opt.imgui_add));
+            sources->source.addf("if(ImGui::Button({}))", opt.imgui_add);
             sources->source.add("{");
-            sources->source.add(fmt::format("c->{}.push_back({});", m.name, determine_pushback_value(m)));
+            sources->source.addf("c->{}.push_back({});", m.name, determine_pushback_value(m));
             sources->source.add("}");
             sources->source.add("}");
         }
@@ -230,7 +230,7 @@ namespace imgui
 
     void write_imgui_source_for_cpp(Out* sources, const Struct& s, const ImguiOptions& opt)
     {
-        sources->source.add(fmt::format("void RunImgui({}* c)", s.name));
+        sources->source.addf("void RunImgui({}* c)", s.name);
         sources->source.add("{");
         for (const auto& m : s.members)
         {
@@ -247,12 +247,12 @@ namespace imgui
 
         sources.header.add("#pragma once");
         sources.header.add("");
-        sources.header.add(fmt::format("#include \"gaf_{}.h\"", name));
+        sources.header.addf("#include \"gaf_{}.h\"", name);
         sources.header.add("");
 
         if (f.package_name.empty() == false)
         {
-            sources.header.add(fmt::format("namespace {} {{", f.package_name));
+            sources.header.addf("namespace {} {{", f.package_name);
             sources.header.add("");
         }
 
@@ -260,31 +260,31 @@ namespace imgui
         {
             for (const auto& s : f.typedefs)
             {
-                sources.header.add(fmt::format("struct {};", s->name));
+                sources.header.addf("struct {};", s->name);
             }
             sources.header.add("");
         }
 
         for (const auto& e : f.enums)
         {
-            sources.header.add(fmt::format("const char* ToString({} en);", name));
-            sources.source.add(fmt::format("const char* ToString({} en)", name));
+            sources.header.addf("const char* ToString({} en);", name);
+            sources.source.addf("const char* ToString({} en)", name);
             sources.source.add("{");
             for (const auto& v : e->values)
             {
-                sources.source.add(fmt::format("if(en == {0}{1}) {{ return \"{1}\"; }}", get_value_prefix_opt(*e), v));
+                sources.source.addf("if(en == {0}{1}) {{ return \"{1}\"; }}", get_value_prefix_opt(*e), v);
             }
             sources.source.add("return \"<invalid value>\";");
             sources.source.add("}");
 
-            sources.header.add(fmt::format("void RunImgui({}* en, const char* label);", e->name));
-            sources.source.add(fmt::format("void RunImgui({}* en, const char* label)", e->name));
+            sources.header.addf("void RunImgui({}* en, const char* label);", e->name);
+            sources.source.addf("void RunImgui({}* en, const char* label)", e->name);
             sources.source.add("{");
             sources.source.add("if(ImGui::BeginCombo(label, ToString(*en)))");
             sources.source.add("{");
             for (const auto& v : e->values)
             {
-                sources.source.add(fmt::format("if(ImGui::Selectable(\"{0}\", *en == {1}{0})) {{ *en = {prefix}{val}; }}", v, get_value_prefix_opt(*e)));
+                sources.source.addf("if(ImGui::Selectable(\"{0}\", *en == {1}{0})) {{ *en = {prefix}{val}; }}", v, get_value_prefix_opt(*e));
             }
             sources.source.add("ImGui::EndCombo();");
             sources.source.add("}");
@@ -298,7 +298,7 @@ namespace imgui
             write_imgui_source_for_cpp(&sources, *s, opt);
 
             sources.header.add("");
-            sources.header.add(fmt::format("void RunImgui({}* c);", s->name));
+            sources.header.addf("void RunImgui({}* c);", s->name);
         }
 
         if (f.package_name.empty() == false)

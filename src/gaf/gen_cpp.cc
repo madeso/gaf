@@ -16,7 +16,7 @@ namespace cpp
         {
             const auto last = index == e.values.size();
             const auto comma = last ? "" : ",";
-            sources->header.add(fmt::format("{}{}{}", prefix, v, comma));
+            sources->header.addf("{}{}{}", prefix, v, comma);
             index += 1;
         }
     }
@@ -29,11 +29,11 @@ namespace cpp
             const auto type_name = m.type_name.get_cpp_type();
             if (m.is_optional)
             {
-                sources->header.add(fmt::format("std::shared_ptr<{}> {};", type_name, m.name));
+                sources->header.addf("std::shared_ptr<{}> {};", type_name, m.name);
             }
             else if (m.is_dynamic_array)
             {
-                sources->header.add(fmt::format("std::vector<{}> {};", type_name, m.name));
+                sources->header.addf("std::vector<{}> {};", type_name, m.name);
             }
             else
             {
@@ -44,11 +44,11 @@ namespace cpp
                     {
                         default_value = fmt::format("{}::{}", m.type_name.name, *m.defaultvalue);
                     }
-                    sources->header.add(fmt::format("{} {} = {};", type_name, m.name, default_value));
+                    sources->header.addf("{} {} = {};", type_name, m.name, default_value);
                 }
                 else
                 {
-                    sources->header.add(fmt::format("{} {};", type_name, m.name));
+                    sources->header.addf("{} {};", type_name, m.name);
                 }
             }
         }
@@ -116,14 +116,14 @@ namespace cpp
         {
             for (const auto& header : headers)
             {
-                sources.header.add(fmt::format("#include {}", header));
+                sources.header.addf("#include {}", header);
             }
             sources.header.add("");
         }
 
         if (f.package_name.empty() == false)
         {
-            sources.header.add(fmt::format("namespace {} {{", f.package_name));
+            sources.header.addf("namespace {} {{", f.package_name);
             sources.header.add("");
         }
 
@@ -131,14 +131,14 @@ namespace cpp
         {
             for (const auto& s : f.typedefs)
             {
-                sources.header.add(fmt::format("struct {};", s->name));
+                sources.header.addf("struct {};", s->name);
             }
             sources.header.add("");
         }
 
         for (const auto& e : f.enums)
         {
-            sources.header.add(fmt::format("enum class {} {{", e->name));
+            sources.header.addf("enum class {} {{", e->name);
             iterate_enum(*e, &sources);
             sources.header.add("};");
 
@@ -147,7 +147,7 @@ namespace cpp
 
         for (const auto& s : f.structs)
         {
-            sources.header.add(fmt::format("struct {} {{", s->name));
+            sources.header.addf("struct {} {{", s->name);
 
             write_member_variables_for_cpp(&sources, *s);
             sources.header.add("};");

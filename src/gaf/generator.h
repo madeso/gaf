@@ -5,11 +5,21 @@
 
 #include "gaf/types.h"
 
+#include "fmt/format.h"
+
 struct Lines
 {
     std::vector<std::string> lines;
 
     void add(const std::string& str);
+
+    void addfv(fmt::string_view format, fmt::format_args args);
+
+    template <typename S, typename... Args>
+    void addf(const S& format, Args&&... args)
+    {
+        return addfv(format, fmt::make_args_checked<Args...>(format, args...));
+    }
 };
 
 struct Out

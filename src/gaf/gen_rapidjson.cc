@@ -41,10 +41,10 @@ namespace json
         const auto rti = json_return_error(json, "read value for {} was not a integer", name);
         const auto rtl = json_return_error("gafv", "read value for {} was to low", name);
         const auto rth = json_return_error("gafv", "read value for {} was to high", name);
-        sources->source.add(fmt::format("if({}.IsInt64()==false) {}", json, rti));
-        sources->source.add(fmt::format("auto gafv = {}.GetInt64();", json));
-        sources->source.add(fmt::format("if(gafv < std::numeric_limits<{}>::min()) {}", get_cpp_type(t), rtl));
-        sources->source.add(fmt::format("if(gafv > std::numeric_limits<{}>::max()) {}", get_cpp_type(t), rth));
+        sources->source.addf("if({}.IsInt64()==false) {}", json, rti);
+        sources->source.addf("auto gafv = {}.GetInt64();", json);
+        sources->source.addf("if(gafv < std::numeric_limits<{}>::min()) {}", get_cpp_type(t), rtl);
+        sources->source.addf("if(gafv > std::numeric_limits<{}>::max()) {}", get_cpp_type(t), rth);
         const auto var = fmt::format("c->{}", member);
         const auto val = fmt::format("static_cast<{}>(gafv)", get_cpp_type(t));
         return VarValue{var, val};
@@ -53,7 +53,7 @@ namespace json
     VarValue get_cpp_parse_from_rapidjson_helper_float(Out* sources, const std::string& member, const std::string& name, const std::string& json)
     {
         const auto err = json_return_error(json, "read value for {} was not a number", name);
-        sources->source.add(fmt::format("if({}.IsNumber()==false) {}", json, err));
+        sources->source.addf("if({}.IsNumber()==false) {}", json, err);
         const auto var = fmt::format("c->{}", member);
         const auto val = fmt::format("{}.GetDouble()", json);
         return VarValue{var, val};
@@ -73,7 +73,7 @@ namespace json
         case StandardType::Int64:
         {
             const auto err = json_return_error(json, "read value for {} was not a integer", name);
-            sources->source.add(fmt::format("if({}.IsInt64()==false) {{ {} }}", json, err));
+            sources->source.addf("if({}.IsInt64()==false) {{ {} }}", json, err);
             const auto var = fmt::format("c->{}", member);
             const auto val = fmt::format("{}.GetInt64()", json);
             return VarValue{var, val};
@@ -95,7 +95,7 @@ namespace json
         case StandardType::Bool:
         {
             const auto err = json_return_error(json, "read value for {} was not a bool", name);
-            sources->source.add(fmt::format("if({}.IsBool()==false) {{ {} }}", json, err));
+            sources->source.addf("if({}.IsBool()==false) {{ {} }}", json, err);
             const auto var = fmt::format("c->{}", member);
             const auto val = fmt::format("{}.GetBool()", json);
             return VarValue{var, val};
@@ -103,7 +103,7 @@ namespace json
         case StandardType::String:
         {
             const auto err = json_return_error(json, "read value for {} was not a string", name);
-            sources->source.add(fmt::format("if({}.IsString()==false) {{ {} }}", json, err));
+            sources->source.addf("if({}.IsString()==false) {{ {} }}", json, err);
             const auto var = fmt::format("c->{}", member);
             const auto val = fmt::format("{}.GetString()", json);
             return VarValue{var, val};
@@ -121,11 +121,11 @@ namespace json
         {
             const auto err = json_return_error("arr", "tried to read {} but value was not a array", name);
             sources->source.add("const rapidjson::Value& arr = iter->value;");
-            sources->source.add(fmt::format("if(!arr.IsArray()) {}", err));
+            sources->source.addf("if(!arr.IsArray()) {}", err);
             sources->source.add("for (rapidjson::SizeType i=0; i<arr.Size(); i++)");
             sources->source.add("{");
             const auto vv = get_cpp_parse_from_rapidjson_base(sources, t, member, name, "arr[i]");
-            sources->source.add(fmt::format("{}.push_back({});", vv.variable, vv.value));
+            sources->source.addf("{}.push_back({});", vv.variable, vv.value);
             sources->source.add("}");
         }
         else
@@ -133,11 +133,11 @@ namespace json
             const auto vv = get_cpp_parse_from_rapidjson_base(sources, t, member, name, "iter->value");
             if (member_type.is_optional)
             {
-                sources->source.add(fmt::format("{} = std::make_shared<{}>({});", vv.variable, get_cpp_type(t), vv.value));
+                sources->source.addf("{} = std::make_shared<{}>({});", vv.variable, get_cpp_type(t), vv.value);
             }
             else
             {
-                sources->source.add(fmt::format("{} = {};", vv.variable, vv.value));
+                sources->source.addf("{} = {};", vv.variable, vv.value);
             }
         }
     }
@@ -228,13 +228,13 @@ namespace json
 
     void write_json_source_for_cpp(Out* sources, const Struct& s)
     {
-        sources->source.add(fmt::format("{} ReadFromJsonValue({}* c, const rapidjson::Value& value, const std::string& gaf_path) {{", "std::string", s.name));
+        sources->source.addf("{} ReadFromJsonValue({}* c, const rapidjson::Value& value, const std::string& gaf_path) {{", "std::string", s.name);
         sources->source.add("std::stringstream gaf_ss;");
-        sources->source.add(fmt::format("if(!value.IsObject()) {}", json_return_error("value", "tried to read {} but value was not a object", s.name)));
+        sources->source.addf("if(!value.IsObject()) {}", json_return_error("value", "tried to read {} but value was not a object", s.name));
         sources->source.add("rapidjson::Value::ConstMemberIterator iter;");
         for (const auto& m : s.members)
         {
-            sources->source.add(fmt::format("iter = value.FindMember(\"{}\");", m.name));
+            sources->source.addf("iter = value.FindMember(\"{}\");", m.name);
             sources->source.add("if(iter != value.MemberEnd()) {");
             write_json_member(m, sources);
             sources->source.add("}");
@@ -244,7 +244,7 @@ namespace json
                 sources->source.add("{");
                 if (m.is_optional)
                 {
-                    sources->source.add(fmt::format("c->{}.reset();", m.name));
+                    sources->source.addf("c->{}.reset();", m.name);
                 }
                 else
                 {
@@ -253,7 +253,7 @@ namespace json
                 sources->source.add("}");
             }
         }
-        sources->source.add(fmt::format("return {};", "\"\""));
+        sources->source.addf("return {};", "\"\"");
         sources->source.add("}");
         sources->source.add("");
     }
@@ -272,11 +272,11 @@ namespace json
         const auto enum_type = type_enum ? fmt::format("{}::Type", e.name) : e.name;
         const auto value_prefix = get_value_prefix_opt(e);
         const auto arg = ", const std::string& gaf_path";
-        sources->header.add(fmt::format("{} ReadFromJsonValue({}* c, const rapidjson::Value& value{});", "std::string", enum_type, arg));
-        sources->source.add(fmt::format("{} ReadFromJsonValue({}* c, const rapidjson::Value& value{})", "std::string", enum_type, arg));
+        sources->header.addf("{} ReadFromJsonValue({}* c, const rapidjson::Value& value{});", "std::string", enum_type, arg);
+        sources->source.addf("{} ReadFromJsonValue({}* c, const rapidjson::Value& value{})", "std::string", enum_type, arg);
         sources->source.add("{");
         sources->source.add("std::stringstream gaf_ss;");
-        sources->source.add(fmt::format("if(value.IsString()==false) {};", json_return_error("value", "read value for {} was not a string", e.name)));
+        sources->source.addf("if(value.IsString()==false) {};", json_return_error("value", "read value for {} was not a string", e.name));
         for (const auto& v : e.values)
         {
             sources->source.add(
@@ -304,12 +304,12 @@ namespace json
         sources.source.add("#include <cstring>");
         sources.header.add("#include \"rapidjson/document.h\"");
         sources.header.add("");
-        sources.header.add(fmt::format("#include \"gaf_{}.h\"", name));
+        sources.header.addf("#include \"gaf_{}.h\"", name);
         sources.header.add("");
 
         if (f.package_name.empty() == false)
         {
-            sources.header.add(fmt::format("namespace {} {{", f.package_name));
+            sources.header.addf("namespace {} {{", f.package_name);
             sources.header.add("");
         }
 
@@ -317,7 +317,7 @@ namespace json
         {
             for (const auto& s : f.typedefs)
             {
-                sources.header.add(fmt::format("struct {};", s->name));
+                sources.header.addf("struct {};", s->name);
             }
             sources.header.add("");
         }
@@ -333,7 +333,7 @@ namespace json
 
             sources.header.add("");
             const auto arg = ", const std::string& gaf_path";
-            sources.header.add(fmt::format("{} ReadFromJsonValue({}* c, const rapidjson::Value& value{});", "std::string", s->name, arg));
+            sources.header.addf("{} ReadFromJsonValue({}* c, const rapidjson::Value& value{});", "std::string", s->name, arg);
             sources.header.add("");
         }
 
