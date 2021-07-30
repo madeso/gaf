@@ -23,10 +23,7 @@ std::string Args::read()
     return r;
 }
 
-bool Args::has_more() const
-{
-    return index < args.size();
-}
+bool Args::has_more() const { return index < args.size(); }
 
 int no_arguments(Args& args)
 {

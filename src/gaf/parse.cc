@@ -14,8 +14,7 @@
 std::string read_file_to_string(const std::string& path)
 {
     std::ifstream t(path.c_str());
-    return std::string((std::istreambuf_iterator<char>(t)),
-                       std::istreambuf_iterator<char>());
+    return std::string((std::istreambuf_iterator<char>(t)), std::istreambuf_iterator<char>());
 }
 
 CharFile::CharFile(const std::string& file)
@@ -52,16 +51,10 @@ void CharFile::report_error(const std::string& message)
 }
 
 // util function to read a char from a file
-char read_char(CharFile* f)
-{
-    return f->read();
-}
+char read_char(CharFile* f) { return f->read(); }
 
 // util function to peeek ahead in a file
-char peek_char(CharFile* f, int count = 0)
-{
-    return f->peek(count);
-}
+char peek_char(CharFile* f, int count = 0) { return f->peek(count); }
 
 // function to check if the character is a space or not
 bool is_space(char ch)
@@ -71,10 +64,8 @@ bool is_space(char ch)
     case ' ':
     case '\n':
     case '\r':
-    case '\t':
-        return true;
-    default:
-        return false;
+    case '\t': return true;
+    default: return false;
     }
 }
 
@@ -108,18 +99,12 @@ bool is_ident(bool first, char ch)
 }
 
 // checks if a character is a number
-bool is_number(char ch)
-{
-    return '0' <= ch && ch <= '9';
-}
+bool is_number(char ch) { return '0' <= ch && ch <= '9'; }
 
 // skips white space in a file
 void read_white_spaces(CharFile* f)
 {
-    while (is_space(peek_char(f)))
-    {
-        read_char(f);
-    }
+    while (is_space(peek_char(f))) { read_char(f); }
 }
 
 // skips white space or comments
@@ -130,10 +115,7 @@ void read_spaces(CharFile* f)
         read_white_spaces(f);
         if (peek_char(f, 0) == '/' && peek_char(f, 1) == '/')
         {
-            while (peek_char(f) != '\n')
-            {
-                read_char(f);
-            }
+            while (peek_char(f) != '\n') { read_char(f); }
         }
         else if (peek_char(f, 0) == '/' && peek_char(f, 1) == '*')
         {
@@ -141,10 +123,7 @@ void read_spaces(CharFile* f)
             auto star = read_char(f);
             assert(slash == '/');
             assert(star == '*');
-            while (peek_char(f, 0) != '*' || peek_char(f, 1) != '/')
-            {
-                read_char(f);
-            }
+            while (peek_char(f, 0) != '*' || peek_char(f, 1) != '/') { read_char(f); }
             star = read_char(f);
             slash = read_char(f);
             assert(slash == '/');
@@ -191,10 +170,7 @@ void read_single_char(CharFile* f, char ch)
 std::string read_number(CharFile* f)
 {
     std::string ret;
-    while (is_number(peek_char(f)))
-    {
-        ret += read_char(f);
-    }
+    while (is_number(peek_char(f))) { ret += read_char(f); }
     if (ret.empty())
     {
         f->report_error(fmt::format("Expected number, found {}", peek_char(f)));
@@ -204,10 +180,7 @@ std::string read_number(CharFile* f)
 }
 
 // read a integer
-std::string read_default_value_int(CharFile* f)
-{
-    return read_number(f);
-}
+std::string read_default_value_int(CharFile* f) { return read_number(f); }
 
 // read a double
 std::string read_default_value_double(CharFile* f)
@@ -270,7 +243,8 @@ std::string read_default_value(CharFile* f, const Type& t, File* fi)
             auto e = fi->find_enum(t.name);
             if (e == nullptr)
             {
-                f->report_error(fmt::format("BUG: failed to find enum {} while loooking up {}", ident, t.name));
+                f->report_error(
+                    fmt::format("BUG: failed to find enum {} while loooking up {}", ident, t.name));
                 return "";
             }
             if (e->is_value(ident))
@@ -285,7 +259,8 @@ std::string read_default_value(CharFile* f, const Type& t, File* fi)
         auto c = fi->find_constant(ident, t);
         if (c == nullptr)
         {
-            f->report_error(fmt::format("failed to find constant named {} with a type {}", ident, t.name));
+            f->report_error(
+                fmt::format("failed to find constant named {} with a type {}", ident, t.name));
             if (extra_error)
             {
                 f->report_error(*extra_error);
@@ -378,13 +353,16 @@ std::shared_ptr<Struct> read_struct(CharFile* f, TypeList* type_list, File* fi)
             {
                 f->report_error(fmt::format("Invalid type {} for member {}.{}", ty, struct_name, name));
             }
-            const auto valid_type = type_list->is_valid_type(ty) ? type_list->get_type(ty) : Type::create_error_type();
+            const auto valid_type =
+                type_list->is_valid_type(ty) ? type_list->get_type(ty) : Type::create_error_type();
             const auto s = fi->find_struct(ty);
             if (s != nullptr && is_optional == false)
             {
                 if (s->is_defined == false)
                 {
-                    f->report_error(fmt::format("Struct {} is not defined yet for {}.{}. Define or use optional", ty, struct_name, name));
+                    f->report_error(
+                        fmt::format("Struct {} is not defined yet for {}.{}. Define or use optional", ty,
+                                    struct_name, name));
                 }
             }
             auto mem = Member{name, valid_type};
@@ -456,7 +434,8 @@ std::shared_ptr<Enum> read_enum(CharFile* f, TypeList* type_list)
         const auto type_name = read_ident(f);
         if (type_list->is_valid_type(type_name) == false)
         {
-            f->report_error(fmt::format("{} has a invalid type for size type: {}", enum_name, type_name));
+            f->report_error(
+                fmt::format("{} has a invalid type for size type: {}", enum_name, type_name));
         }
         const auto t = type_list->get_type(type_name);
         if (t.is_int == false)
@@ -537,7 +516,8 @@ std::shared_ptr<File> read_several_structs(CharFile* f)
             {
                 f->report_error(fmt::format("Invalid type {} for const {}", ty, name));
             }
-            const auto valid_type = type_list.is_valid_type(ty) ? type_list.get_type(ty) : Type::create_error_type();
+            const auto valid_type =
+                type_list.is_valid_type(ty) ? type_list.get_type(ty) : Type::create_error_type();
             const auto val = read_default_value(f, valid_type, file.get());
             read_single_char(f, ';');
             file->add_constant(name, valid_type, val);
@@ -548,7 +528,8 @@ std::shared_ptr<File> read_several_structs(CharFile* f)
             const auto package_name = read_ident(f);
             if (file->package_name.empty() == false)
             {
-                f->report_error(fmt::format("tried to change package name from {} to {}", file->package_name, package_name));
+                f->report_error(fmt::format("tried to change package name from {} to {}",
+                                            file->package_name, package_name));
             }
             if (file->named_structs.empty() == false)
             {
@@ -560,7 +541,8 @@ std::shared_ptr<File> read_several_structs(CharFile* f)
         }
         else
         {
-            f->report_error(fmt::format("Expected struct, enum, package or const. Found unknown ident {}", keyword));
+            f->report_error(
+                fmt::format("Expected struct, enum, package or const. Found unknown ident {}", keyword));
         }
 
         // place file marker at the next non whitespace or at eof

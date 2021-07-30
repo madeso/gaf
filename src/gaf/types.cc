@@ -5,12 +5,7 @@
 #include <ostream>
 #include <set>
 
-Type::Type(
-    StandardType s,
-    std::string n,
-    bool i,
-    std::optional<std::string> d,
-    bool e)
+Type::Type(StandardType s, std::string n, bool i, std::optional<std::string> d, bool e)
     : standard_type(s)
     , name(n)
     , is_int(i)
@@ -32,18 +27,12 @@ std::string Type::get_cpp_type() const
     }
 }
 
-Type Type::create_error_type()
-{
-    return {StandardType::Int32, "int32", true, "0"};
-}
+Type Type::create_error_type() { return {StandardType::Int32, "int32", true, "0"}; }
 
 bool operator==(const Type& lhs, const Type& rhs)
 {
-    return lhs.standard_type == rhs.standard_type &&
-           lhs.name == rhs.name &&
-           lhs.is_int == rhs.is_int &&
-           lhs.default_value == rhs.default_value &&
-           lhs.is_enum == rhs.is_enum;
+    return lhs.standard_type == rhs.standard_type && lhs.name == rhs.name && lhs.is_int == rhs.is_int &&
+           lhs.default_value == rhs.default_value && lhs.is_enum == rhs.is_enum;
 }
 
 void TypeList::add_type(const Type& t)
@@ -70,10 +59,7 @@ void TypeList::add_default_types()
     add_type({StandardType::String, "string", false});
 }
 
-bool TypeList::is_valid_type(const std::string& name)
-{
-    return types.find(name) != types.end();
-}
+bool TypeList::is_valid_type(const std::string& name) { return types.find(name) != types.end(); }
 
 Type TypeList::get_type(const std::string& name) const
 {
@@ -112,10 +98,7 @@ std::ostream& operator<<(std::ostream& s, const Struct& self)
 {
     s << "struct " << self.name << "\n{\n";
 
-    for (const auto& m : self.members)
-    {
-        s << "    " << m << "\n";
-    }
+    for (const auto& m : self.members) { s << "    " << m << "\n"; }
     s << "}";
 
     return s;
@@ -131,10 +114,7 @@ Enum::Enum(const std::string& n)
 {
 }
 
-bool Enum::is_value(const std::string& v) const
-{
-    return sorted_values.find(v) != sorted_values.end();
-}
+bool Enum::is_value(const std::string& v) const { return sorted_values.find(v) != sorted_values.end(); }
 
 void Enum::add_value(const std::string& v)
 {
@@ -143,10 +123,7 @@ void Enum::add_value(const std::string& v)
     assert(inserted);
 }
 
-Constant::Constant(
-    const std::string& n,
-    const Type& t,
-    const std::string& v)
+Constant::Constant(const std::string& n, const Type& t, const std::string& v)
     : name(n)
     , type(t)
     , value(v)
@@ -192,7 +169,7 @@ std::shared_ptr<Enum> File::find_enum(const std::string& name) const
 std::shared_ptr<Struct> File::find_struct(const std::string& name) const
 {
     auto found = named_structs.find(name);
-    if(found == named_structs.end())
+    if (found == named_structs.end())
     {
         return nullptr;
     }
@@ -208,13 +185,9 @@ std::ostream& operator<<(std::ostream& s, const File& f)
     {
         s << "package " << f.package_name << ";\n";
     }
-    for (const auto& x : f.structs)
-    {
-        s << *x << '\n';
-    }
+    for (const auto& x : f.structs) { s << *x << '\n'; }
     return s;
 }
-
 
 PrettyFileOut::PrettyFileOut(std::unique_ptr<FileOut>&& d)
     : dest(std::move(d))
@@ -240,10 +213,8 @@ void PrettyFileOut::write(const std::string& line)
         switch (line[0])
         {
         case ':':
-        case ',':
-            return indent + 1;
-        default:
-            return indent;
+        case ',': return indent + 1;
+        default: return indent;
         }
     }();
     dest->write(std::string(current * 4, ' ') + line + "\n");

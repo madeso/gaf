@@ -8,7 +8,6 @@
 #include "gaf/args.h"
 #include "gaf/array.h"
 
-
 namespace json
 {
     struct VarValue
@@ -17,17 +16,16 @@ namespace json
         std::string value;
     };
 
-    std::string vararg_json_return_error(const std::string& val, fmt::string_view format, fmt::format_args args)
+    std::string vararg_json_return_error(const std::string& val, fmt::string_view format,
+                                         fmt::format_args args)
     {
-        return fmt::format
-        (
+        return fmt::format(
             "{{"
             "gaf_ss.str(\"\");"
             "gaf_ss << \"{}, path: \" << gaf_path << \", value: \" << GafToString({});"
             "return gaf_ss.str();"
             "}}",
-            fmt::vformat(format, args), val
-        );
+            fmt::vformat(format, args), val);
     }
 
     template <typename S, typename... Args>
@@ -36,7 +34,9 @@ namespace json
         return vararg_json_return_error(val, format, fmt::make_args_checked<Args...>(format, args...));
     }
 
-    VarValue get_cpp_parse_from_rapidjson_helper_int(Out* sources, StandardType t, const std::string& member, const std::string& name, const std::string& json)
+    VarValue get_cpp_parse_from_rapidjson_helper_int(Out* sources, StandardType t,
+                                                     const std::string& member, const std::string& name,
+                                                     const std::string& json)
     {
         const auto rti = json_return_error(json, "read value for {} was not a integer", name);
         const auto rtl = json_return_error("gafv", "read value for {} was to low", name);
@@ -50,7 +50,8 @@ namespace json
         return VarValue{var, val};
     }
 
-    VarValue get_cpp_parse_from_rapidjson_helper_float(Out* sources, const std::string& member, const std::string& name, const std::string& json)
+    VarValue get_cpp_parse_from_rapidjson_helper_float(Out* sources, const std::string& member,
+                                                       const std::string& name, const std::string& json)
     {
         const auto err = json_return_error(json, "read value for {} was not a number", name);
         sources->source.addf("if({}.IsNumber()==false) {}", json, err);
@@ -59,7 +60,8 @@ namespace json
         return VarValue{var, val};
     }
 
-    VarValue get_cpp_parse_from_rapidjson_base(Out* sources, StandardType t, const std::string& member, const std::string& name, const std::string& json)
+    VarValue get_cpp_parse_from_rapidjson_base(Out* sources, StandardType t, const std::string& member,
+                                               const std::string& name, const std::string& json)
     {
         switch (t)
         {
@@ -115,11 +117,12 @@ namespace json
     }
 
     void get_cpp_parse_from_rapidjson(Out* sources, const StandardType& t, const std::string& member,
-                                    const std::string& name, const Member& member_type)
+                                      const std::string& name, const Member& member_type)
     {
         if (member_type.is_dynamic_array)
         {
-            const auto err = json_return_error("arr", "tried to read {} but value was not a array", name);
+            const auto err =
+                json_return_error("arr", "tried to read {} but value was not a array", name);
             sources->source.add("const rapidjson::Value& arr = iter->value;");
             sources->source.addf("if(!arr.IsArray()) {}", err);
             sources->source.add("for (rapidjson::SizeType i=0; i<arr.Size(); i++)");
@@ -133,7 +136,8 @@ namespace json
             const auto vv = get_cpp_parse_from_rapidjson_base(sources, t, member, name, "iter->value");
             if (member_type.is_optional)
             {
-                sources->source.addf("{} = std::make_shared<{}>({});", vv.variable, get_cpp_type(t), vv.value);
+                sources->source.addf("{} = std::make_shared<{}>({});", vv.variable, get_cpp_type(t),
+                                     vv.value);
             }
             else
             {
@@ -153,28 +157,19 @@ namespace json
             if (m.is_dynamic_array)
             {
                 const auto lines = make_array<std::string>(
-                    "const rapidjson::Value& arr = iter->value;",
-                    "if(!arr.IsArray()) {err}",
-                    "for (rapidjson::SizeType i=0; i<arr.Size(); i++)",
-                    "{{",
-                    "{type} temp;",
-                    "gaf_ss.str(\"\");",
-                    "gaf_ss << gaf_path << \".{name}[\" << i << \"]\";",
+                    "const rapidjson::Value& arr = iter->value;", "if(!arr.IsArray()) {err}",
+                    "for (rapidjson::SizeType i=0; i<arr.Size(); i++)", "{{", "{type} temp;",
+                    "gaf_ss.str(\"\");", "gaf_ss << gaf_path << \".{name}[\" << i << \"]\";",
                     "{rv} r = ReadFromJsonValue(&temp,arr[i], gaf_ss.str());",
-                    "if(r{false}) {{ return r; }}",
-                    "c->{name}.push_back(temp);",
-                    "}}");
+                    "if(r{false}) {{ return r; }}", "c->{name}.push_back(temp);", "}}");
                 for (const auto& line : lines)
                 {
-                    const auto err = json_return_error("arr", "tried to read {} but value was not a array", m.name);
+                    const auto err =
+                        json_return_error("arr", "tried to read {} but value was not a array", m.name);
                     sources->source.add(
-                        fmt::format(
-                            line,
-                            fmt::arg("name", m.name),
-                            fmt::arg("type", m.type_name.name),
-                            fmt::arg("err", err),
-                            fmt::arg("false", ".empty() == false"),
-                            fmt::arg("rv", "std::string")));
+                        fmt::format(line, fmt::arg("name", m.name), fmt::arg("type", m.type_name.name),
+                                    fmt::arg("err", err), fmt::arg("false", ".empty() == false"),
+                                    fmt::arg("rv", "std::string")));
                 }
             }
             else if (m.is_optional)
@@ -191,13 +186,9 @@ namespace json
                     "}}");
                 for (const auto& line : lines)
                 {
-                    sources->source.add(
-                        fmt::format(
-                            line,
-                            fmt::arg("name", m.name),
-                            fmt::arg("type", m.type_name.name),
-                            fmt::arg("false", ".empty() == false"),
-                            fmt::arg("rv", "std::string")));
+                    sources->source.add(fmt::format(
+                        line, fmt::arg("name", m.name), fmt::arg("type", m.type_name.name),
+                        fmt::arg("false", ".empty() == false"), fmt::arg("rv", "std::string")));
                 }
             }
             else
@@ -213,24 +204,23 @@ namespace json
                     "}}");
                 for (const auto& line : lines)
                 {
-                    sources->source.add(
-                        fmt::format(
-                            line,
-                            fmt::arg("name", m.name),
-                            fmt::arg("false", ".empty() == false"),
-                            fmt::arg("rv", "std::string")));
+                    sources->source.add(fmt::format(line, fmt::arg("name", m.name),
+                                                    fmt::arg("false", ".empty() == false"),
+                                                    fmt::arg("rv", "std::string")));
                 }
             }
         }
     }
 
-
-
     void write_json_source_for_cpp(Out* sources, const Struct& s)
     {
-        sources->source.addf("{} ReadFromJsonValue({}* c, const rapidjson::Value& value, const std::string& gaf_path) {{", "std::string", s.name);
+        sources->source.addf(
+            "{} ReadFromJsonValue({}* c, const rapidjson::Value& value, const std::string& gaf_path) {{",
+            "std::string", s.name);
         sources->source.add("std::stringstream gaf_ss;");
-        sources->source.addf("if(!value.IsObject()) {}", json_return_error("value", "tried to read {} but value was not a object", s.name));
+        sources->source.addf(
+            "if(!value.IsObject()) {}",
+            json_return_error("value", "tried to read {} but value was not a object", s.name));
         sources->source.add("rapidjson::Value::ConstMemberIterator iter;");
         for (const auto& m : s.members)
         {
@@ -258,40 +248,31 @@ namespace json
         sources->source.add("");
     }
 
-
-
-    std::string get_value_prefix_opt(const Enum& e)
-    {
-        return fmt::format("{}::", e.name);
-    }
-
-
+    std::string get_value_prefix_opt(const Enum& e) { return fmt::format("{}::", e.name); }
 
     void add_enum_json_function(const Enum& e, Out* sources, bool type_enum = false)
     {
         const auto enum_type = type_enum ? fmt::format("{}::Type", e.name) : e.name;
         const auto value_prefix = get_value_prefix_opt(e);
         const auto arg = ", const std::string& gaf_path";
-        sources->header.addf("{} ReadFromJsonValue({}* c, const rapidjson::Value& value{});", "std::string", enum_type, arg);
-        sources->source.addf("{} ReadFromJsonValue({}* c, const rapidjson::Value& value{})", "std::string", enum_type, arg);
+        sources->header.addf("{} ReadFromJsonValue({}* c, const rapidjson::Value& value{});",
+                             "std::string", enum_type, arg);
+        sources->source.addf("{} ReadFromJsonValue({}* c, const rapidjson::Value& value{})",
+                             "std::string", enum_type, arg);
         sources->source.add("{");
         sources->source.add("std::stringstream gaf_ss;");
-        sources->source.addf("if(value.IsString()==false) {};", json_return_error("value", "read value for {} was not a string", e.name));
+        sources->source.addf("if(value.IsString()==false) {};",
+                             json_return_error("value", "read value for {} was not a string", e.name));
         for (const auto& v : e.values)
         {
             sources->source.add(
-                fmt::format(
-                    "if(strcmp(value.GetString(), \"{v}\")==0) {{ *c = {p}{v}; return {ok};}}",
-                    fmt::arg("v", v),
-                    fmt::arg("p", value_prefix),
-                    fmt::arg("ok", "\"\"")));
+                fmt::format("if(strcmp(value.GetString(), \"{v}\")==0) {{ *c = {p}{v}; return {ok};}}",
+                            fmt::arg("v", v), fmt::arg("p", value_prefix), fmt::arg("ok", "\"\"")));
         }
         sources->source.add(json_return_error("value", "read string for {} was not valid", e.name));
         sources->source.add("}");
         sources->source.add("");
     }
-
-
 
     Out generate_json(const File& f, const std::string& name)
     {
@@ -315,17 +296,11 @@ namespace json
 
         if (f.typedefs.empty() == false)
         {
-            for (const auto& s : f.typedefs)
-            {
-                sources.header.addf("struct {};", s->name);
-            }
+            for (const auto& s : f.typedefs) { sources.header.addf("struct {};", s->name); }
             sources.header.add("");
         }
 
-        for (const auto& e : f.enums)
-        {
-            add_enum_json_function(*e, &sources);
-        }
+        for (const auto& e : f.enums) { add_enum_json_function(*e, &sources); }
 
         for (const auto& s : f.structs)
         {
@@ -333,7 +308,8 @@ namespace json
 
             sources.header.add("");
             const auto arg = ", const std::string& gaf_path";
-            sources.header.addf("{} ReadFromJsonValue({}* c, const rapidjson::Value& value{});", "std::string", s->name, arg);
+            sources.header.addf("{} ReadFromJsonValue({}* c, const rapidjson::Value& value{});",
+                                "std::string", s->name, arg);
             sources.header.add("");
         }
 
@@ -345,10 +321,18 @@ namespace json
         sources.source.add("if(val.IsTrue()) { return \"True\"; };");
         sources.source.add("if(val.IsObject()) { return \"Object\"; };");
         sources.source.add("if(val.IsArray()) { return \"Array\"; };");
-        sources.source.add("if(val.IsUint64()) { std::stringstream ss; ss << \"uint of \" << val.GetUint64(); return ss.str(); };");
-        sources.source.add("if(val.IsInt64()) { std::stringstream ss; ss << \"int of \" << val.GetInt64(); return ss.str(); };");
-        sources.source.add("if(val.IsDouble()) { std::stringstream ss; ss << \"double of \" << val.GetDouble(); return ss.str(); };");
-        sources.source.add("if(val.IsString()) { std::stringstream ss; ss << \"string of \" << val.GetString(); return ss.str(); };");
+        sources.source.add(
+            "if(val.IsUint64()) { std::stringstream ss; ss << \"uint of \" << val.GetUint64(); return "
+            "ss.str(); };");
+        sources.source.add(
+            "if(val.IsInt64()) { std::stringstream ss; ss << \"int of \" << val.GetInt64(); return "
+            "ss.str(); };");
+        sources.source.add(
+            "if(val.IsDouble()) { std::stringstream ss; ss << \"double of \" << val.GetDouble(); return "
+            "ss.str(); };");
+        sources.source.add(
+            "if(val.IsString()) { std::stringstream ss; ss << \"string of \" << val.GetString(); return "
+            "ss.str(); };");
         sources.source.add("return \"<unknown>\";");
         sources.source.add("}");
         sources.source.add("");
@@ -377,12 +361,10 @@ namespace json
 
 }
 
-std::string RapidJsonPlugin::get_name()
-{
-    return "rapidjson";
-}
+std::string RapidJsonPlugin::get_name() { return "rapidjson"; }
 
-int RapidJsonPlugin::run_plugin(const File& file, Writer* writer, std::string& output_folder, Args& args, const std::string& name)
+int RapidJsonPlugin::run_plugin(const File& file, Writer* writer, std::string& output_folder, Args& args,
+                                const std::string& name)
 {
     if (auto r = no_arguments(args); r != 0)
     {
@@ -390,8 +372,8 @@ int RapidJsonPlugin::run_plugin(const File& file, Writer* writer, std::string& o
     }
 
     auto out = json::generate_json(file, name);
-    write_cpp(&out, writer, output_folder, name, "gaf_rapidjson_", file.package_name, {"<sstream>", "\"rapidjson/document.h\""});
+    write_cpp(&out, writer, output_folder, name, "gaf_rapidjson_", file.package_name,
+              {"<sstream>", "\"rapidjson/document.h\""});
 
     return 0;
 }
-

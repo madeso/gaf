@@ -57,12 +57,7 @@ struct Type
     std::optional<std::string> default_value;
     bool is_enum;
 
-    Type(
-        StandardType s,
-        std::string n,
-        bool i,
-        std::optional<std::string> d = {},
-        bool e = false);
+    Type(StandardType s, std::string n, bool i, std::optional<std::string> d = {}, bool e = false);
 
     std::string get_cpp_type() const;
 
@@ -119,15 +114,13 @@ struct Constant
     Type type;
     std::string value;
 
-    Constant(
-        const std::string& n,
-        const Type& t,
-        const std::string& v);
+    Constant(const std::string& n, const Type& t, const std::string& v);
 };
 
 struct File
 {
-    std::map<std::string, std::shared_ptr<Struct>> named_structs; // also contains forward-declared structs
+    std::map<std::string, std::shared_ptr<Struct>>
+        named_structs;  // also contains forward-declared structs
     std::vector<std::shared_ptr<Struct>> typedefs;
     std::vector<std::shared_ptr<Struct>> structs;
     std::vector<std::shared_ptr<Enum>> enums;
@@ -170,7 +163,8 @@ struct Plugin
     virtual ~Plugin() = default;
 
     virtual std::string get_name() = 0;
-    virtual int run_plugin(const File& file, Writer* writer, std::string& output_folder, Args& args, const std::string& name) = 0;
+    virtual int run_plugin(const File& file, Writer* writer, std::string& output_folder, Args& args,
+                           const std::string& name) = 0;
 };
 
 std::ostream& operator<<(std::ostream& s, const File& f);

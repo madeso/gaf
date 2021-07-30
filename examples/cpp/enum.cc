@@ -37,7 +37,8 @@ TEST_CASE("enum json_basic")
     Project project = Project::Other;
 
     Person person;
-    const std::string load = ReadJsonSource(&person, " {\"happiness\": \"INDIFFERENT\", \"favoriteProject\": \"Other\"} ");
+    const std::string load =
+        ReadJsonSource(&person, " {\"happiness\": \"INDIFFERENT\", \"favoriteProject\": \"Other\"} ");
     REQUIRE(load == "");
     REQUIRE(person.happiness == happiness);
     REQUIRE(person.favoriteProject == project);

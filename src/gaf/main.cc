@@ -20,10 +20,7 @@ using Plugins = std::vector<std::shared_ptr<Plugin>>;
 
 void write_errors(const CharFile& f)
 {
-    for (const auto& e : f.errors)
-    {
-        std::cerr << e << "\n";
-    }
+    for (const auto& e : f.errors) { std::cerr << e << "\n"; }
 }
 
 int on_display_command(Args& args, const Plugins&)
@@ -70,10 +67,7 @@ struct ConsoleFileOut : FileOut
     {
     }
 
-    void write(const std::string& line) override
-    {
-        std::cout << "'" << file << "': " << line;
-    }
+    void write(const std::string& line) override { std::cout << "'" << file << "': " << line; }
 };
 
 struct ConsoleWriter : Writer
@@ -93,10 +87,7 @@ struct FileFileOut : FileOut
     {
     }
 
-    void write(const std::string& line) override
-    {
-        ff << line;
-    }
+    void write(const std::string& line) override { ff << line; }
 };
 
 struct FileWriter : Writer
@@ -166,10 +157,7 @@ int on_generate_command(Args& args, const Plugins& plugins)
 
     std::cerr << "unknown plugin " << command << "\n";
     std::cout << "Valid plugins:\n";
-    for (const auto& p : plugins)
-    {
-        std::cout << " - " << p->get_name() << "\n";
-    }
+    for (const auto& p : plugins) { std::cout << " - " << p->get_name() << "\n"; }
     return -42;
 }
 
@@ -203,14 +191,8 @@ int run_main(Args& args, const Plugins& plugins)
 int main(int argc, char* argv[])
 {
     auto args = Args{argv[0]};
-    for (int i = 1; i < argc; i += 1)
-    {
-        args.args.emplace_back(argv[i]);
-    }
+    for (int i = 1; i < argc; i += 1) { args.args.emplace_back(argv[i]); }
 
-    return run_main(
-        args,
-        {std::make_shared<CppPlugin>(),
-         std::make_shared<RapidJsonPlugin>(),
-         std::make_shared<ImguiPlugin>()});
+    return run_main(args, {std::make_shared<CppPlugin>(), std::make_shared<RapidJsonPlugin>(),
+                           std::make_shared<ImguiPlugin>()});
 }

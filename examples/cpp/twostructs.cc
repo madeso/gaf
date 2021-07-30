@@ -80,7 +80,8 @@ TEST_CASE("twostructs json_empty_document")
 TEST_CASE("twostructs json_advanced")
 {
     Bar bar;
-    const std::string load = ReadJsonSource(&bar, "{\"bar\": \"cat and dog\", \"b\": true, \"foo\": {\"hello\": 12, \"world\": 2.4}}");
+    const std::string load = ReadJsonSource(
+        &bar, "{\"bar\": \"cat and dog\", \"b\": true, \"foo\": {\"hello\": 12, \"world\": 2.4}}");
     REQUIRE(load == "");
     CHECK(bar.foo.hello == 12);
     CHECK(bar.foo.world == 2.4f);
