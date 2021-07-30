@@ -204,8 +204,8 @@ void PrettyFileOut::write(const std::string& line)
     {
         indent += inc;
     }
-    const auto current = [this, &line]() -> int
-    {
+    assert(indent >= 0);
+    const auto current = [this, &line]() -> int {
         if (line.empty())
         {
             return 0;

@@ -11,6 +11,7 @@
 #include "gaf/gen_cpp.h"
 #include "gaf/gen_rapidjson.h"
 #include "gaf/gen_imgui.h"
+#include "gaf/gen_pugixml.h"
 
 // from gaf_cpp import CppPlugin, RapidJsonPlugin, ImguiPlugin
 // from gaf_parse import CharFile, read_several_structs, ParseError
@@ -192,7 +193,6 @@ int main(int argc, char* argv[])
 {
     auto args = Args{argv[0]};
     for (int i = 1; i < argc; i += 1) { args.args.emplace_back(argv[i]); }
-
     return run_main(args, {std::make_shared<CppPlugin>(), std::make_shared<RapidJsonPlugin>(),
-                           std::make_shared<ImguiPlugin>()});
+                           std::make_shared<ImguiPlugin>(), std::make_shared<PugiXmlPlugin>()});
 }

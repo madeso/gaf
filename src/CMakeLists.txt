@@ -11,7 +11,7 @@ set(src
     gaf/gen_cpp.cc gaf/gen_cpp.h
     gaf/gen_imgui.cc gaf/gen_imgui.h
     gaf/gen_rapidjson.cc gaf/gen_rapidjson.h
-
+    gaf/gen_pugixml.cc gaf/gen_pugixml.h
 )
 source_group("" FILES ${src})
 
