@@ -286,12 +286,13 @@ namespace json
         sources.header.add("#include \"rapidjson/document.h\"");
         sources.header.add("");
         sources.header.addf("#include \"gaf_{}.h\"", name);
-        sources.header.add("");
+        sources.source.add("#include <sstream>");
+        sources.add("");
 
         if (f.package_name.empty() == false)
         {
-            sources.header.addf("namespace {} {{", f.package_name);
-            sources.header.add("");
+            sources.addf("namespace {}", f.package_name);
+            sources.add("{");
         }
 
         if (f.typedefs.empty() == false)
@@ -345,16 +346,14 @@ namespace json
         sources.source.add("ss << val;");
         sources.source.add("return ss.str();");
         sources.source.add("}");
-        sources.source.add("");
 
-        sources.header.add("");
+        sources.source.add("");
 
         if (f.package_name.empty() == false)
         {
-            sources.header.add("}");
-            sources.header.add("");
+            sources.add("}");
+            sources.add("");
         }
-        sources.header.add("");
 
         return sources;
     }
@@ -372,8 +371,7 @@ int RapidJsonPlugin::run_plugin(const File& file, Writer* writer, std::string& o
     }
 
     auto out = json::generate_json(file, name);
-    write_cpp(&out, writer, output_folder, name, "gaf_rapidjson_", file.package_name,
-              {"<sstream>", "\"rapidjson/document.h\""});
+    write_cpp(&out, writer, output_folder, name, "gaf_rapidjson_");
 
     return 0;
 }

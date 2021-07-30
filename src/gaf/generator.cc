@@ -24,6 +24,14 @@ void Lines::add(const std::string& str)
 
 void Lines::addfv(fmt::string_view format, fmt::format_args args) { add(fmt::vformat(format, args)); }
 
+void Out::add(const std::string& str)
+{
+    header.add(str);
+    source.add(str);
+}
+
+void Out::addfv(fmt::string_view format, fmt::format_args args) { add(fmt::vformat(format, args)); }
+
 std::string get_file_path(const std::string& folder, const std::string& name)
 {
     const auto r = std::filesystem::path{folder} / std::filesystem::path{name};
@@ -39,38 +47,22 @@ void write_lines(const Lines& lines, Writer* writer, const std::string& path)
     }
 }
 
-Lines complete_source(const Lines& source, const std::string& name, const std::string& prefix,
-                      const std::string& package_name, const std::vector<std::string>& includes)
+Lines complete_source(const Lines& source, const std::string& name, const std::string& prefix)
 {
     Lines ret;
 
     ret.addf("#include \"{}.h\"", prefix + name);
     ret.add("");
-    for (const auto& inc : includes) { ret.addf("#include {}", inc); }
-    ret.add("");
-
-    if (package_name.empty() == false)
-    {
-        ret.addf("namespace {} {{", package_name);
-        ret.add("");
-    }
 
     for (const auto& s : source.lines) { ret.add(s); }
-
-    if (package_name.empty() == false)
-    {
-        ret.add("}");
-        ret.add("");
-    }
 
     return ret;
 }
 
 void write_cpp(Out* sources, Writer* writer, const std::string& out_dir, const std::string& name,
-               const std::string& prefix, const std::string& package_name,
-               const std::vector<std::string>& includes)
+               const std::string& prefix)
 {
     write_lines(sources->header, writer, get_file_path(out_dir, prefix + name + ".h"));
-    write_lines(complete_source(sources->source, name, prefix, package_name, includes), writer,
+    write_lines(complete_source(sources->source, name, prefix), writer,
                 get_file_path(out_dir, prefix + name + ".cc"));
 }

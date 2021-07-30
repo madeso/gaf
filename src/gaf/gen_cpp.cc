@@ -101,16 +101,14 @@ namespace cpp
         sources.header.add("#pragma once");
         sources.header.add("");
 
-        if (headers.empty() == false)
-        {
-            for (const auto& header : headers) { sources.header.addf("#include {}", header); }
-            sources.header.add("");
-        }
+        sources.header.add("#include <limits>");
+        for (const auto& header : headers) { sources.header.addf("#include {}", header); }
+        sources.header.add("");
 
         if (f.package_name.empty() == false)
         {
-            sources.header.addf("namespace {} {{", f.package_name);
-            sources.header.add("");
+            sources.addf("namespace {}", f.package_name);
+            sources.add("{");
         }
 
         if (f.typedefs.empty() == false)
@@ -121,7 +119,8 @@ namespace cpp
 
         for (const auto& e : f.enums)
         {
-            sources.header.addf("enum class {} {{", e->name);
+            sources.header.addf("enum class {}", e->name);
+            sources.header.add("{");
             iterate_enum(*e, &sources);
             sources.header.add("};");
 
@@ -139,10 +138,9 @@ namespace cpp
 
         if (f.package_name.empty() == false)
         {
-            sources.header.add("}");
-            sources.header.add("");
+            sources.add("}");
+            sources.add("");
         }
-        sources.header.add("");
 
         return sources;
     }
@@ -160,7 +158,7 @@ int CppPlugin::run_plugin(const File& file, Writer* writer, std::string& output_
     }
 
     auto out = cpp::generate_cpp(file);
-    write_cpp(&out, writer, output_folder, name, "gaf_", file.package_name, {"<limits>"});
+    write_cpp(&out, writer, output_folder, name, "gaf_");
 
     return 0;
 }

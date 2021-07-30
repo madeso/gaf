@@ -210,7 +210,8 @@ namespace imgui
         sources->source.add("");
     }
 
-    Out generate_imgui(const File& f, const std::string& name, const ImguiOptions& opt)
+    Out generate_imgui(const File& f, const std::string& name, const ImguiOptions& opt,
+                       const std::vector<std::string>& headers)
     {
         auto sources = Out{};
 
@@ -219,10 +220,13 @@ namespace imgui
         sources.header.addf("#include \"gaf_{}.h\"", name);
         sources.header.add("");
 
+        for (const auto& h : headers) { sources.source.addf("#include {}", h); }
+        sources.add("");
+
         if (f.package_name.empty() == false)
         {
-            sources.header.addf("namespace {} {{", f.package_name);
-            sources.header.add("");
+            sources.addf("namespace {}", f.package_name);
+            sources.add("{");
         }
 
         if (f.typedefs.empty() == false)
@@ -258,8 +262,7 @@ namespace imgui
             sources.source.add("ImGui::EndCombo();");
             sources.source.add("}");
             sources.source.add("}");
-            sources.header.add("");
-            sources.source.add("");
+            sources.add("");
         }
 
         for (const auto& s : f.structs)
@@ -275,7 +278,6 @@ namespace imgui
             sources.header.add("}");
             sources.header.add("");
         }
-        sources.header.add("");
 
         return sources;
     }
@@ -314,8 +316,9 @@ int ImguiPlugin::run_plugin(const File& file, Writer* writer, std::string& outpu
         }
     }
 
-    auto out = imgui::generate_imgui(file, name, imgui::ImguiOptions{imgui_add, imgui_remove});
-    write_cpp(&out, writer, output_folder, name, "gaf_imgui_", file.package_name, imgui_headers);
+    auto out =
+        imgui::generate_imgui(file, name, imgui::ImguiOptions{imgui_add, imgui_remove}, imgui_headers);
+    write_cpp(&out, writer, output_folder, name, "gaf_imgui_");
 
     return 0;
 }
