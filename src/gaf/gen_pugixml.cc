@@ -79,14 +79,14 @@ namespace xml
         {
             sources->source.addf("for(const auto el: value.children(\"{}\"))", m.name);
             sources->source.add("{");
-            sources->addf("auto em = {}{{}};", m.type_name.get_cpp_type());
+            sources->source.addf("auto em = {}{{}};", m.type_name.get_cpp_type());
             sources->source.add(
                 "if(const auto error = ParseEnumString(&em, el.child_value()); error.empty() == "
                 "false)");
             sources->source.add("{");
             sources->source.add("return error;");
             sources->source.add("}");
-            sources->source.addf("c->{}.emplace_back(em)", m.name);
+            sources->source.addf("c->{}.emplace_back(em);", m.name);
             sources->source.add("}");
         }
         else if (is_basic_type(m.type_name))
@@ -123,11 +123,11 @@ namespace xml
         }
         else
         {
-            sources->source.addf("for(const auto child: value.children(\"{}\"))", m.name);
+            sources->source.addf("for(const auto el: value.children(\"{}\"))", m.name);
             sources->source.add("{");
             sources->source.addf("auto v = {}{{}};", m.type_name.get_cpp_type());
-            sources->source.addf(
-                "if(const auto error = ReadXmlElement(&v, value); error.empty() == false)", m.name);
+            sources->source.addf("if(const auto error = ReadXmlElement(&v, el); error.empty() == false)",
+                                 m.name);
             sources->source.add("{");
             sources->source.add("return error;");
             sources->source.add("}");
@@ -138,14 +138,30 @@ namespace xml
 
     void add_member_variable_single(Out* sources, const Member& m)
     {
+        auto ptr = m.is_optional ? fmt::format("c->{}.get()", m.name) : fmt::format("&c->{}", m.name);
+        auto val = m.is_optional ? fmt::format("*c->{}", m.name) : fmt::format("c->{}", m.name);
+        auto create_mem = [sources, m]() {
+            if (m.is_optional)
+            {
+                sources->source.addf("c->{} = std::make_shared<{}>();", m.name,
+                                     m.type_name.get_cpp_type());
+            }
+        };
+        auto clear_mem = [sources, m]() {
+            if (m.is_optional)
+            {
+                sources->source.addf("c->{}.reset();", m.name);
+            }
+        };
         if (m.type_name.is_enum)
         {
             sources->source.addf("if(const auto el = value.attribute(\"{}\"); el)", m.name);
             sources->source.add("{");
+            create_mem();
             sources->source.addf(
-                "if(const auto error = ParseEnumString(&c->{}, el.value()); error.empty() == false)",
-                m.name);
+                "if(const auto error = ParseEnumString({}, el.value()); error.empty() == false)", ptr);
             sources->source.add("{");
+            clear_mem();
             sources->source.add("return error;");
             sources->source.add("}");
             sources->source.add("}");
@@ -155,21 +171,24 @@ namespace xml
         {
             sources->source.addf("if(const auto el = value.attribute(\"{}\"); el)", m.name);
             sources->source.add("{");
+            create_mem();
             switch (m.type_name.standard_type)
             {
             case StandardType::Bool:
-                sources->source.addf("if(gaf::parse_bool(&c->{}, el.value()) == false)", m.name);
+                sources->source.addf("if(gaf::parse_bool({}, el.value()) == false)", ptr);
                 sources->source.add("{");
+                clear_mem();
                 sources->source.addf("return fmt::format(\"Invalid bool for {}: {{}}\", el.value());",
                                      m.name);
                 sources->source.add("}");
                 break;
-            case StandardType::String: sources->source.addf("c->{} = el.value();", m.name); break;
+            case StandardType::String: sources->source.addf("{} = el.value();", val); break;
             default:
                 sources->source.add("std::istringstream ss(el.value());");
-                sources->source.addf("ss >> c->{};", m.name);
+                sources->source.addf("ss >> {};", val);
                 sources->source.add("if(ss.good() == false)");
                 sources->source.add("{");
+                clear_mem();
                 sources->source.addf("return fmt::format(\"Invalid format for {}: {{}}\", el.value());",
                                      m.name);
                 sources->source.add("}");
@@ -182,9 +201,11 @@ namespace xml
         {
             sources->source.addf("if(const auto child = value.child(\"{}\"); child)", m.name);
             sources->source.add("{");
+            create_mem();
             sources->source.addf(
-                "if(const auto error = ReadXmlElement(&c->{}, value); error.empty() == false)", m.name);
+                "if(const auto error = ReadXmlElement({}, value); error.empty() == false)", ptr);
             sources->source.add("{");
+            clear_mem();
             sources->source.add("return error;");
             sources->source.add("}");
             sources->source.add("}");
