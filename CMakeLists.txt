@@ -66,7 +66,7 @@ function(add_sample)
         target_compile_definitions(${APP_NAME} PUBLIC -DGAF_TEST_JSON)
     endif()
     if(${ARG_PUGIXML})
-        target_link_libraries(${APP_NAME} PUBLIC pugixml fmt)
+        target_link_libraries(${APP_NAME} PUBLIC libgaf_xml)
         target_compile_definitions(${APP_NAME} PUBLIC -DGAF_TEST_XML)
     endif()
 

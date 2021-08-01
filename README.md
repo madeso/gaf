@@ -51,7 +51,7 @@ Not much, I agree, but by opting in to additional features you can get:
  * The code that protoc generates is pretty unreadable. Gaf aims to have readable as a programmer would write it.
  * Protobuf mangles your names according to the "google standard". Gaf doesn't care.
  * Protobuf forces you to use setters and getters. Gaf has none of those.
- * Protobuf has a runtime dependency on the protobuf library. Gaf only has standard C++.
+ * Protobuf has a runtime dependency on the protobuf library. Gaf has a small C++ library for common IO.
  * Gaf have no understanding of versions. It's up to you to handle that.
  * Protobuf has a reflection api. Gaf only has generated code, that could have a reflection api, but currently doesnt.
    ...but(!) it does have a python plugin system. Inherit from a interface and send that to the 'main'

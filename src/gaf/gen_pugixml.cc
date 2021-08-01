@@ -231,6 +231,7 @@ namespace xml
         sources.source.add("#include <cstring>");
         sources.source.add("#include <sstream>");
         sources.source.add("#include \"fmt/format.h\"");
+        sources.source.add("#include \"gaf/lib_pugixml.h\"");
 
         sources.add("");
 
