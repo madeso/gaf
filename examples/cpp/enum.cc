@@ -1,10 +1,15 @@
 #define CATCH_CONFIG_MAIN
 #include "catch.hpp"
 #include "gaf_enum.h"
-#include "readjsonsource.h"
 
 #if GAF_TEST_JSON
+#include "readjsonsource.h"
 #include "gaf_rapidjson_enum.h"
+#endif
+
+#if GAF_TEST_XML
+#include "pugixmlsource.h"
+#include "gaf_pugixml_enum.h"
 #endif
 
 TEST_CASE("enum Person")
@@ -62,6 +67,44 @@ TEST_CASE("enum json_as_ints")
 {
     Person person;
     const std::string load = ReadJsonSource(&person, " {\"happiness\": 1, \"favoriteProject\": 2} ");
+    REQUIRE(load != "");
+}
+
+#endif
+
+#if GAF_TEST_XML
+
+TEST_CASE("enum xml_basic")
+{
+    Happiness happiness = Happiness::INDIFFERENT;
+    Project project = Project::Other;
+
+    Person person;
+    const std::string load =
+        ReadXmlSource(&person, "<Person happiness=\"INDIFFERENT\" favoriteProject=\"Other\" />");
+    REQUIRE(load == "");
+    REQUIRE(person.happiness == happiness);
+    REQUIRE(person.favoriteProject == project);
+}
+
+TEST_CASE("enum xml_missing_project")
+{
+    Person person;
+    const std::string load = ReadXmlSource(&person, " <Person happiness=\"12\" />");
+    REQUIRE(load != "");
+}
+
+TEST_CASE("enum xml_empty_document")
+{
+    Person person;
+    const std::string load = ReadXmlSource(&person, "<Person />");
+    REQUIRE(load != "");
+}
+
+TEST_CASE("enum xml_as_ints")
+{
+    Person person;
+    const std::string load = ReadXmlSource(&person, "<Person happiness=\"1\" favoriteProject=\"2\"/>");
     REQUIRE(load != "");
 }
 
