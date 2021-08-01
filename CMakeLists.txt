@@ -71,10 +71,10 @@ add_sample(BASE_NAME underscore)
 add_sample(BASE_NAME package)
 
 add_sample(BASE_NAME twostructs)
-add_sample(RAPIDJSON BASE_NAME twostructs)
+add_sample(BASE_NAME twostructs RAPIDJSON)
 
 add_sample(BASE_NAME master)
-add_sample(RAPIDJSON BASE_NAME master)
+add_sample(BASE_NAME master RAPIDJSON)
 
 add_sample(BASE_NAME enum)
-add_sample(RAPIDJSON BASE_NAME enum)
+add_sample(BASE_NAME enum RAPIDJSON)
