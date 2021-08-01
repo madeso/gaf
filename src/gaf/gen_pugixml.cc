@@ -24,7 +24,7 @@ namespace xml
         for (const auto& v : e.values)
         {
             sources->source.addf(
-                "if(stricmp(value, \"{value}\") == 0) {{ *c = {type}::{value}; return \"\"; }}",
+                "if(strcmp(value, \"{value}\") == 0) {{ *c = {type}::{value}; return \"\"; }}",
                 fmt::arg("type", e.name), fmt::arg("value", v));
         }
         // todo(Gustav): add list of valid values with a could_be_fun
@@ -81,7 +81,7 @@ namespace xml
             sources->source.add("{");
             sources->addf("auto em = {}{{}};", m.type_name.get_cpp_type());
             sources->source.add(
-                "if(const auto error = ParseEnumString(&em, el->child_value()); error.empty() == "
+                "if(const auto error = ParseEnumString(&em, el.child_value()); error.empty() == "
                 "false)");
             sources->source.add("{");
             sources->source.add("return error;");
@@ -97,24 +97,24 @@ namespace xml
             {
             case StandardType::Bool:
                 sources->source.add("bool b = false;");
-                sources->source.add("if(gaf::parse_bool(&b, el->child_value()) == false)");
+                sources->source.add("if(gaf::parse_bool(&b, el.child_value()) == false)");
                 sources->source.add("{");
                 sources->source.addf(
-                    "return fmt::format(\"Invalid bool for {}: {{}}\", el->child_value());", m.name);
+                    "return fmt::format(\"Invalid bool for {}: {{}}\", el.child_value());", m.name);
                 sources->source.add("}");
                 sources->source.addf("c->{}.emplace_back(b);", m.name);
                 break;
             case StandardType::String:
-                sources->source.addf("c->{}.emplace_back(el->child_value());", m.name);
+                sources->source.addf("c->{}.emplace_back(el.child_value());", m.name);
                 break;
             default:
                 sources->source.addf("{} v = 0;", m.type_name.get_cpp_type());
-                sources->source.add("std::istringstream ss(el->child_value());");
+                sources->source.add("std::istringstream ss(el.child_value());");
                 sources->source.add("ss >> v;");
                 sources->source.add("if(ss.good() == false)");
                 sources->source.add("{");
                 sources->source.addf(
-                    "return fmt::format(\"Invalid format for {}: {{}}\", el->child_value());", m.name);
+                    "return fmt::format(\"Invalid format for {}: {{}}\", el.child_value());", m.name);
                 sources->source.add("}");
                 sources->source.addf("c->{}.emplace_back(v);", m.name);
                 break;
@@ -143,7 +143,7 @@ namespace xml
             sources->source.addf("if(const auto el = value.attribute(\"{}\"); el)", m.name);
             sources->source.add("{");
             sources->source.addf(
-                "if(const auto error = ParseEnumString(&c->{}, el->value()); error.empty() == false)",
+                "if(const auto error = ParseEnumString(&c->{}, el.value()); error.empty() == false)",
                 m.name);
             sources->source.add("{");
             sources->source.add("return error;");
@@ -158,19 +158,19 @@ namespace xml
             switch (m.type_name.standard_type)
             {
             case StandardType::Bool:
-                sources->source.addf("if(gaf::parse_bool(&c->{}, el->value()) == false)", m.name);
+                sources->source.addf("if(gaf::parse_bool(&c->{}, el.value()) == false)", m.name);
                 sources->source.add("{");
-                sources->source.addf("return fmt::format(\"Invalid bool for {}: {{}}\", el->value());",
+                sources->source.addf("return fmt::format(\"Invalid bool for {}: {{}}\", el.value());",
                                      m.name);
                 sources->source.add("}");
                 break;
-            case StandardType::String: sources->source.addf("c->{} = el->value();", m.name); break;
+            case StandardType::String: sources->source.addf("c->{} = el.value();", m.name); break;
             default:
-                sources->source.add("std::istringstream ss(el->value());");
+                sources->source.add("std::istringstream ss(el.value());");
                 sources->source.addf("ss >> c->{};", m.name);
                 sources->source.add("if(ss.good() == false)");
                 sources->source.add("{");
-                sources->source.addf("return fmt::format(\"Invalid format for {}: {{}}\", el->value());",
+                sources->source.addf("return fmt::format(\"Invalid format for {}: {{}}\", el.value());",
                                      m.name);
                 sources->source.add("}");
                 break;
@@ -183,7 +183,7 @@ namespace xml
             sources->source.addf("if(const auto child = value.child(\"{}\"); child)", m.name);
             sources->source.add("{");
             sources->source.addf(
-                "if(const auto error = ReadXmlElement(&c->{}, calue); error.empty() == false)", m.name);
+                "if(const auto error = ReadXmlElement(&c->{}, value); error.empty() == false)", m.name);
             sources->source.add("{");
             sources->source.add("return error;");
             sources->source.add("}");
@@ -229,6 +229,8 @@ namespace xml
         sources.header.addf("#include \"gaf_{}.h\"", name);
 
         sources.source.add("#include <cstring>");
+        sources.source.add("#include <sstream>");
+        sources.source.add("#include \"fmt/format.h\"");
 
         sources.add("");
 

@@ -4,7 +4,7 @@ SET(GAF_ROOT_DIR ${CMAKE_CURRENT_LIST_DIR})
 # https://github.com/Kitware/CMake/blob/master/Modules/FindProtobuf.cmake
 
 function(GAF_GENERATE_CPP)
-    set(options IMGUI RAPIDJSON)
+    set(options IMGUI RAPIDJSON PUGIXML)
     set(oneValueArgs SOURCES HEADERS)
     set(multiValueArgs FILES)
     cmake_parse_arguments(ARG
@@ -41,6 +41,10 @@ function(GAF_GENERATE_CPP)
         if(${ARG_RAPIDJSON})
             SET(GAF_EXTENSION_ARG "rapidjson")
             SET(GAF_PREFIX "gaf_rapidjson_")
+        endif()
+        if(${ARG_PUGIXML})
+            SET(GAF_EXTENSION_ARG "pugixml")
+            SET(GAF_PREFIX "gaf_pugixml_")
         endif()
 
         list(APPEND SOURCES "${CMAKE_CURRENT_BINARY_DIR}/${GAF_PREFIX}${FIL_NAME}.cc")

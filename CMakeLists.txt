@@ -24,7 +24,7 @@ include(external/catch/Catch.cmake)
 
 
 function(add_sample)
-    set(options RAPIDJSON)
+    set(options RAPIDJSON PUGIXML)
     set(oneValueArgs BASE_NAME CC_NAME)
     set(multiValueArgs)
     cmake_parse_arguments(ARG
@@ -41,12 +41,19 @@ function(add_sample)
     if(${ARG_RAPIDJSON})
         set(APP_NAME ${APP_NAME}_json)
     endif()
+    if(${ARG_PUGIXML})
+        set(APP_NAME ${APP_NAME}_xml)
+    endif()
 
     GAF_GENERATE_CPP(SOURCES GAF_SOURCES HEADERS GAF_HEADERS FILES ${CMAKE_CURRENT_SOURCE_DIR}/examples/gaf/${ARG_BASE_NAME}.c)
     set(src ${CMAKE_CURRENT_SOURCE_DIR}/examples/cpp/${ARG_CC_NAME} ${GAF_SOURCES} ${GAF_HEADERS})
 
     if(${ARG_RAPIDJSON})
         GAF_GENERATE_CPP(RAPIDJSON SOURCES GAF_JSON_SOURCES HEADERS GAF_JSON_HEADERS FILES ${CMAKE_CURRENT_SOURCE_DIR}/examples/gaf/${ARG_BASE_NAME}.c)
+        set(src ${src} ${GAF_JSON_SOURCES} ${GAF_JSON_HEADERS})
+    endif()
+    if(${ARG_PUGIXML})
+        GAF_GENERATE_CPP(PUGIXML SOURCES GAF_JSON_SOURCES HEADERS GAF_JSON_HEADERS FILES ${CMAKE_CURRENT_SOURCE_DIR}/examples/gaf/${ARG_BASE_NAME}.c)
         set(src ${src} ${GAF_JSON_SOURCES} ${GAF_JSON_HEADERS})
     endif()
 
@@ -57,6 +64,10 @@ function(add_sample)
     if(${ARG_RAPIDJSON})
         target_link_libraries(${APP_NAME} PUBLIC rapidjson)
         target_compile_definitions(${APP_NAME} PUBLIC -DGAF_TEST_JSON)
+    endif()
+    if(${ARG_PUGIXML})
+        target_link_libraries(${APP_NAME} PUBLIC pugixml fmt)
+        target_compile_definitions(${APP_NAME} PUBLIC -DGAF_TEST_XML)
     endif()
 
     catch_discover_tests(${APP_NAME})
@@ -72,9 +83,12 @@ add_sample(BASE_NAME package)
 
 add_sample(BASE_NAME twostructs)
 add_sample(BASE_NAME twostructs RAPIDJSON)
+add_sample(BASE_NAME twostructs PUGIXML)
 
 add_sample(BASE_NAME master)
 add_sample(BASE_NAME master RAPIDJSON)
+add_sample(BASE_NAME master PUGIXML)
 
 add_sample(BASE_NAME enum)
 add_sample(BASE_NAME enum RAPIDJSON)
+add_sample(BASE_NAME enum PUGIXML)
