@@ -17,6 +17,18 @@ namespace gaf
         return false;
     }
 
+    template <>
+    std::optional<std::int8_t> parse_number<std::int8_t>(const std::string& value)
+    {
+        return cast_parse_number<std::int8_t, std::int64_t>(value);
+    }
+
+    template <>
+    std::optional<std::uint8_t> parse_number<std::uint8_t>(const std::string& value)
+    {
+        return cast_parse_number<std::uint8_t, std::int64_t>(value);
+    }
+
     std::string could_be_fun_none(const std::string&, const std::vector<std::string>&) { return ""; }
 
     std::string could_be_fun_all(const std::string&, const std::vector<std::string>& values)
