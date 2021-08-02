@@ -34,7 +34,7 @@ namespace xml
         sources->source.add("");
     }
 
-    void add_member_failure_to_read(Out* sources, const Member& m)
+    void add_member_failure_to_read(Out* sources, const Member& m, const std::string& get_values)
     {
         if (m.missing_is_fail || m.is_optional)
         {
@@ -46,7 +46,16 @@ namespace xml
             }
             else
             {
+                sources->source.addf("const auto cv = could_be(\"{}\", {});", m.name, get_values);
+                sources->source.add("if(cv.empty())");
+                sources->source.add("{");
                 sources->source.addf("return \"{} is missing\";", m.name);
+                sources->source.add("}");
+                sources->source.add("else");
+                sources->source.add("{");
+                sources->source.addf("return fmt::format(\"{} is missing, could be {{}}\", cv);",
+                                     m.name);
+                sources->source.add("}");
             }
             sources->source.add("}");
         }
@@ -126,8 +135,9 @@ namespace xml
             sources->source.addf("for(const auto el: value.children(\"{}\"))", m.name);
             sources->source.add("{");
             sources->source.addf("auto v = {}{{}};", m.type_name.get_cpp_type());
-            sources->source.addf("if(const auto error = ReadXmlElement(&v, el); error.empty() == false)",
-                                 m.name);
+            sources->source.addf(
+                "if(const auto error = ReadXmlElement(&v, el, could_be); error.empty() == false)",
+                m.name);
             sources->source.add("{");
             sources->source.add("return error;");
             sources->source.add("}");
@@ -165,7 +175,7 @@ namespace xml
             sources->source.add("return error;");
             sources->source.add("}");
             sources->source.add("}");
-            add_member_failure_to_read(sources, m);
+            add_member_failure_to_read(sources, m, "::gaf::get_all_atributes(value)");
         }
         else if (is_basic_type(m.type_name))
         {
@@ -195,7 +205,7 @@ namespace xml
                 break;
             }
             sources->source.add("}");
-            add_member_failure_to_read(sources, m);
+            add_member_failure_to_read(sources, m, "::gaf::get_all_atributes(value)");
         }
         else
         {
@@ -203,13 +213,14 @@ namespace xml
             sources->source.add("{");
             create_mem();
             sources->source.addf(
-                "if(const auto error = ReadXmlElement({}, value); error.empty() == false)", ptr);
+                "if(const auto error = ReadXmlElement({}, value, could_be); error.empty() == false)",
+                ptr);
             sources->source.add("{");
             clear_mem();
             sources->source.add("return error;");
             sources->source.add("}");
             sources->source.add("}");
-            add_member_failure_to_read(sources, m);
+            add_member_failure_to_read(sources, m, "::gaf::get_all_children(value)");
         }
     }
 
@@ -227,8 +238,10 @@ namespace xml
 
     void add_struct_function(Out* sources, const Struct& s)
     {
-        const auto signature =
-            fmt::format("std::string ReadXmlElement({}* c, const pugi::xml_node& value)", s.name);
+        const auto signature = fmt::format(
+            "std::string ReadXmlElement({}* c, const pugi::xml_node& value, const ::gaf::could_be_fun& "
+            "could_be)",
+            s.name);
         sources->header.addf("{};", signature);
         sources->source.add(signature);
         sources->source.add("{");
@@ -248,11 +261,11 @@ namespace xml
         sources.header.add("#include \"pugixml.hpp\"");
         sources.header.add("");
         sources.header.addf("#include \"gaf_{}.h\"", name);
+        sources.header.add("#include \"gaf/lib_pugixml.h\"");
 
         sources.source.add("#include <cstring>");
         sources.source.add("#include <sstream>");
         sources.source.add("#include \"fmt/format.h\"");
-        sources.source.add("#include \"gaf/lib_pugixml.h\"");
 
         sources.add("");
 

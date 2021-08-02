@@ -5,6 +5,8 @@
 #include <string>
 #include "pugixml.hpp"
 
+#include "gaf/lib_pugixml.h"
+
 template <typename T>
 std::string ReadXmlSource(T* t, const char* const source)
 {
@@ -12,7 +14,7 @@ std::string ReadXmlSource(T* t, const char* const source)
     const auto err = doc.load_buffer(source, strlen(source));
     if (err)
     {
-        return ReadXmlElement(t, doc.document_element());
+        return ReadXmlElement(t, doc.document_element(), gaf::could_be_fun_all);
     }
     else
     {
