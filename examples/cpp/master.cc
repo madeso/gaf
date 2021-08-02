@@ -47,7 +47,6 @@ TEST_CASE("master std constructor")
     REQUIRE(fb.ub == 0);
     REQUIRE(fb.uc == 0);
     REQUIRE(fb.ud == 0);
-    REQUIRE(fb.e == 0);
     REQUIRE(fb.f == false);
     REQUIRE(fb.g == 0);
     REQUIRE(fb.h == 0);
@@ -115,7 +114,6 @@ TEST_CASE("master std xml")
     ub=\"6\"\
     uc=\"7\"\
     ud=\"8\"\
-    e=\"9\"\
     f=\"true\"\
     g=\"10.0\"\
     h=\"11.0\"\
@@ -133,7 +131,6 @@ TEST_CASE("master std xml")
     REQUIRE(fb.ub == 6);
     REQUIRE(fb.uc == 7);
     REQUIRE(fb.ud == 8);
-    REQUIRE(fb.e == 9);
     REQUIRE(fb.f == true);
     REQUIRE(fb.g == 10.0f);
     REQUIRE(fb.h == 11.0);
@@ -158,7 +155,6 @@ TEST_CASE("master array constructor")
     REQUIRE(fb.ub.size() == 0);
     REQUIRE(fb.uc.size() == 0);
     REQUIRE(fb.ud.size() == 0);
-    REQUIRE(fb.e.size() == 0);
     REQUIRE(fb.f.size() == 0);
     REQUIRE(fb.g.size() == 0);
     REQUIRE(fb.h.size() == 0);
@@ -190,7 +186,6 @@ TEST_CASE("master array basic json")
     \"ub\": [],\
     \"uc\": [],\
     \"ud\": [],\
-    \"e\": [],\
     \"f\": [],\
     \"g\": [],\
     \"h\": [],\
@@ -207,7 +202,6 @@ TEST_CASE("master array basic json")
     REQUIRE(fb.ub.size() == 0);
     REQUIRE(fb.uc.size() == 0);
     REQUIRE(fb.ud.size() == 0);
-    REQUIRE(fb.e.size() == 0);
     REQUIRE(fb.f.size() == 0);
     REQUIRE(fb.g.size() == 0);
     REQUIRE(fb.h.size() == 0);
@@ -230,7 +224,6 @@ TEST_CASE("master arrays advanced json")
     \"ub\": [11, 12],\
     \"uc\": [13, 14],\
     \"ud\": [15, 16],\
-    \"e\": [17, 18],\
     \"f\": [false, true],\
     \"g\": [19, 20],\
     \"h\": [21, 22],\
@@ -249,7 +242,6 @@ TEST_CASE("master arrays advanced json")
     REQUIRE_THAT(fb.uc, Equals(Vector<std::uint32_t>() << 13 << 14));
     REQUIRE_THAT(fb.ud, Equals(Vector<std::uint64_t>() << 15 << 16));
 
-    REQUIRE_THAT(fb.e, Equals(Vector<char>() << 17 << 18));
     REQUIRE_THAT(fb.f, Equals(Vector<bool>() << false << true));
     REQUIRE_THAT(fb.g, Equals(Vector<float>() << 19 << 20));
     REQUIRE_THAT(fb.h, Equals(Vector<double>() << 21 << 22));
@@ -289,7 +281,6 @@ TEST_CASE("master array basic xml")
     \"ub\": [],\
     \"uc\": [],\
     \"ud\": [],\
-    \"e\": [],\
     \"f\": [],\
     \"g\": [],\
     \"h\": [],\
@@ -306,7 +297,6 @@ TEST_CASE("master array basic xml")
     REQUIRE(fb.ub.size() == 0);
     REQUIRE(fb.uc.size() == 0);
     REQUIRE(fb.ud.size() == 0);
-    REQUIRE(fb.e.size() == 0);
     REQUIRE(fb.f.size() == 0);
     REQUIRE(fb.g.size() == 0);
     REQUIRE(fb.h.size() == 0);
@@ -329,7 +319,6 @@ TEST_CASE("master arrays advanced xml")
     \"ub\": [11, 12],\
     \"uc\": [13, 14],\
     \"ud\": [15, 16],\
-    \"e\": [17, 18],\
     \"f\": [false, true],\
     \"g\": [19, 20],\
     \"h\": [21, 22],\
@@ -348,7 +337,6 @@ TEST_CASE("master arrays advanced xml")
     REQUIRE_THAT(fb.uc, Equals(Vector<std::uint32_t>() << 13 << 14));
     REQUIRE_THAT(fb.ud, Equals(Vector<std::uint64_t>() << 15 << 16));
 
-    REQUIRE_THAT(fb.e, Equals(Vector<char>() << 17 << 18));
     REQUIRE_THAT(fb.f, Equals(Vector<bool>() << false << true));
     REQUIRE_THAT(fb.g, Equals(Vector<float>() << 19 << 20));
     REQUIRE_THAT(fb.h, Equals(Vector<double>() << 21 << 22));

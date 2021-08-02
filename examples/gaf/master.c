@@ -22,7 +22,6 @@ struct Standard
     uint32 uc;
     uint64 ud;
 
-    byte e;
     bool f;
 
     float g;
@@ -47,7 +46,6 @@ struct Arrays
     uint32 uc[];
     uint64 ud[];
 
-    byte e[];
     bool f[];
 
     float g[];
@@ -72,7 +70,6 @@ struct Optionals
     uint32? uc;
     uint64? ud;
 
-    byte? e;
     bool? f;
 
     float? g;
