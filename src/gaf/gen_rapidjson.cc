@@ -92,8 +92,6 @@ namespace json
             return get_cpp_parse_from_rapidjson_helper_float(sources, member, name, json);
         case StandardType::Double:
             return get_cpp_parse_from_rapidjson_helper_float(sources, member, name, json);
-        case StandardType::Byte:
-            return get_cpp_parse_from_rapidjson_helper_int(sources, t, member, name, json);
         case StandardType::Bool:
         {
             const auto err = json_return_error(json, "read value for {} was not a bool", name);

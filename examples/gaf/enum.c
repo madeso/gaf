@@ -4,7 +4,7 @@ enum Happiness
 }
 
 // unless specified, type defaults to something like int32
-enum Project : byte
+enum Project : int8
 {
     Protobuf, Gaf, Other
 }

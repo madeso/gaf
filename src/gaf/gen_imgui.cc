@@ -64,7 +64,6 @@ namespace imgui
         case StandardType::Double:
             sources->source.addf("{}ImGui::InputDouble({}, {});", name, var);
             return;
-        case StandardType::Byte: sources->source.addf("{}ImGui::Edit({}, {});", name, var); return;
         case StandardType::Bool: sources->source.addf("{}ImGui::Checkbox({}, {});", name, var); return;
         case StandardType::String:
             sources->source.add("{");

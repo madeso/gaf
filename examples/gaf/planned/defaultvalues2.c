@@ -1,7 +1,7 @@
 struct Rgb {
-    byte red;
-    byte green;
-    byte blue;
+    int8 red;
+    int8 green;
+    int8 blue;
 }
 
 struct Foo {

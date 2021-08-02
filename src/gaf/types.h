@@ -22,7 +22,6 @@ enum class StandardType
     Uint64,
     Float,
     Double,
-    Byte,
     Bool,
     String,
     INVALID,
@@ -42,7 +41,6 @@ constexpr std::string_view get_cpp_type(StandardType type)
     case StandardType::Uint64: return "std::uint64_t";
     case StandardType::Float: return "float";
     case StandardType::Double: return "double";
-    case StandardType::Byte: return "char";
     case StandardType::Bool: return "bool";
     case StandardType::String: return "std::string";
     default: return "";

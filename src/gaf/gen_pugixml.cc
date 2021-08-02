@@ -75,7 +75,6 @@ namespace xml
         case StandardType::Uint64:
         case StandardType::Float:
         case StandardType::Double:
-        case StandardType::Byte:
         case StandardType::Bool:
         case StandardType::String: return true;
         default: return false;

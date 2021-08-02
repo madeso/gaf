@@ -54,7 +54,6 @@ void TypeList::add_default_types()
 
     add_type({StandardType::Float, "float", false, "0.0f"});
     add_type({StandardType::Double, "double", false, "0.0"});
-    add_type({StandardType::Byte, "byte", true, "0"});
     add_type({StandardType::Bool, "bool", false, "false"});
     add_type({StandardType::String, "string", false});
 }

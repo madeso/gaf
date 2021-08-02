@@ -299,11 +299,6 @@ std::string read_default_value(CharFile* f, const Type& t, File* fi)
     {
         return read_default_value_double(f);
     }
-    if (t.standard_type == StandardType::Byte)
-    {
-        f->report_error("default value for byte is not yet supported");
-        return "";
-    }
     return "";
 }
 

@@ -88,7 +88,6 @@ TEST_CASE("master std json")
     REQUIRE(fb.ub == 6);
     REQUIRE(fb.uc == 7);
     REQUIRE(fb.ud == 8);
-    REQUIRE(fb.e == 9);
     REQUIRE(fb.f == true);
     REQUIRE(fb.g == 10.0f);
     REQUIRE(fb.h == 11.0);
