@@ -7,6 +7,11 @@
 #include "gaf_rapidjson_twostructs.h"
 #endif
 
+#if GAF_TEST_XML
+#include "pugixmlsource.h"
+#include "gaf_pugixml_twostructs.h"
+#endif
+
 TEST_CASE("twostructs constructor")
 {
     Foo foo;
@@ -82,6 +87,54 @@ TEST_CASE("twostructs json_advanced")
     Bar bar;
     const std::string load = ReadJsonSource(
         &bar, "{\"bar\": \"cat and dog\", \"b\": true, \"foo\": {\"hello\": 12, \"world\": 2.4}}");
+    REQUIRE(load == "");
+    CHECK(bar.foo.hello == 12);
+    CHECK(bar.foo.world == 2.4f);
+    CHECK(bar.bar == "cat and dog");
+    CHECK(bar.b == true);
+}
+
+#endif
+
+#if GAF_TEST_XML
+
+TEST_CASE("twostructs xml_basic")
+{
+    Foo foo;
+    const std::string load = ReadXmlSource(&foo, "<Foo hello=\"12\" world=\"2.4\" />");
+    REQUIRE(load == "");
+    REQUIRE(foo.hello == 12);
+    REQUIRE(foo.world == 2.4f);
+}
+
+TEST_CASE("twostructs xml_double_can_be_ints")
+{
+    Foo foo;
+    const std::string load = ReadXmlSource(&foo, "<Foo hello=\"12\" world=\"2\" />");
+    REQUIRE(load == "");
+    REQUIRE(foo.hello == 12);
+    REQUIRE(foo.world == 2.0f);
+}
+
+TEST_CASE("twostructs xml_missing_world")
+{
+    Foo foo;
+    const std::string load = ReadXmlSource(&foo, "<Foo hello=\"12\" />");
+    REQUIRE(load != "");
+}
+
+TEST_CASE("twostructs xml_empty_document")
+{
+    Foo foo;
+    const std::string load = ReadXmlSource(&foo, "<Foo />");
+    REQUIRE(load != "");
+}
+
+TEST_CASE("twostructs xml_advanced")
+{
+    Bar bar;
+    const std::string load = ReadXmlSource(
+        &bar, "<Bar bar=\"cat and dog\" b=\"true\"><foo hello=\"12\" world=\"2.4\" /> </Bar>");
     REQUIRE(load == "");
     CHECK(bar.foo.hello == 12);
     CHECK(bar.foo.world == 2.4f);
