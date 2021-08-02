@@ -213,14 +213,14 @@ namespace xml
             sources->source.add("{");
             create_mem();
             sources->source.addf(
-                "if(const auto error = ReadXmlElement({}, value, could_be); error.empty() == false)",
+                "if(const auto error = ReadXmlElement({}, child, could_be); error.empty() == false)",
                 ptr);
             sources->source.add("{");
             clear_mem();
             sources->source.add("return error;");
             sources->source.add("}");
             sources->source.add("}");
-            add_member_failure_to_read(sources, m, "::gaf::get_all_children(value)");
+            add_member_failure_to_read(sources, m, "::gaf::get_all_children(child)");
         }
     }
 
