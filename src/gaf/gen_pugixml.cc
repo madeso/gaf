@@ -111,7 +111,7 @@ namespace xml
                 sources->source.addf("{} v = 0;", m.type_name.get_cpp_type());
                 sources->source.add("std::istringstream ss(el.child_value());");
                 sources->source.add("ss >> v;");
-                sources->source.add("if(ss.good() == false)");
+                sources->source.add("if((ss.fail() == false && ss.eof() == true) == false)");
                 sources->source.add("{");
                 sources->source.addf(
                     "return fmt::format(\"Invalid format for {}: {{}}\", el.child_value());", m.name);
@@ -186,7 +186,7 @@ namespace xml
             default:
                 sources->source.add("std::istringstream ss(el.value());");
                 sources->source.addf("ss >> {};", val);
-                sources->source.add("if(ss.good() == false)");
+                sources->source.add("if((ss.fail() == false && ss.eof() == true) == false)");
                 sources->source.add("{");
                 clear_mem();
                 sources->source.addf("return fmt::format(\"Invalid format for {}: {{}}\", el.value());",
