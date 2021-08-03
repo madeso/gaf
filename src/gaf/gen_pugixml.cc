@@ -16,8 +16,9 @@ namespace xml
         // const auto value_prefix = get_value_prefix_opt(e);
         // const auto arg = ", const std::string& gaf_path";
 
-        const auto signature =
-            fmt::format("std::string ParseEnumString({}* c, const char* value)", e.name);
+        const auto signature = fmt::format(
+            "std::string ParseEnumString({}* c, const char* value, const ::gaf::could_be_fun& could_be)",
+            e.name);
         sources->header.addf("{};", signature);
         sources->source.add(signature);
         sources->source.add("{");
@@ -27,9 +28,25 @@ namespace xml
                 "if(strcmp(value, \"{value}\") == 0) {{ *c = {type}::{value}; return \"\"; }}",
                 fmt::arg("type", e.name), fmt::arg("value", v));
         }
-        // todo(Gustav): add list of valid values with a could_be_fun
+        sources->source.add("const auto all_values = std::vector<std::string>");
+        sources->source.add("{");
+        for (const auto& v : e.values)
+        {
+            sources->source.addf("\"{}\"", v);
+        }
+        sources->source.add("};");
+        sources->source.add("const auto cv = could_be(value, all_values);");
+        sources->source.add("if(cv.empty())");
+        sources->source.add("{");
         sources->source.addf("return fmt::format(\"{{}} is not a valid name for enum {}\", value);",
                              e.name);
+        sources->source.add("}");
+        sources->source.add("else");
+        sources->source.add("{");
+        sources->source.addf(
+            "return fmt::format(\"{{}} is not a valid name for enum {}, could be {{}}\", value, cv);",
+            e.name);
+        sources->source.add("}");
         sources->source.add("}");
         sources->source.add("");
     }
@@ -91,7 +108,8 @@ namespace xml
             sources->source.add("{");
             sources->source.addf("auto em = {}{{}};", m.type_name.get_cpp_type());
             sources->source.add(
-                "if(const auto error = ParseEnumString(&em, el.child_value()); error.empty() == "
+                "if(const auto error = ParseEnumString(&em, el.child_value(), could_be); error.empty() "
+                "== "
                 "false)");
             sources->source.add("{");
             sources->source.add("return error;");
@@ -151,16 +169,14 @@ namespace xml
     {
         auto ptr = m.is_optional ? fmt::format("c->{}.get()", m.name) : fmt::format("&c->{}", m.name);
         auto val = m.is_optional ? fmt::format("*c->{}", m.name) : fmt::format("c->{}", m.name);
-        auto create_mem = [sources, m]()
-        {
+        auto create_mem = [sources, m]() {
             if (m.is_optional)
             {
                 sources->source.addf("c->{} = std::make_shared<{}>();", m.name,
                                      m.type_name.get_cpp_type());
             }
         };
-        auto clear_mem = [sources, m]()
-        {
+        auto clear_mem = [sources, m]() {
             if (m.is_optional)
             {
                 sources->source.addf("c->{}.reset();", m.name);
@@ -172,7 +188,9 @@ namespace xml
             sources->source.add("{");
             create_mem();
             sources->source.addf(
-                "if(const auto error = ParseEnumString({}, el.value()); error.empty() == false)", ptr);
+                "if(const auto error = ParseEnumString({}, el.value(), could_be); error.empty() == "
+                "false)",
+                ptr);
             sources->source.add("{");
             clear_mem();
             sources->source.add("return error;");
