@@ -76,8 +76,10 @@ namespace xml
         case StandardType::Float:
         case StandardType::Double:
         case StandardType::Bool:
-        case StandardType::String: return true;
-        default: return false;
+        case StandardType::String:
+            return true;
+        default:
+            return false;
         }
     }
 
@@ -149,14 +151,16 @@ namespace xml
     {
         auto ptr = m.is_optional ? fmt::format("c->{}.get()", m.name) : fmt::format("&c->{}", m.name);
         auto val = m.is_optional ? fmt::format("*c->{}", m.name) : fmt::format("c->{}", m.name);
-        auto create_mem = [sources, m]() {
+        auto create_mem = [sources, m]()
+        {
             if (m.is_optional)
             {
                 sources->source.addf("c->{} = std::make_shared<{}>();", m.name,
                                      m.type_name.get_cpp_type());
             }
         };
-        auto clear_mem = [sources, m]() {
+        auto clear_mem = [sources, m]()
+        {
             if (m.is_optional)
             {
                 sources->source.addf("c->{}.reset();", m.name);
@@ -191,7 +195,9 @@ namespace xml
                                      m.name);
                 sources->source.add("}");
                 break;
-            case StandardType::String: sources->source.addf("{} = el.value();", val); break;
+            case StandardType::String:
+                sources->source.addf("{} = el.value();", val);
+                break;
             default:
                 sources->source.add("const auto property = el.value();");
                 sources->source.addf("const auto parsed = ::gaf::parse_number<{}>(property);",
@@ -249,7 +255,10 @@ namespace xml
         sources->header.addf("{};", signature);
         sources->source.add(signature);
         sources->source.add("{");
-        for (const auto& m : s.members) { add_member_variable(sources, m); }
+        for (const auto& m : s.members)
+        {
+            add_member_variable(sources, m);
+        }
         sources->source.add("return \"\";");
         sources->source.add("}");
         sources->source.add("");
@@ -279,9 +288,15 @@ namespace xml
             sources.add("{");
         }
 
-        for (const auto& e : f.enums) { add_enum_function(*e, &sources); }
+        for (const auto& e : f.enums)
+        {
+            add_enum_function(*e, &sources);
+        }
 
-        for (const auto& s : f.structs) { add_struct_function(&sources, *s); }
+        for (const auto& s : f.structs)
+        {
+            add_struct_function(&sources, *s);
+        }
 
         if (f.package_name.empty() == false)
         {
@@ -293,7 +308,10 @@ namespace xml
     }
 }
 
-std::string PugiXmlPlugin::get_name() { return "pugixml"; }
+std::string PugiXmlPlugin::get_name()
+{
+    return "pugixml";
+}
 
 int PugiXmlPlugin::run_plugin(const File& file, Writer* writer, std::string& output_folder, Args& args,
                               const std::string& name)

@@ -8,9 +8,9 @@ BreakBeforeBraces: Allman
 AllowShortIfStatementsOnASingleLine: false
 IndentCaseLabels: false
 BreakConstructorInitializers: BeforeComma
-AllowShortCaseLabelsOnASingleLine: true
+AllowShortCaseLabelsOnASingleLine: false
 ConstructorInitializerAllOnOneLineOrOnePerLine: false
 NamespaceIndentation: All
-AllowShortFunctionsOnASingleLine: All
-AllowShortBlocksOnASingleLine: Always
+AllowShortFunctionsOnASingleLine: None
+AllowShortBlocksOnASingleLine: Never
 SortIncludes: false

@@ -22,7 +22,10 @@ void Lines::add(const std::string& str)
     lines.emplace_back(str);
 }
 
-void Lines::addfv(fmt::string_view format, fmt::format_args args) { add(fmt::vformat(format, args)); }
+void Lines::addfv(fmt::string_view format, fmt::format_args args)
+{
+    add(fmt::vformat(format, args));
+}
 
 void Out::add(const std::string& str)
 {
@@ -30,7 +33,10 @@ void Out::add(const std::string& str)
     source.add(str);
 }
 
-void Out::addfv(fmt::string_view format, fmt::format_args args) { add(fmt::vformat(format, args)); }
+void Out::addfv(fmt::string_view format, fmt::format_args args)
+{
+    add(fmt::vformat(format, args));
+}
 
 std::string get_file_path(const std::string& folder, const std::string& name)
 {
@@ -43,7 +49,10 @@ void write_lines(const Lines& lines, Writer* writer, const std::string& path)
 {
     if (auto out = writer->open(path); out != nullptr)
     {
-        for (const auto& s : lines.lines) { out->write(s); }
+        for (const auto& s : lines.lines)
+        {
+            out->write(s);
+        }
     }
 }
 
@@ -54,7 +63,10 @@ Lines complete_source(const Lines& source, const std::string& name, const std::s
     ret.addf("#include \"{}.h\"", prefix + name);
     ret.add("");
 
-    for (const auto& s : source.lines) { ret.add(s); }
+    for (const auto& s : source.lines)
+    {
+        ret.add(s);
+    }
 
     return ret;
 }

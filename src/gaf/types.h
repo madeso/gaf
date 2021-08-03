@@ -31,19 +31,32 @@ constexpr std::string_view get_cpp_type(StandardType type)
 {
     switch (type)
     {
-    case StandardType::Int8: return "std::int8_t";
-    case StandardType::Int16: return "std::int16_t";
-    case StandardType::Int32: return "std::int32_t";
-    case StandardType::Int64: return "std::int64_t";
-    case StandardType::Uint8: return "std::uint8_t";
-    case StandardType::Uint16: return "std::uint16_t";
-    case StandardType::Uint32: return "std::uint32_t";
-    case StandardType::Uint64: return "std::uint64_t";
-    case StandardType::Float: return "float";
-    case StandardType::Double: return "double";
-    case StandardType::Bool: return "bool";
-    case StandardType::String: return "std::string";
-    default: return "";
+    case StandardType::Int8:
+        return "std::int8_t";
+    case StandardType::Int16:
+        return "std::int16_t";
+    case StandardType::Int32:
+        return "std::int32_t";
+    case StandardType::Int64:
+        return "std::int64_t";
+    case StandardType::Uint8:
+        return "std::uint8_t";
+    case StandardType::Uint16:
+        return "std::uint16_t";
+    case StandardType::Uint32:
+        return "std::uint32_t";
+    case StandardType::Uint64:
+        return "std::uint64_t";
+    case StandardType::Float:
+        return "float";
+    case StandardType::Double:
+        return "double";
+    case StandardType::Bool:
+        return "bool";
+    case StandardType::String:
+        return "std::string";
+    default:
+        return "";
     }
 }
 

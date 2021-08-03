@@ -51,10 +51,16 @@ void CharFile::report_error(const std::string& message)
 }
 
 // util function to read a char from a file
-char read_char(CharFile* f) { return f->read(); }
+char read_char(CharFile* f)
+{
+    return f->read();
+}
 
 // util function to peeek ahead in a file
-char peek_char(CharFile* f, int count = 0) { return f->peek(count); }
+char peek_char(CharFile* f, int count = 0)
+{
+    return f->peek(count);
+}
 
 // function to check if the character is a space or not
 bool is_space(char ch)
@@ -64,8 +70,10 @@ bool is_space(char ch)
     case ' ':
     case '\n':
     case '\r':
-    case '\t': return true;
-    default: return false;
+    case '\t':
+        return true;
+    default:
+        return false;
     }
 }
 
@@ -99,12 +107,18 @@ bool is_ident(bool first, char ch)
 }
 
 // checks if a character is a number
-bool is_number(char ch) { return '0' <= ch && ch <= '9'; }
+bool is_number(char ch)
+{
+    return '0' <= ch && ch <= '9';
+}
 
 // skips white space in a file
 void read_white_spaces(CharFile* f)
 {
-    while (is_space(peek_char(f))) { read_char(f); }
+    while (is_space(peek_char(f)))
+    {
+        read_char(f);
+    }
 }
 
 // skips white space or comments
@@ -115,7 +129,10 @@ void read_spaces(CharFile* f)
         read_white_spaces(f);
         if (peek_char(f, 0) == '/' && peek_char(f, 1) == '/')
         {
-            while (peek_char(f) != '\n') { read_char(f); }
+            while (peek_char(f) != '\n')
+            {
+                read_char(f);
+            }
         }
         else if (peek_char(f, 0) == '/' && peek_char(f, 1) == '*')
         {
@@ -123,7 +140,10 @@ void read_spaces(CharFile* f)
             auto star = read_char(f);
             assert(slash == '/');
             assert(star == '*');
-            while (peek_char(f, 0) != '*' || peek_char(f, 1) != '/') { read_char(f); }
+            while (peek_char(f, 0) != '*' || peek_char(f, 1) != '/')
+            {
+                read_char(f);
+            }
             star = read_char(f);
             slash = read_char(f);
             assert(slash == '/');
@@ -170,7 +190,10 @@ void read_single_char(CharFile* f, char ch)
 std::string read_number(CharFile* f)
 {
     std::string ret;
-    while (is_number(peek_char(f))) { ret += read_char(f); }
+    while (is_number(peek_char(f)))
+    {
+        ret += read_char(f);
+    }
     if (ret.empty())
     {
         f->report_error(fmt::format("Expected number, found {}", peek_char(f)));
@@ -180,7 +203,10 @@ std::string read_number(CharFile* f)
 }
 
 // read a integer
-std::string read_default_value_int(CharFile* f) { return read_number(f); }
+std::string read_default_value_int(CharFile* f)
+{
+    return read_number(f);
+}
 
 // read a double
 std::string read_default_value_double(CharFile* f)

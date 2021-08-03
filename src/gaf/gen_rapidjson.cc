@@ -246,7 +246,10 @@ namespace json
         sources->source.add("");
     }
 
-    std::string get_value_prefix_opt(const Enum& e) { return fmt::format("{}::", e.name); }
+    std::string get_value_prefix_opt(const Enum& e)
+    {
+        return fmt::format("{}::", e.name);
+    }
 
     void add_enum_json_function(const Enum& e, Out* sources, bool type_enum = false)
     {
@@ -295,11 +298,17 @@ namespace json
 
         if (f.typedefs.empty() == false)
         {
-            for (const auto& s : f.typedefs) { sources.header.addf("struct {};", s->name); }
+            for (const auto& s : f.typedefs)
+            {
+                sources.header.addf("struct {};", s->name);
+            }
             sources.header.add("");
         }
 
-        for (const auto& e : f.enums) { add_enum_json_function(*e, &sources); }
+        for (const auto& e : f.enums)
+        {
+            add_enum_json_function(*e, &sources);
+        }
 
         for (const auto& s : f.structs)
         {
@@ -358,7 +367,10 @@ namespace json
 
 }
 
-std::string RapidJsonPlugin::get_name() { return "rapidjson"; }
+std::string RapidJsonPlugin::get_name()
+{
+    return "rapidjson";
+}
 
 int RapidJsonPlugin::run_plugin(const File& file, Writer* writer, std::string& output_folder, Args& args,
                                 const std::string& name)

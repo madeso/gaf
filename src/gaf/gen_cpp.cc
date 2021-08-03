@@ -72,10 +72,15 @@ namespace cpp
                 case StandardType::Uint8:
                 case StandardType::Uint16:
                 case StandardType::Uint32:
-                case StandardType::Uint64: include("<cstdint>"); break;
+                case StandardType::Uint64:
+                    include("<cstdint>");
+                    break;
 
-                case StandardType::String: include("<string>"); break;
-                default: break;
+                case StandardType::String:
+                    include("<string>");
+                    break;
+                default:
+                    break;
                 }
 
                 if (m.is_dynamic_array)
@@ -102,7 +107,10 @@ namespace cpp
         sources.header.add("");
 
         sources.header.add("#include <limits>");
-        for (const auto& header : headers) { sources.header.addf("#include {}", header); }
+        for (const auto& header : headers)
+        {
+            sources.header.addf("#include {}", header);
+        }
         sources.header.add("");
 
         if (f.package_name.empty() == false)
@@ -113,7 +121,10 @@ namespace cpp
 
         if (f.typedefs.empty() == false)
         {
-            for (const auto& s : f.typedefs) { sources.header.addf("struct {};", s->name); }
+            for (const auto& s : f.typedefs)
+            {
+                sources.header.addf("struct {};", s->name);
+            }
             sources.header.add("");
         }
 
@@ -147,7 +158,10 @@ namespace cpp
 
 }
 
-std::string CppPlugin::get_name() { return "cpp"; }
+std::string CppPlugin::get_name()
+{
+    return "cpp";
+}
 
 int CppPlugin::run_plugin(const File& file, Writer* writer, std::string& output_folder, Args& args,
                           const std::string& name)

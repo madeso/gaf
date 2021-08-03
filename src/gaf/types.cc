@@ -27,7 +27,10 @@ std::string Type::get_cpp_type() const
     }
 }
 
-Type Type::create_error_type() { return {StandardType::Int32, "int32", true, "0"}; }
+Type Type::create_error_type()
+{
+    return {StandardType::Int32, "int32", true, "0"};
+}
 
 bool operator==(const Type& lhs, const Type& rhs)
 {
@@ -58,7 +61,10 @@ void TypeList::add_default_types()
     add_type({StandardType::String, "string", false});
 }
 
-bool TypeList::is_valid_type(const std::string& name) { return types.find(name) != types.end(); }
+bool TypeList::is_valid_type(const std::string& name)
+{
+    return types.find(name) != types.end();
+}
 
 Type TypeList::get_type(const std::string& name) const
 {
@@ -97,7 +103,10 @@ std::ostream& operator<<(std::ostream& s, const Struct& self)
 {
     s << "struct " << self.name << "\n{\n";
 
-    for (const auto& m : self.members) { s << "    " << m << "\n"; }
+    for (const auto& m : self.members)
+    {
+        s << "    " << m << "\n";
+    }
     s << "}";
 
     return s;
@@ -113,7 +122,10 @@ Enum::Enum(const std::string& n)
 {
 }
 
-bool Enum::is_value(const std::string& v) const { return sorted_values.find(v) != sorted_values.end(); }
+bool Enum::is_value(const std::string& v) const
+{
+    return sorted_values.find(v) != sorted_values.end();
+}
 
 void Enum::add_value(const std::string& v)
 {
@@ -184,7 +196,10 @@ std::ostream& operator<<(std::ostream& s, const File& f)
     {
         s << "package " << f.package_name << ";\n";
     }
-    for (const auto& x : f.structs) { s << *x << '\n'; }
+    for (const auto& x : f.structs)
+    {
+        s << *x << '\n';
+    }
     return s;
 }
 
@@ -204,7 +219,8 @@ void PrettyFileOut::write(const std::string& line)
         indent += inc;
     }
     assert(indent >= 0);
-    const auto current = [this, &line]() -> int {
+    const auto current = [this, &line]() -> int
+    {
         if (line.empty())
         {
             return 0;
@@ -212,8 +228,10 @@ void PrettyFileOut::write(const std::string& line)
         switch (line[0])
         {
         case ':':
-        case ',': return indent + 1;
-        default: return indent;
+        case ',':
+            return indent + 1;
+        default:
+            return indent;
         }
     }();
     dest->write(std::string(current * 4, ' ') + line + "\n");

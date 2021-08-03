@@ -50,21 +50,39 @@ namespace imgui
     {
         switch (t)
         {
-        case StandardType::Int8: sources->source.addf("{}ImGui::Edit({}, {});", name, var); return;
-        case StandardType::Int16: sources->source.addf("{}ImGui::Edit({}, {});", name, var); return;
-        case StandardType::Int32: sources->source.addf("{}ImGui::InputInt({}, {});", name, var); return;
-        case StandardType::Int64: sources->source.addf("{}ImGui::Edit({}, {});", name, var); return;
-        case StandardType::Uint8: sources->source.addf("{}ImGui::Edit({}, {});", name, var); return;
-        case StandardType::Uint16: sources->source.addf("{}ImGui::Edit({}, {});", name, var); return;
-        case StandardType::Uint32: sources->source.addf("{}ImGui::Edit({}, {});", name, var); return;
-        case StandardType::Uint64: sources->source.addf("{}ImGui::Edit({}, {});", name, var); return;
+        case StandardType::Int8:
+            sources->source.addf("{}ImGui::Edit({}, {});", name, var);
+            return;
+        case StandardType::Int16:
+            sources->source.addf("{}ImGui::Edit({}, {});", name, var);
+            return;
+        case StandardType::Int32:
+            sources->source.addf("{}ImGui::InputInt({}, {});", name, var);
+            return;
+        case StandardType::Int64:
+            sources->source.addf("{}ImGui::Edit({}, {});", name, var);
+            return;
+        case StandardType::Uint8:
+            sources->source.addf("{}ImGui::Edit({}, {});", name, var);
+            return;
+        case StandardType::Uint16:
+            sources->source.addf("{}ImGui::Edit({}, {});", name, var);
+            return;
+        case StandardType::Uint32:
+            sources->source.addf("{}ImGui::Edit({}, {});", name, var);
+            return;
+        case StandardType::Uint64:
+            sources->source.addf("{}ImGui::Edit({}, {});", name, var);
+            return;
         case StandardType::Float:
             sources->source.addf("{}ImGui::InputFloat({}, {});", name, var);
             return;
         case StandardType::Double:
             sources->source.addf("{}ImGui::InputDouble({}, {});", name, var);
             return;
-        case StandardType::Bool: sources->source.addf("{}ImGui::Checkbox({}, {});", name, var); return;
+        case StandardType::Bool:
+            sources->source.addf("{}ImGui::Checkbox({}, {});", name, var);
+            return;
         case StandardType::String:
             sources->source.add("{");
             sources->source.add("char gaf_temp[1024];");
@@ -198,13 +216,19 @@ namespace imgui
         }
     }
 
-    std::string get_value_prefix_opt(const Enum& e) { return fmt::format("{}::", e.name); }
+    std::string get_value_prefix_opt(const Enum& e)
+    {
+        return fmt::format("{}::", e.name);
+    }
 
     void write_imgui_source_for_cpp(Out* sources, const Struct& s, const ImguiOptions& opt)
     {
         sources->source.addf("void RunImgui({}* c)", s.name);
         sources->source.add("{");
-        for (const auto& m : s.members) { write_single_member_to_source(m, sources, opt); }
+        for (const auto& m : s.members)
+        {
+            write_single_member_to_source(m, sources, opt);
+        }
         sources->source.add("}");
         sources->source.add("");
     }
@@ -219,7 +243,10 @@ namespace imgui
         sources.header.addf("#include \"gaf_{}.h\"", name);
         sources.header.add("");
 
-        for (const auto& h : headers) { sources.source.addf("#include {}", h); }
+        for (const auto& h : headers)
+        {
+            sources.source.addf("#include {}", h);
+        }
         sources.add("");
 
         if (f.package_name.empty() == false)
@@ -230,7 +257,10 @@ namespace imgui
 
         if (f.typedefs.empty() == false)
         {
-            for (const auto& s : f.typedefs) { sources.header.addf("struct {};", s->name); }
+            for (const auto& s : f.typedefs)
+            {
+                sources.header.addf("struct {};", s->name);
+            }
             sources.header.add("");
         }
 
@@ -283,7 +313,10 @@ namespace imgui
 
 }
 
-std::string ImguiPlugin::get_name() { return "imgui"; }
+std::string ImguiPlugin::get_name()
+{
+    return "imgui";
+}
 
 int ImguiPlugin::run_plugin(const File& file, Writer* writer, std::string& output_folder, Args& args,
                             const std::string& name)
@@ -306,7 +339,10 @@ int ImguiPlugin::run_plugin(const File& file, Writer* writer, std::string& outpu
         else if (c == "--imgui-headers")
         {
             imgui_headers.clear();
-            while (is_option(args.peek()) == false) { imgui_headers.emplace_back(args.read()); }
+            while (is_option(args.peek()) == false)
+            {
+                imgui_headers.emplace_back(args.read());
+            }
         }
         else
         {
