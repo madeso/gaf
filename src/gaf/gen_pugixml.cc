@@ -267,8 +267,8 @@ namespace xml
     void add_struct_function(Out* sources, const Struct& s)
     {
         const auto signature = fmt::format(
-            "std::string ReadXmlElement({}* c, const pugi::xml_node& value, const ::gaf::could_be_fun& "
-            "could_be)",
+            "std::string ReadXmlElement({}* c, const pugi::xml_node& value, [[maybe_unused]] const "
+            "::gaf::could_be_fun& could_be)",
             s.name);
         sources->header.addf("{};", signature);
         sources->source.add(signature);
