@@ -51,37 +51,37 @@ namespace imgui
         switch (t)
         {
         case StandardType::Int8:
-            sources->source.addf("{}ImGui::Edit({}, {});", name, var);
+            sources->source.addf("ImGui::Edit({}, {});", name, var);
             return;
         case StandardType::Int16:
-            sources->source.addf("{}ImGui::Edit({}, {});", name, var);
+            sources->source.addf("ImGui::Edit({}, {});", name, var);
             return;
         case StandardType::Int32:
-            sources->source.addf("{}ImGui::InputInt({}, {});", name, var);
+            sources->source.addf("ImGui::InputInt({}, {});", name, var);
             return;
         case StandardType::Int64:
-            sources->source.addf("{}ImGui::Edit({}, {});", name, var);
+            sources->source.addf("ImGui::Edit({}, {});", name, var);
             return;
         case StandardType::Uint8:
-            sources->source.addf("{}ImGui::Edit({}, {});", name, var);
+            sources->source.addf("ImGui::Edit({}, {});", name, var);
             return;
         case StandardType::Uint16:
-            sources->source.addf("{}ImGui::Edit({}, {});", name, var);
+            sources->source.addf("ImGui::Edit({}, {});", name, var);
             return;
         case StandardType::Uint32:
-            sources->source.addf("{}ImGui::Edit({}, {});", name, var);
+            sources->source.addf("ImGui::Edit({}, {});", name, var);
             return;
         case StandardType::Uint64:
-            sources->source.addf("{}ImGui::Edit({}, {});", name, var);
+            sources->source.addf("ImGui::Edit({}, {});", name, var);
             return;
         case StandardType::Float:
-            sources->source.addf("{}ImGui::InputFloat({}, {});", name, var);
+            sources->source.addf("ImGui::InputFloat({}, {});", name, var);
             return;
         case StandardType::Double:
-            sources->source.addf("{}ImGui::InputDouble({}, {});", name, var);
+            sources->source.addf("ImGui::InputDouble({}, {});", name, var);
             return;
         case StandardType::Bool:
-            sources->source.addf("{}ImGui::Checkbox({}, {});", name, var);
+            sources->source.addf("ImGui::Checkbox({}, {});", name, var);
             return;
         case StandardType::String:
             sources->source.add("{");
@@ -96,7 +96,7 @@ namespace imgui
         default:
             if (m.type_name.is_enum)
             {
-                sources->source.addf("{}RunImgui({}, {});", var, name);
+                sources->source.addf("RunImgui({}, {});", var, name);
             }
             else
             {
@@ -148,11 +148,11 @@ namespace imgui
             if (m.is_optional)
             {
                 sources->source.addf("if(c->{})", m.name);
-                sources->source.addf("{");
+                sources->source.add("{");
                 write_single_imgui_member_to_source(fmt::format("\"{}\"", m.name),
                                                     fmt::format("c->{}.get()", m.name),
                                                     m.type_name.standard_type, sources, m, false, opt);
-                sources->source.addf("if(ImGui::Button(\"Clear {}\")) {{ c->{name}.reset(); }}", m.name);
+                sources->source.addf("if(ImGui::Button(\"Clear {0}\")) {{ c->{0}.reset(); }}", m.name);
                 sources->source.add("}");
                 sources->source.add("else");
                 sources->source.add("{");
@@ -284,9 +284,8 @@ namespace imgui
             sources.source.add("{");
             for (const auto& v : e->values)
             {
-                sources.source.addf(
-                    "if(ImGui::Selectable(\"{0}\", *en == {1}{0})) {{ *en = {prefix}{val}; }}", v,
-                    get_value_prefix_opt(*e));
+                sources.source.addf("if(ImGui::Selectable(\"{0}\", *en == {1}{0})) {{ *en = {1}{0}; }}",
+                                    v, get_value_prefix_opt(*e));
             }
             sources.source.add("ImGui::EndCombo();");
             sources.source.add("}");
