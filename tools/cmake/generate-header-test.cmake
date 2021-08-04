@@ -48,7 +48,7 @@ function(generate_header_test LIBRARY)
     set(src ${src} ${output_file})
 
     add_executable(${target_name} ${src})
-    target_link_libraries(${target_name} PRIVATE project_options project_warnings ${LIBRARY})
+    target_link_libraries(${target_name} PRIVATE gaf_project_options gaf_project_warnings ${LIBRARY})
     set_target_properties(${target_name} PROPERTIES FOLDER "Tests/Headers")
     # message(STATUS "relative include is ${ARG_INCLUDE_BASE}")
     # message(STATUS "source for ${target_name} is ${src}")
