@@ -135,6 +135,10 @@ namespace imgui
             const auto nt = tl.get_type(t.name);
             return fmt::format("new {}({})", t.get_cpp_type(), *nt.default_value);
         }
+        else if(t.standard_type == StandardType::String)
+        {
+            return "new std::string()";
+        }
         else
         {
             return fmt::format("new {}()", t.name);
@@ -266,8 +270,8 @@ namespace imgui
 
         for (const auto& e : f.enums)
         {
-            sources.header.addf("const char* ToString({} en);", name);
-            sources.source.addf("const char* ToString({} en)", name);
+            sources.header.addf("const char* ToString({} en);", e->name);
+            sources.source.addf("const char* ToString({} en)", e->name);
             sources.source.add("{");
             for (const auto& v : e->values)
             {
@@ -303,8 +307,8 @@ namespace imgui
 
         if (f.package_name.empty() == false)
         {
-            sources.header.add("}");
-            sources.header.add("");
+            sources.add("}");
+            sources.add("");
         }
 
         return sources;
