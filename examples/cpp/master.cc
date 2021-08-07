@@ -502,6 +502,20 @@ TEST_CASE("master pointer xml_empty_document")
     REQUIRE(bar.foo == nullptr);
 }
 
+TEST_CASE("master pointer xml_empty_document with invalid attribute")
+{
+    FooRoot bar;
+    const std::string load = ReadXmlSource(&bar, "<FooRoot dog=\"dog\"/>");
+    REQUIRE(load == "attributes for /FooRoot not read: dog");
+}
+
+TEST_CASE("master pointer xml_empty_document with invalid child")
+{
+    FooRoot bar;
+    const std::string load = ReadXmlSource(&bar, "<FooRoot><cat /> </FooRoot>");
+    REQUIRE(load == "children for /FooRoot not read: cat");
+}
+
 TEST_CASE("master optional xml_empty_document")
 {
     BarRoot bar;
