@@ -55,22 +55,34 @@ namespace gaf
         return r;
     }
 
-    std::vector<std::string> get_all_atributes(const pugi::xml_node& e)
+    std::vector<std::string> get_all_attributes(const pugi::xml_node& e)
     {
-        std::vector<std::string> r;
-        for (const auto& a : e.attributes())
-        {
-            r.emplace_back(a.name());
-        }
-        return r;
+        const auto vec = get_all_attributes_set(e);
+        return std::vector<std::string>(vec.begin(), vec.end());
     }
 
     std::vector<std::string> get_all_children(const pugi::xml_node& e)
     {
-        std::vector<std::string> r;
+        const auto vec = get_all_children_set(e);
+        return std::vector<std::string>(vec.begin(), vec.end());
+    }
+
+    std::set<std::string> get_all_attributes_set(const pugi::xml_node& e)
+    {
+        std::set<std::string> r;
+        for (const auto& a : e.attributes())
+        {
+            r.emplace(a.name());
+        }
+        return r;
+    }
+
+    std::set<std::string> get_all_children_set(const pugi::xml_node& e)
+    {
+        std::set<std::string> r;
         for (const auto& a : e.children())
         {
-            r.emplace_back(a.name());
+            r.emplace(a.name());
         }
         return r;
     }
@@ -83,7 +95,7 @@ namespace gaf
 
         // todo(Gustav): add 1-based index...
 
-        while(node.type() != pugi::node_null && node.type() != pugi::node_document)
+        while (node.type() != pugi::node_null && node.type() != pugi::node_document)
         {
             r = fmt::format("/{}{}", node.name(), r);
             node = node.parent();

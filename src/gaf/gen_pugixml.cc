@@ -67,12 +67,14 @@ namespace xml
                 sources->source.add("const auto path_to_val = ::gaf::get_path(value);");
                 sources->source.add("if(cv.empty())");
                 sources->source.add("{");
-                sources->source.addf("return fmt::format(\"{} is missing, {{}}\", path_to_val);", m.name);
+                sources->source.addf("return fmt::format(\"{} is missing, {{}}\", path_to_val);",
+                                     m.name);
                 sources->source.add("}");
                 sources->source.add("else");
                 sources->source.add("{");
-                sources->source.addf("return fmt::format(\"{} is missing, {{}}, could be {{}}\", path_to_val, cv);",
-                                     m.name);
+                sources->source.addf(
+                    "return fmt::format(\"{} is missing, {{}}, could be {{}}\", path_to_val, cv);",
+                    m.name);
                 sources->source.add("}");
             }
             sources->source.add("}");
@@ -101,12 +103,44 @@ namespace xml
         }
     }
 
+    void read_variable_from(Out* sources, const std::string& var, const std::string& name, bool check)
+    {
+        if (check)
+        {
+            sources->source.addf("const auto found = {0}.find(\"{1}\");", var, name);
+            sources->source.addf("if(found != {0}.end())", var);
+            sources->source.add("{");
+            sources->source.addf("{}.erase(found);", var);
+            sources->source.add("}");
+        }
+        else
+        {
+            sources->source.addf("{0}.erase({0}.find(\"{1}\"));", var, name);
+        }
+    }
+
+    void read_attribute(Out* sources, const std::string& name)
+    {
+        read_variable_from(sources, "list_of_attributes", name, false);
+    }
+
+    void read_single_node(Out* sources, const std::string& name)
+    {
+        read_variable_from(sources, "list_of_children", name, false);
+    }
+
+    void read_array_nodes(Out* sources, const std::string& name)
+    {
+        read_variable_from(sources, "list_of_children", name, true);
+    }
+
     void add_member_variable_array(Out* sources, const Member& m)
     {
         if (m.type_name.is_enum)
         {
             sources->source.addf("for(const auto el: value.children(\"{}\"))", m.name);
             sources->source.add("{");
+            read_array_nodes(sources, m.name);
             sources->source.addf("auto em = {}{{}};", m.type_name.get_cpp_type());
             sources->source.add(
                 "if(const auto error = ParseEnumString(&em, el.child_value(), could_be); error.empty() "
@@ -122,6 +156,7 @@ namespace xml
         {
             sources->source.addf("for(const auto el: value.children(\"{}\"))", m.name);
             sources->source.add("{");
+            read_array_nodes(sources, m.name);
             switch (m.type_name.standard_type)
             {
             case StandardType::Bool:
@@ -154,6 +189,7 @@ namespace xml
         {
             sources->source.addf("for(const auto el: value.children(\"{}\"))", m.name);
             sources->source.add("{");
+            read_array_nodes(sources, m.name);
             sources->source.addf("auto v = {}{{}};", m.type_name.get_cpp_type());
             sources->source.addf(
                 "if(const auto error = ReadXmlElement(&v, el, could_be); error.empty() == false)",
@@ -187,6 +223,7 @@ namespace xml
         {
             sources->source.addf("if(const auto el = value.attribute(\"{}\"); el)", m.name);
             sources->source.add("{");
+            read_attribute(sources, m.name);
             create_mem();
             sources->source.addf(
                 "if(const auto error = ParseEnumString({}, el.value(), could_be); error.empty() == "
@@ -197,12 +234,13 @@ namespace xml
             sources->source.add("return error;");
             sources->source.add("}");
             sources->source.add("}");
-            add_member_failure_to_read(sources, m, "::gaf::get_all_atributes(value)");
+            add_member_failure_to_read(sources, m, "::gaf::get_all_attributes(value)");
         }
         else if (is_basic_type(m.type_name))
         {
             sources->source.addf("if(const auto el = value.attribute(\"{}\"); el)", m.name);
             sources->source.add("{");
+            read_attribute(sources, m.name);
             create_mem();
             switch (m.type_name.standard_type)
             {
@@ -234,12 +272,13 @@ namespace xml
                 break;
             }
             sources->source.add("}");
-            add_member_failure_to_read(sources, m, "::gaf::get_all_atributes(value)");
+            add_member_failure_to_read(sources, m, "::gaf::get_all_attributes(value)");
         }
         else
         {
             sources->source.addf("if(const auto child = value.child(\"{}\"); child)", m.name);
             sources->source.add("{");
+            read_single_node(sources, m.name);
             create_mem();
             sources->source.addf(
                 "if(const auto error = ReadXmlElement({}, child, could_be); error.empty() == false)",
@@ -265,6 +304,16 @@ namespace xml
         }
     }
 
+    void add_unused_xml(Out* sources, const std::string& var, const std::string& text)
+    {
+        sources->source.addf("if({}.empty() == false)", var);
+        sources->source.add("{");
+        sources->source.addf("const auto values = std::vector<std::string>({0}.begin(), {0}.end());",
+                             var);
+        sources->source.addf("return fmt::format(\"{} not read: {{}}\", could_be(\"\", values));", text);
+        sources->source.add("}");
+    }
+
     void add_struct_function(Out* sources, const Struct& s)
     {
         const auto signature = fmt::format(
@@ -274,10 +323,14 @@ namespace xml
         sources->header.addf("{};", signature);
         sources->source.add(signature);
         sources->source.add("{");
+        sources->source.add("auto list_of_children = ::gaf::get_all_children_set(value);");
+        sources->source.add("auto list_of_attributes = ::gaf::get_all_attributes_set(value);");
         for (const auto& m : s.members)
         {
             add_member_variable(sources, m);
         }
+        add_unused_xml(sources, "list_of_children", "children");
+        add_unused_xml(sources, "list_of_attributes", "attributes");
         sources->source.add("return \"\";");
         sources->source.add("}");
         sources->source.add("");
