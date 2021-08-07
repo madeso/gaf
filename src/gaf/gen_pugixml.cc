@@ -308,9 +308,11 @@ namespace xml
     {
         sources->source.addf("if({}.empty() == false)", var);
         sources->source.add("{");
+        sources->source.add("const auto path = ::gaf::get_path(value);");
         sources->source.addf("const auto values = std::vector<std::string>({0}.begin(), {0}.end());",
                              var);
-        sources->source.addf("return fmt::format(\"{} not read: {{}}\", could_be(\"\", values));", text);
+        sources->source.addf(
+            "return fmt::format(\"{} for {{}} not read: {{}}\", path, could_be(\"\", values));", text);
         sources->source.add("}");
     }
 
