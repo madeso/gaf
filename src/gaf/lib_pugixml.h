@@ -15,7 +15,7 @@ namespace gaf
     bool parse_bool(bool* dest, const std::string& value);
 
     template <typename T>
-    std::optional<T> parse_number(const std::string& value)
+    ::std::optional<T> parse_number(const std::string& value)
     {
         T t = 0;
 
@@ -70,4 +70,6 @@ namespace gaf
 
     std::vector<std::string> get_all_atributes(const pugi::xml_node& e);
     std::vector<std::string> get_all_children(const pugi::xml_node& e);
+
+    std::string get_path(const pugi::xml_node& e);
 }

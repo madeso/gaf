@@ -64,13 +64,14 @@ namespace xml
             else
             {
                 sources->source.addf("const auto cv = could_be(\"{}\", {});", m.name, get_values);
+                sources->source.add("const auto path_to_val = ::gaf::get_path(value);");
                 sources->source.add("if(cv.empty())");
                 sources->source.add("{");
-                sources->source.addf("return \"{} is missing\";", m.name);
+                sources->source.addf("return fmt::format(\"{} is missing, {{}}\", path_to_val);", m.name);
                 sources->source.add("}");
                 sources->source.add("else");
                 sources->source.add("{");
-                sources->source.addf("return fmt::format(\"{} is missing, could be {{}}\", cv);",
+                sources->source.addf("return fmt::format(\"{} is missing, {{}}, could be {{}}\", path_to_val, cv);",
                                      m.name);
                 sources->source.add("}");
             }

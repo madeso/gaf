@@ -1,5 +1,7 @@
 #include "gaf/lib_pugixml.h"
 
+#include "fmt/format.h"
+
 namespace gaf
 {
     bool parse_bool(bool* dest, const std::string& value)
@@ -70,6 +72,23 @@ namespace gaf
         {
             r.emplace_back(a.name());
         }
+        return r;
+    }
+
+    std::string get_path(const pugi::xml_node& ee)
+    {
+        std::string r = fmt::format("/{}", ee.name());
+
+        pugi::xml_node node = ee.parent();
+
+        // todo(Gustav): add 1-based index...
+
+        while(node.type() != pugi::node_null && node.type() != pugi::node_document)
+        {
+            r = fmt::format("/{}{}", node.name(), r);
+            node = node.parent();
+        }
+
         return r;
     }
 }
