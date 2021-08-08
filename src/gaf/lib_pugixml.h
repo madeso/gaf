@@ -72,11 +72,9 @@ namespace gaf
     std::optional<std::uint8_t> parse_number<std::uint8_t>(const std::string& value);
 
     using could_be_fun = std::function<std::string(const std::string&, const std::vector<std::string>&)>;
-    using missing_fun = std::function<std::string(const std::vector<std::string>&)>;
 
     std::string could_be_fun_none(const std::string& name, const std::vector<std::string>& values);
     std::string could_be_fun_all(const std::string& name, const std::vector<std::string>& values);
-    std::string missing_fun_all(const std::vector<std::string>& values);
 
     std::vector<std::string> get_all_attributes(const pugi::xml_node& e);
     std::vector<std::string> get_all_children(const pugi::xml_node& e);
@@ -85,4 +83,13 @@ namespace gaf
     std::set<std::string> get_all_children_set(const pugi::xml_node& e);
 
     std::string get_path(const pugi::xml_node& e);
+
+    void report_unused_attributes(std::vector<Error>* errors, const std::string& type_name,
+                                  const pugi::xml_node& e, const std::set<std::string>& unused_values,
+                                  const std::set<std::string>& available_names,
+                                  const could_be_fun& could_be);
+    void report_unused_elements(std::vector<Error>* errors, const std::string& type_name,
+                                const pugi::xml_node& e, const std::set<std::string>& unused_values,
+                                const std::set<std::string>& available_names,
+                                const could_be_fun& could_be);
 }

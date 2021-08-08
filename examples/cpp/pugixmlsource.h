@@ -17,8 +17,8 @@ std::string ReadXmlSource(T* t, const char* const source, TT ReadXmlElement)
     if (document_loaded_error)
     {
         std::vector<gaf::Error> list_of_xml_parse_errors;
-        auto optional_result = ReadXmlElement(&list_of_xml_parse_errors, doc.document_element(),
-                                              gaf::could_be_fun_all, gaf::missing_fun_all);
+        auto optional_result =
+            ReadXmlElement(&list_of_xml_parse_errors, doc.document_element(), gaf::could_be_fun_all);
 
         if (list_of_xml_parse_errors.empty() == false)
         {

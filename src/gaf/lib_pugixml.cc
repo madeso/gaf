@@ -43,11 +43,6 @@ namespace gaf
 
     std::string could_be_fun_all(const std::string&, const std::vector<std::string>& values)
     {
-        return missing_fun_all(values);
-    }
-
-    std::string missing_fun_all(const std::vector<std::string>& values)
-    {
         std::string r;
         bool first = true;
         for (const auto& v : values)
@@ -112,5 +107,59 @@ namespace gaf
         }
 
         return r;
+    }
+
+    std::string get_path_of_attribute(const pugi::xml_node& ee, const std::string& att)
+    {
+        return fmt::format("{}@{}", get_path(ee), att);
+    }
+
+    void report_unused_attributes(std::vector<Error>* errors, const std::string& type_name,
+                                  const pugi::xml_node& e, const std::set<std::string>& unused_values,
+                                  const std::set<std::string>& available_names,
+                                  const could_be_fun& could_be)
+    {
+        if (errors == nullptr)
+        {
+            return;
+        }
+
+        errors->emplace_back(
+            fmt::format("Found unused attributes for type {} at {}:", type_name, get_path(e)));
+
+        const auto values = std::vector<std::string>(available_names.begin(), available_names.end());
+
+        for (const auto& unused : unused_values)
+        {
+            errors->emplace_back(fmt::format("Invalid attribute {} at {} and it could be {}", unused,
+                                             get_path_of_attribute(e, unused),
+                                             could_be(unused, values)));
+        }
+    }
+
+    void report_unused_elements(std::vector<Error>* errors, const std::string& type_name,
+                                const pugi::xml_node& e, const std::set<std::string>& unused_values,
+                                const std::set<std::string>& available_names,
+                                const could_be_fun& could_be)
+    {
+        if (errors == nullptr)
+        {
+            return;
+        }
+
+        errors->emplace_back(
+            fmt::format("Found unused elements for type {} at {}:", type_name, get_path(e)));
+
+        const auto values = std::vector<std::string>(available_names.begin(), available_names.end());
+
+        for (const auto& unused : unused_values)
+        {
+            const auto c = could_be(unused, values);
+            for (const auto& child : e.children(unused.c_str()))
+            {
+                errors->emplace_back(fmt::format("Invalid child {} at {} and it could be {}", unused,
+                                                 get_path(child), c));
+            }
+        }
     }
 }
