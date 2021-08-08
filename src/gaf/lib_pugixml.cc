@@ -38,6 +38,11 @@ namespace gaf
 
     std::string could_be_fun_all(const std::string&, const std::vector<std::string>& values)
     {
+        return missing_fun_all(values);
+    }
+
+    std::string missing_fun_all(const std::vector<std::string>& values)
+    {
         std::string r;
         bool first = true;
         for (const auto& v : values)

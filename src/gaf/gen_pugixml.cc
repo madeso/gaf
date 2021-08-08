@@ -192,7 +192,8 @@ namespace xml
             read_array_nodes(sources, m.name);
             sources->source.addf("auto v = {}{{}};", m.type_name.get_cpp_type());
             sources->source.addf(
-                "if(const auto error = ReadXmlElement(&v, el, could_be); error.empty() == false)",
+                "if(const auto error = ReadXmlElement(&v, el, could_be, missing); error.empty() == "
+                "false)",
                 m.name);
             sources->source.add("{");
             sources->source.add("return error;");
@@ -281,7 +282,8 @@ namespace xml
             read_single_node(sources, m.name);
             create_mem();
             sources->source.addf(
-                "if(const auto error = ReadXmlElement({}, child, could_be); error.empty() == false)",
+                "if(const auto error = ReadXmlElement({}, child, could_be, missing); error.empty() == "
+                "false)",
                 ptr);
             sources->source.add("{");
             clear_mem();
@@ -312,7 +314,7 @@ namespace xml
         sources->source.addf("const auto values = std::vector<std::string>({0}.begin(), {0}.end());",
                              var);
         sources->source.addf(
-            "return fmt::format(\"{} for {{}} not read: {{}}\", path, could_be(\"\", values));", text);
+            "return fmt::format(\"{} for {{}} not read: {{}}\", path, missing(values));", text);
         sources->source.add("}");
     }
 
@@ -320,7 +322,7 @@ namespace xml
     {
         const auto signature = fmt::format(
             "std::string ReadXmlElement({}* c, const pugi::xml_node& value, [[maybe_unused]] const "
-            "::gaf::could_be_fun& could_be)",
+            "::gaf::could_be_fun& could_be, [[maybe_unused]] const ::gaf::missing_fun& missing)",
             s.name);
         sources->header.addf("{};", signature);
         sources->source.add(signature);
