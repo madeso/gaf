@@ -92,17 +92,44 @@ namespace gaf
         return r;
     }
 
+    std::string get_name_and_index_of_child_element(const pugi::xml_node& node)
+    {
+        if(node.type() == pugi::node_document)
+        {
+            return node.name();
+        }
+
+        const pugi::xml_node parent = node.parent();
+        const auto children = parent.children(node.name());
+
+        if(std::distance(children.begin(), children.end()) <= 1)
+        {
+            return node.name();
+        }
+
+        int index = 0;
+        for(const auto& c: children)
+        {
+            if(c == node)
+            {
+                return fmt::format("{}[{}]", node.name(), index);
+            }
+
+            index +=1;
+        }
+
+        return node.name();
+    }
+
     std::string get_path(const pugi::xml_node& ee)
     {
-        std::string r = fmt::format("/{}", ee.name());
+        std::string r = fmt::format("/{}", get_name_and_index_of_child_element(ee));
 
         pugi::xml_node node = ee.parent();
 
-        // todo(Gustav): add 1-based index...
-
         while (node.type() != pugi::node_null && node.type() != pugi::node_document)
         {
-            r = fmt::format("/{}{}", node.name(), r);
+            r = fmt::format("/{}{}", get_name_and_index_of_child_element(node), r);
             node = node.parent();
         }
 
