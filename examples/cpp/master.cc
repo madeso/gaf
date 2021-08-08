@@ -508,14 +508,18 @@ TEST_CASE("master pointer xml_empty_document with invalid attribute")
 {
     FooRoot bar;
     const std::string load = ReadXmlSource(&bar, "<FooRoot dog=\"dog\"/>", ReadXmlElementFooRoot);
-    REQUIRE(load == "attributes for /FooRoot not read: dog");
+    REQUIRE(load ==
+            "Found unused attributes for type FooRoot at /FooRoot:\n"
+            "Invalid attribute dog at /FooRoot@dog and it could be name");
 }
 
 TEST_CASE("master pointer xml_empty_document with invalid child")
 {
     FooRoot bar;
     const std::string load = ReadXmlSource(&bar, "<FooRoot><cat /> </FooRoot>", ReadXmlElementFooRoot);
-    REQUIRE(load == "children for /FooRoot not read: cat");
+    REQUIRE(load ==
+            "Found unused elements for type FooRoot at /FooRoot:\n"
+            "Invalid child cat at /FooRoot/cat and it could be foo");
 }
 
 TEST_CASE("master optional xml_empty_document")
