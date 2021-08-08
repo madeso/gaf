@@ -101,7 +101,8 @@ TEST_CASE("twostructs json_advanced")
 TEST_CASE("twostructs xml_basic")
 {
     Foo foo;
-    const std::string load = ReadXmlSource(&foo, "<Foo hello=\"12\" world=\"2.4\" />");
+    const std::string load =
+        ReadXmlSource(&foo, "<Foo hello=\"12\" world=\"2.4\" />", ReadXmlElementFoo);
     REQUIRE(load == "");
     REQUIRE(foo.hello == 12);
     REQUIRE(foo.world == 2.4f);
@@ -110,7 +111,7 @@ TEST_CASE("twostructs xml_basic")
 TEST_CASE("twostructs xml_double_can_be_ints")
 {
     Foo foo;
-    const std::string load = ReadXmlSource(&foo, "<Foo hello=\"12\" world=\"2\" />");
+    const std::string load = ReadXmlSource(&foo, "<Foo hello=\"12\" world=\"2\" />", ReadXmlElementFoo);
     REQUIRE(load == "");
     REQUIRE(foo.hello == 12);
     REQUIRE(foo.world == 2.0f);
@@ -119,14 +120,14 @@ TEST_CASE("twostructs xml_double_can_be_ints")
 TEST_CASE("twostructs xml_missing_world")
 {
     Foo foo;
-    const std::string load = ReadXmlSource(&foo, "<Foo hello=\"12\" />");
+    const std::string load = ReadXmlSource(&foo, "<Foo hello=\"12\" />", ReadXmlElementFoo);
     REQUIRE(load != "");
 }
 
 TEST_CASE("twostructs xml_empty_document")
 {
     Foo foo;
-    const std::string load = ReadXmlSource(&foo, "<Foo />");
+    const std::string load = ReadXmlSource(&foo, "<Foo />", ReadXmlElementFoo);
     REQUIRE(load != "");
 }
 
@@ -134,7 +135,8 @@ TEST_CASE("twostructs xml_advanced")
 {
     Bar bar;
     const std::string load = ReadXmlSource(
-        &bar, "<Bar bar=\"cat and dog\" b=\"true\"><foo hello=\"12\" world=\"2.4\" /> </Bar>");
+        &bar, "<Bar bar=\"cat and dog\" b=\"true\"><foo hello=\"12\" world=\"2.4\" /> </Bar>",
+        ReadXmlElementBar);
     REQUIRE(load == "");
     CHECK(bar.foo.hello == 12);
     CHECK(bar.foo.world == 2.4f);

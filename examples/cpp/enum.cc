@@ -80,8 +80,8 @@ TEST_CASE("enum xml_basic")
     Project project = Project::Other;
 
     Person person;
-    const std::string load =
-        ReadXmlSource(&person, "<Person happiness=\"INDIFFERENT\" favoriteProject=\"Other\" />");
+    const std::string load = ReadXmlSource(
+        &person, "<Person happiness=\"INDIFFERENT\" favoriteProject=\"Other\" />", ReadXmlElementPerson);
     REQUIRE(load == "");
     REQUIRE(person.happiness == happiness);
     REQUIRE(person.favoriteProject == project);
@@ -90,21 +90,23 @@ TEST_CASE("enum xml_basic")
 TEST_CASE("enum xml_missing_project")
 {
     Person person;
-    const std::string load = ReadXmlSource(&person, " <Person happiness=\"12\" />");
+    const std::string load =
+        ReadXmlSource(&person, " <Person happiness=\"12\" />", ReadXmlElementPerson);
     REQUIRE(load != "");
 }
 
 TEST_CASE("enum xml_empty_document")
 {
     Person person;
-    const std::string load = ReadXmlSource(&person, "<Person />");
+    const std::string load = ReadXmlSource(&person, "<Person />", ReadXmlElementPerson);
     REQUIRE(load != "");
 }
 
 TEST_CASE("enum xml_as_ints")
 {
     Person person;
-    const std::string load = ReadXmlSource(&person, "<Person happiness=\"1\" favoriteProject=\"2\"/>");
+    const std::string load =
+        ReadXmlSource(&person, "<Person happiness=\"1\" favoriteProject=\"2\"/>", ReadXmlElementPerson);
     REQUIRE(load != "");
 }
 

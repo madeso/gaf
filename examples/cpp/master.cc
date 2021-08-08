@@ -119,7 +119,8 @@ TEST_CASE("master std xml")
     i=\"dog\"\
     k=\"C\"\
     ><j value=\"3\" />\
-     </Standard>");
+     </Standard>",
+                                           ReadXmlElementStandard);
     REQUIRE(load == "");
 
     REQUIRE(fb.a == 1);
@@ -263,14 +264,14 @@ TEST_CASE("master array empty xml")
 {
     Arrays advanced;
 
-    const std::string load = ReadXmlSource(&advanced, "{}");
+    const std::string load = ReadXmlSource(&advanced, "{}", ReadXmlElementArrays);
     REQUIRE(load != "");
 }
 
 TEST_CASE("master array basic xml")
 {
     Arrays fb;
-    const std::string load = ReadXmlSource(&fb, "<Arrays/>");
+    const std::string load = ReadXmlSource(&fb, "<Arrays/>", ReadXmlElementArrays);
     REQUIRE(load == "");
 
     REQUIRE(fb.a.size() == 0);
@@ -308,7 +309,8 @@ TEST_CASE("master arrays advanced xml")
     <h>21</h><h>22</h>\
     <i>cat</i><i>dog</i>\
     <k>A</k><k>C</k>\
-    </Arrays>");
+    </Arrays>",
+                                           ReadXmlElementArrays);
 
     REQUIRE(load == "");
 
@@ -460,7 +462,7 @@ TEST_CASE("master optional json_optional_struct")
 TEST_CASE("master pointer xml_basic")
 {
     Foo foo;
-    const std::string load = ReadXmlSource(&foo, "<Foo value=\"12\" />");
+    const std::string load = ReadXmlSource(&foo, "<Foo value=\"12\" />", ReadXmlElementFoo);
     REQUIRE(load == "");
     REQUIRE(foo.value != nullptr);
     REQUIRE(*foo.value == 12);
@@ -469,7 +471,7 @@ TEST_CASE("master pointer xml_basic")
 TEST_CASE("master optional xml_basic")
 {
     Bar foo;
-    const std::string load = ReadXmlSource(&foo, "<Foo value=\"12\" />");
+    const std::string load = ReadXmlSource(&foo, "<Foo value=\"12\" />", ReadXmlElementBar);
     REQUIRE(load == "");
     REQUIRE(foo.value == 12);
 }
@@ -477,7 +479,7 @@ TEST_CASE("master optional xml_basic")
 TEST_CASE("master pointer xml_missing_foo")
 {
     FooRoot bar;
-    const std::string load = ReadXmlSource(&bar, "<FooRoot name=\"good dog\" />");
+    const std::string load = ReadXmlSource(&bar, "<FooRoot name=\"good dog\" />", ReadXmlElementFooRoot);
     REQUIRE(load == "");
     REQUIRE(bar.name != nullptr);
     REQUIRE(*bar.name == "good dog");
@@ -487,7 +489,7 @@ TEST_CASE("master pointer xml_missing_foo")
 TEST_CASE("master optional xml_missing_foo")
 {
     BarRoot bar;
-    const std::string load = ReadXmlSource(&bar, "<BarRoot name=\"good dog\" />");
+    const std::string load = ReadXmlSource(&bar, "<BarRoot name=\"good dog\" />", ReadXmlElementBarRoot);
     REQUIRE(load == "");
     REQUIRE(bar.name == "good dog");
     REQUIRE(bar.foo.value == 0);
@@ -496,7 +498,7 @@ TEST_CASE("master optional xml_missing_foo")
 TEST_CASE("master pointer xml_empty_document")
 {
     FooRoot bar;
-    const std::string load = ReadXmlSource(&bar, "<FooRoot />");
+    const std::string load = ReadXmlSource(&bar, "<FooRoot />", ReadXmlElementFooRoot);
     REQUIRE(load == "");
     REQUIRE(bar.name == nullptr);
     REQUIRE(bar.foo == nullptr);
@@ -505,21 +507,21 @@ TEST_CASE("master pointer xml_empty_document")
 TEST_CASE("master pointer xml_empty_document with invalid attribute")
 {
     FooRoot bar;
-    const std::string load = ReadXmlSource(&bar, "<FooRoot dog=\"dog\"/>");
+    const std::string load = ReadXmlSource(&bar, "<FooRoot dog=\"dog\"/>", ReadXmlElementFooRoot);
     REQUIRE(load == "attributes for /FooRoot not read: dog");
 }
 
 TEST_CASE("master pointer xml_empty_document with invalid child")
 {
     FooRoot bar;
-    const std::string load = ReadXmlSource(&bar, "<FooRoot><cat /> </FooRoot>");
+    const std::string load = ReadXmlSource(&bar, "<FooRoot><cat /> </FooRoot>", ReadXmlElementFooRoot);
     REQUIRE(load == "children for /FooRoot not read: cat");
 }
 
 TEST_CASE("master optional xml_empty_document")
 {
     BarRoot bar;
-    const std::string load = ReadXmlSource(&bar, "<BarRoot />");
+    const std::string load = ReadXmlSource(&bar, "<BarRoot />", ReadXmlElementBarRoot);
     REQUIRE(load == "");
     REQUIRE(bar.name == "");
     REQUIRE(bar.foo.value == 0);
@@ -528,7 +530,8 @@ TEST_CASE("master optional xml_empty_document")
 TEST_CASE("master pointer xml_optional_struct")
 {
     FooRoot bar;
-    const std::string load = ReadXmlSource(&bar, "<FooRoot><foo value=\"5\"/></FooRoot>");
+    const std::string load =
+        ReadXmlSource(&bar, "<FooRoot><foo value=\"5\"/></FooRoot>", ReadXmlElementFooRoot);
     REQUIRE(load == "");
     CHECK(bar.name == nullptr);
     CHECK(bar.foo != nullptr);
@@ -539,7 +542,8 @@ TEST_CASE("master pointer xml_optional_struct")
 TEST_CASE("master optional xml_optional_struct")
 {
     BarRoot bar;
-    const std::string load = ReadXmlSource(&bar, "<BarRoot><foo value=\"5\" /></BarRoot>");
+    const std::string load =
+        ReadXmlSource(&bar, "<BarRoot><foo value=\"5\" /></BarRoot>", ReadXmlElementBarRoot);
     REQUIRE(load == "");
     CHECK(bar.name == "");
     CHECK(bar.foo.value == 5);
