@@ -51,6 +51,15 @@ namespace xml
         sources->source.add("");
     }
 
+    void on_xml_error(Out* sources, const std::string& error_exp)
+    {
+        sources->source.add("loaded_ok = false;");
+        sources->source.add("if(errors != nullptr)");
+        sources->source.add("{");
+        sources->source.addf("errors->emplace_back({});", error_exp);
+        sources->source.add("}");
+    }
+
     void add_member_failure_to_read(Out* sources, const Member& m, const std::string& get_values)
     {
         if (m.missing_is_fail || m.is_optional)
@@ -59,7 +68,7 @@ namespace xml
             sources->source.add("{");
             if (m.is_optional)
             {
-                sources->source.addf("c->{}.reset();", m.name);
+                sources->source.addf("c.{}.reset();", m.name);
             }
             else
             {
@@ -67,14 +76,15 @@ namespace xml
                 sources->source.add("const auto path_to_val = ::gaf::get_path(value);");
                 sources->source.add("if(cv.empty())");
                 sources->source.add("{");
-                sources->source.addf("return fmt::format(\"{} is missing, {{}}\", path_to_val);",
-                                     m.name);
+                on_xml_error(sources,
+                             fmt::format("fmt::format(\"{} is missing, {{}}\", path_to_val)", m.name));
                 sources->source.add("}");
                 sources->source.add("else");
                 sources->source.add("{");
-                sources->source.addf(
-                    "return fmt::format(\"{} is missing, {{}}, could be {{}}\", path_to_val, cv);",
-                    m.name);
+                on_xml_error(
+                    sources,
+                    fmt::format("fmt::format(\"{} is missing, {{}}, could be {{}}\", path_to_val, cv)",
+                                m.name));
                 sources->source.add("}");
             }
             sources->source.add("}");
@@ -147,9 +157,9 @@ namespace xml
                 "== "
                 "false)");
             sources->source.add("{");
-            sources->source.add("return error;");
+            on_xml_error(sources, "error");
             sources->source.add("}");
-            sources->source.addf("c->{}.emplace_back(em);", m.name);
+            sources->source.addf("c.{}.emplace_back(em);", m.name);
             sources->source.add("}");
         }
         else if (is_basic_type(m.type_name))
@@ -163,13 +173,14 @@ namespace xml
                 sources->source.add("bool b = false;");
                 sources->source.add("if(gaf::parse_bool(&b, el.child_value()) == false)");
                 sources->source.add("{");
-                sources->source.addf(
-                    "return fmt::format(\"Invalid bool for {}: {{}}\", el.child_value());", m.name);
+                on_xml_error(
+                    sources,
+                    fmt::format("fmt::format(\"Invalid bool for {}: {{}}\", el.child_value())", m.name));
                 sources->source.add("}");
-                sources->source.addf("c->{}.emplace_back(b);", m.name);
+                sources->source.addf("c.{}.emplace_back(b);", m.name);
                 break;
             case StandardType::String:
-                sources->source.addf("c->{}.emplace_back(el.child_value());", m.name);
+                sources->source.addf("c.{}.emplace_back(el.child_value());", m.name);
                 break;
             default:
                 sources->source.add("const auto property = el.child_value();");
@@ -177,10 +188,11 @@ namespace xml
                                      m.type_name.get_cpp_type());
                 sources->source.add("if(!parsed)");
                 sources->source.add("{");
-                sources->source.addf("return fmt::format(\"Invalid format for {}: {{}}\", property);",
-                                     m.name);
+                on_xml_error(
+                    sources,
+                    fmt::format("fmt::format(\"Invalid format for {}: {{}}\", property)", m.name));
                 sources->source.add("}");
-                sources->source.addf("c->{}.emplace_back(*parsed);", m.name);
+                sources->source.addf("c.{}.emplace_back(*parsed);", m.name);
                 break;
             }
             sources->source.add("}");
@@ -190,34 +202,36 @@ namespace xml
             sources->source.addf("for(const auto el: value.children(\"{}\"))", m.name);
             sources->source.add("{");
             read_array_nodes(sources, m.name);
-            sources->source.addf("auto v = {}{{}};", m.type_name.get_cpp_type());
-            sources->source.addf(
-                "if(const auto error = ReadXmlElement(&v, el, could_be, missing); error.empty() == "
-                "false)",
-                m.name);
+            sources->source.addf("if(auto v = ReadXmlElement{}(errors, el, could_be, missing); v)",
+                                 m.type_name.name);
             sources->source.add("{");
-            sources->source.add("return error;");
+            sources->source.addf("c.{}.emplace_back(*v);", m.name);
             sources->source.add("}");
-            sources->source.addf("c->{}.emplace_back(v);", m.name);
+            sources->source.add("else");
+            sources->source.add("{");
+            on_xml_error(
+                sources,
+                fmt::format("fmt::format(\"Failed to read {}: {{}}\", ::gaf::get_path(el))", m.name));
+            sources->source.add("}");
             sources->source.add("}");
         }
     }
 
     void add_member_variable_single(Out* sources, const Member& m)
     {
-        auto ptr = m.is_optional ? fmt::format("c->{}.get()", m.name) : fmt::format("&c->{}", m.name);
-        auto val = m.is_optional ? fmt::format("*c->{}", m.name) : fmt::format("c->{}", m.name);
+        auto ptr = m.is_optional ? fmt::format("c.{}.get()", m.name) : fmt::format("&c.{}", m.name);
+        auto val = m.is_optional ? fmt::format("*c.{}", m.name) : fmt::format("c.{}", m.name);
         auto create_mem = [sources, m]() {
             if (m.is_optional)
             {
-                sources->source.addf("c->{} = std::make_shared<{}>();", m.name,
+                sources->source.addf("c.{} = std::make_shared<{}>();", m.name,
                                      m.type_name.get_cpp_type());
             }
         };
         auto clear_mem = [sources, m]() {
             if (m.is_optional)
             {
-                sources->source.addf("c->{}.reset();", m.name);
+                sources->source.addf("c.{}.reset();", m.name);
             }
         };
         if (m.type_name.is_enum)
@@ -232,7 +246,7 @@ namespace xml
                 ptr);
             sources->source.add("{");
             clear_mem();
-            sources->source.add("return error;");
+            on_xml_error(sources, "error");
             sources->source.add("}");
             sources->source.add("}");
             add_member_failure_to_read(sources, m, "::gaf::get_all_attributes(value)");
@@ -249,8 +263,9 @@ namespace xml
                 sources->source.addf("if(gaf::parse_bool({}, el.value()) == false)", ptr);
                 sources->source.add("{");
                 clear_mem();
-                sources->source.addf("return fmt::format(\"Invalid bool for {}: {{}}\", el.value());",
-                                     m.name);
+                on_xml_error(
+                    sources,
+                    fmt::format("fmt::format(\"Invalid bool for {}: {{}}\", el.value())", m.name));
                 sources->source.add("}");
                 break;
             case StandardType::String:
@@ -267,8 +282,9 @@ namespace xml
                 sources->source.add("else");
                 sources->source.add("{");
                 clear_mem();
-                sources->source.addf("return fmt::format(\"Invalid format for {}: {{}}\", property);",
-                                     m.name);
+                on_xml_error(
+                    sources,
+                    fmt::format("fmt::format(\"Invalid format for {}: {{}}\", property)", m.name));
                 sources->source.add("}");
                 break;
             }
@@ -280,14 +296,18 @@ namespace xml
             sources->source.addf("if(const auto child = value.child(\"{}\"); child)", m.name);
             sources->source.add("{");
             read_single_node(sources, m.name);
+            sources->source.addf("if(auto v = ReadXmlElement{}(errors, child, could_be, missing); v)",
+                                 m.type_name.name);
+            sources->source.add("{");
             create_mem();
-            sources->source.addf(
-                "if(const auto error = ReadXmlElement({}, child, could_be, missing); error.empty() == "
-                "false)",
-                ptr);
+            sources->source.addf("{} = std::move(*v);", val);
+            sources->source.add("}");
+            sources->source.add("else");
             sources->source.add("{");
             clear_mem();
-            sources->source.add("return error;");
+            on_xml_error(
+                sources,
+                fmt::format("fmt::format(\"Failed to read {}: {{}}\", ::gaf::get_path(child))", m.name));
             sources->source.add("}");
             sources->source.add("}");
             add_member_failure_to_read(sources, m, "::gaf::get_all_children(child)");
@@ -313,20 +333,25 @@ namespace xml
         sources->source.add("const auto path = ::gaf::get_path(value);");
         sources->source.addf("const auto values = std::vector<std::string>({0}.begin(), {0}.end());",
                              var);
-        sources->source.addf(
-            "return fmt::format(\"{} for {{}} not read: {{}}\", path, missing(values));", text);
+        on_xml_error(
+            sources,
+            fmt::format("fmt::format(\"{} for {{}} not read: {{}}\", path, missing(values))", text));
         sources->source.add("}");
     }
 
     void add_struct_function(Out* sources, const Struct& s)
     {
         const auto signature = fmt::format(
-            "std::string ReadXmlElement({}* c, const pugi::xml_node& value, [[maybe_unused]] const "
-            "::gaf::could_be_fun& could_be, [[maybe_unused]] const ::gaf::missing_fun& missing)",
+            "std::optional<{0}> ReadXmlElement{0}(std::vector<::gaf::Error>* errors, const "
+            "pugi::xml_node& "
+            "value, [[maybe_unused]] const ::gaf::could_be_fun& could_be, [[maybe_unused]] const "
+            "::gaf::missing_fun& missing)",
             s.name);
         sources->header.addf("{};", signature);
         sources->source.add(signature);
         sources->source.add("{");
+        sources->source.addf("{} c;", s.name);
+        sources->source.add("bool loaded_ok = true;");
         sources->source.add("auto list_of_children = ::gaf::get_all_children_set(value);");
         sources->source.add("auto list_of_attributes = ::gaf::get_all_attributes_set(value);");
         for (const auto& m : s.members)
@@ -335,7 +360,14 @@ namespace xml
         }
         add_unused_xml(sources, "list_of_children", "children");
         add_unused_xml(sources, "list_of_attributes", "attributes");
-        sources->source.add("return \"\";");
+        sources->source.add("if(loaded_ok)");
+        sources->source.add("{");
+        sources->source.add("return c;");
+        sources->source.add("}");
+        sources->source.add("else");
+        sources->source.add("{");
+        sources->source.add("return std::nullopt;");
+        sources->source.add("}");
         sources->source.add("}");
         sources->source.add("");
     }
@@ -347,6 +379,8 @@ namespace xml
         sources.header.add("#pragma once");
         sources.header.add("");
         sources.header.add("#include <string>");
+        sources.header.add("#include <optional>");
+        sources.header.add("#include <vector>");
         sources.header.add("#include \"pugixml.hpp\"");
         sources.header.add("");
         sources.header.addf("#include \"gaf_{}.h\"", name);

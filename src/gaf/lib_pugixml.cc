@@ -4,6 +4,11 @@
 
 namespace gaf
 {
+    Error::Error(const std::string& d)
+        : description(d)
+    {
+    }
+
     bool parse_bool(bool* dest, const std::string& value)
     {
         if (value == "true")

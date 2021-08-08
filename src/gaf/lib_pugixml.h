@@ -12,6 +12,13 @@
 
 namespace gaf
 {
+    struct Error
+    {
+        std::string description;
+
+        explicit Error(const std::string& d);
+    };
+
     // return true of ok, false if not
     bool parse_bool(bool* dest, const std::string& value);
 
