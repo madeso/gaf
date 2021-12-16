@@ -30,9 +30,18 @@ namespace xml
         }
         sources->source.add("const auto all_values = std::vector<std::string>");
         sources->source.add("{");
+        auto count = e.values.size();
         for (const auto& v : e.values)
         {
-            sources->source.addf("\"{}\"", v);
+            count -= 1;
+            if (count == 0)
+            {
+                sources->source.addf("\"{}\"", v);
+            }
+            else
+            {
+                sources->source.addf("\"{}\",", v);
+            }
         }
         sources->source.add("};");
         sources->source.add("const auto cv = could_be(value, all_values);");
