@@ -360,7 +360,7 @@ namespace xml
     {
         const auto signature = fmt::format(
             "std::optional<{0}> ReadXmlElement{0}(std::vector<::gaf::Error>* errors, const "
-            "pugi::xml_node& value, [[maybe_unused]] const ::gaf::could_be_fun& could_be)",
+            "pugi::xml_node& value, [[maybe_unused]] const ::gaf::could_be_fun& could_be) noexcept",
             s.name);
         sources->header.addf("{};", signature);
         sources->source.add(signature);
