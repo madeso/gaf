@@ -55,7 +55,7 @@ void TypeList::add_default_types()
     add_type({StandardType::Uint32, "uint32", true, "0"});
     add_type({StandardType::Uint64, "uint64", true, "0"});
 
-    add_type({StandardType::Float, "float", false, "0.0f"});
+    add_type({StandardType::Float, "float", false, "0.0"});
     add_type({StandardType::Double, "double", false, "0.0"});
     add_type({StandardType::Bool, "bool", false, "false"});
     add_type({StandardType::String, "string", false});
@@ -211,8 +211,8 @@ PrettyFileOut::PrettyFileOut(std::unique_ptr<FileOut>&& d)
 
 void PrettyFileOut::write(const std::string& line)
 {
-    const auto dec = std::count(line.begin(), line.end(), '}');
-    const auto inc = std::count(line.begin(), line.end(), '{');
+    const int dec = static_cast<int>(std::count(line.begin(), line.end(), '}'));
+    const int inc = static_cast<int>(std::count(line.begin(), line.end(), '{'));
     indent -= dec;
     if (dec > 0)
     {

@@ -42,6 +42,10 @@ namespace cpp
                     {
                         default_value = fmt::format("{}::{}", m.type_name.name, *m.defaultvalue);
                     }
+                    if (m.type_name.standard_type == StandardType::Float)
+                    {
+                        default_value += "f";
+                    }
                     sources->header.addf("{} {} = {};", type_name, m.name, default_value);
                 }
                 else
