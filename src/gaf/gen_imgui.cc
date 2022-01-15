@@ -192,7 +192,7 @@ namespace imgui
             sources->source.add("{");
             sources->source.add("std::stringstream gaf_ss;");
             sources->source.addf("gaf_ss << \"{}[\" << i << \"]\";", m.name);
-            sources->source.add("ImGui::PushID(i);");
+            sources->source.add("ImGui::PushID(static_cast<int>(i));");
             write_single_imgui_member_to_source("gaf_ss.str().c_str()", fmt::format("&c->{}[i]", m.name),
                                                 m.type_name.standard_type, sources, m, !short_version,
                                                 opt);
