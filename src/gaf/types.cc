@@ -130,7 +130,7 @@ bool Enum::is_value(const std::string& v) const
 void Enum::add_value(const std::string& v)
 {
     values.emplace_back(v);
-    const auto inserted = sorted_values.emplace(v).second;
+    [[maybe_unused]] const auto inserted = sorted_values.emplace(v).second;
     assert(inserted);
 }
 
