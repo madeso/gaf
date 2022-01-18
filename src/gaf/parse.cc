@@ -136,8 +136,8 @@ void read_spaces(CharFile* f)
         }
         else if (peek_char(f, 0) == '/' && peek_char(f, 1) == '*')
         {
-            auto slash = read_char(f);
-            auto star = read_char(f);
+            [[maybe_unused]] auto slash = read_char(f);
+            [[maybe_unused]] auto star = read_char(f);
             assert(slash == '/');
             assert(star == '*');
             while (peek_char(f, 0) != '*' || peek_char(f, 1) != '/')
