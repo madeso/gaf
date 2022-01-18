@@ -13,8 +13,6 @@ void Lines::add(const std::string& str)
     const auto is_valid = str.empty() || (!has_newline && !starts_with_space);
     if (!is_valid)
     {
-        int i = 0;
-        i += 1;
         std::cerr << "failed <" << str << ">\n";
     }
 
