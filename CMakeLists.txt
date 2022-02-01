@@ -20,9 +20,11 @@ set(CMAKE_CXX_EXTENSIONS OFF)
 
 add_library(gaf_project_options INTERFACE)
 target_compile_features(gaf_project_options INTERFACE cxx_std_17)
+add_library(libgaf::project_options ALIAS project_options)
 
 add_library(gaf_project_warnings INTERFACE)
 set_project_warnings(gaf_project_warnings)
+add_library(libgaf::project_warnings ALIAS project_warnings)
 
 include(gaf.cmake)
 add_subdirectory(external)

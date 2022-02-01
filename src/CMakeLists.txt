@@ -19,9 +19,9 @@ add_executable(gaf ${src})
 target_include_directories(gaf PUBLIC ${CMAKE_CURRENT_SOURCE_DIR})
 target_link_libraries(gaf
     PRIVATE
-        gaf_project_options
-        gaf_project_warnings
-        gaf_fmt
+        libgaf::project_options
+        libgaf::project_warnings
+        libgaf::fmt
         std::filesystem
 )
 
@@ -31,12 +31,13 @@ set(lib
 )
 
 add_library(libgaf_xml STATIC ${lib})
+add_library(libgaf::xml ALIAS libgaf_xml)
 target_include_directories(libgaf_xml PUBLIC ${CMAKE_CURRENT_SOURCE_DIR})
 target_link_libraries(libgaf_xml
     PUBLIC
-        pugixml
-        gaf_fmt
+        libgaf::pugixml
+        libgaf::fmt
     PRIVATE
-        gaf_project_options
-        gaf_project_warnings
+        libgaf::project_options
+        libgaf::project_warnings
 )
