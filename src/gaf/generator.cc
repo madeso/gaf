@@ -16,7 +16,7 @@ void Lines::add(const std::string& str)
         std::cerr << "failed <" << str << ">\n";
     }
 
-    assert(is_valid);
+    // assert(is_valid);
     lines.emplace_back(str);
 }
 

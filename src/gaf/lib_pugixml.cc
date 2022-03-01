@@ -36,30 +36,6 @@ namespace gaf
         return cast_parse_number<std::uint8_t, std::int64_t>(value);
     }
 
-    std::string could_be_fun_none(const std::string&, const std::vector<std::string>&)
-    {
-        return "";
-    }
-
-    std::string could_be_fun_all(const std::string&, const std::vector<std::string>& values)
-    {
-        std::string r;
-        bool first = true;
-        for (const auto& v : values)
-        {
-            if (first)
-            {
-                r += v;
-                first = false;
-            }
-            else
-            {
-                r += ", " + v;
-            }
-        }
-        return r;
-    }
-
     std::vector<std::string> get_all_attributes(const pugi::xml_node& e)
     {
         const auto vec = get_all_attributes_set(e);

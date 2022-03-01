@@ -3,12 +3,12 @@ if(GAF_MASTER_PROJECT)
 
     add_library(catch INTERFACE)
     target_include_directories(catch INTERFACE ${CMAKE_CURRENT_SOURCE_DIR}/catch)
-    add_library(libgaf::catch ALIAS catch)
-
-    add_library(rapidjson INTERFACE)
-    target_include_directories(rapidjson INTERFACE ${CMAKE_CURRENT_SOURCE_DIR}/rapidjson-master/include)
-    add_library(libgaf::rapidjson ALIAS rapidjson)
+    add_library(libgaf::catch ALIAS catch)    
 endif()
+
+add_library(gaf_rapidjson INTERFACE)
+target_include_directories(gaf_rapidjson INTERFACE ${CMAKE_CURRENT_SOURCE_DIR}/rapidjson-master/include)
+add_library(libgaf::rapidjson ALIAS gaf_rapidjson)
 
 add_library(gaf_fmt STATIC
     # fmt-8.0.1/src/fmt.cc
