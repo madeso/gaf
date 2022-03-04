@@ -24,6 +24,7 @@ namespace gaf
     };
 
 
+    std::string GafToString(const rapidjson::Value& val, int level);
     std::string GafToString(const rapidjson::Value& val);
     std::string GafToString(int64_t val);
 
@@ -38,6 +39,7 @@ namespace gaf
         const std::set<std::string>& unused_properties,
         const std::vector<MissingType>& missing_types,
         const std::vector<MissingType>& optional_types,
+        const std::vector<std::string>& all_struct_members,
         const std::string& path,
         const could_be_fun& could_be
     );

@@ -24,7 +24,7 @@ namespace json
         lines->add("if(errors != nullptr)");
         lines->add("{");
         lines->add("gaf_ss.str(\"\");");
-        lines->addf("gaf_ss << \"{}, path: \" << gaf_path << \", value: \" << ::gaf::GafToString({});", fmt::vformat(format, args), val);
+        lines->addf("gaf_ss << \"{}, path: \" << gaf_path << \", got: \" << ::gaf::GafToString({});", fmt::vformat(format, args), val);
         lines->add("errors->emplace_back(gaf_ss.str());");
         lines->add("}");
         lines->add("return std::nullopt;");
@@ -300,7 +300,40 @@ namespace json
             }
         }
         
-        sources->source.addf("::gaf::report_unused_struct(errors, \"{}\", value, unused_properties, missing_types, optional_types, gaf_path, could_be);", s.name);
+        sources->source.add("");
+        sources->source.add("const std::vector<std::string> all_members = ");
+        sources->source.add("{");
+        auto count = s.members.size();
+        for (const auto& m : s.members)
+        {
+            count -= 1;
+            if (count == 0)
+            {
+                sources->source.addf("\"{}\"", m.name);
+            }
+            else
+            {
+                sources->source.addf("\"{}\",", m.name);
+            }
+        }
+        sources->source.add("};");
+
+        sources->source.addf
+        (
+            "::gaf::report_unused_struct"
+            "("
+                "errors, "
+                "\"{}\", "
+                "value, "
+                "unused_properties, "
+                "missing_types, "
+                "optional_types, "
+                "all_members, "
+                "gaf_path, "
+                "could_be"
+            ");"
+            , s.name
+        );
         sources->source.add("if(gaf_ok == false) { return std::nullopt; }");
         sources->source.add("return ret;");
         sources->source.add("}");
@@ -335,7 +368,26 @@ namespace json
                 fmt::format("if(strcmp(value.GetString(), \"{v}\")==0) {{ return {p}{v};}}",
                             fmt::arg("v", v), fmt::arg("p", value_prefix)));
         }
-        json_return_error(&sources->source, "value", "read string for {} was not valid", e.name);
+        sources->source.add("");
+        sources->source.add("const auto all_values = std::vector<std::string>");
+        sources->source.add("{");
+        auto count = e.values.size();
+        for (const auto& v : e.values)
+        {
+            count -= 1;
+            if (count == 0)
+            {
+                sources->source.addf("\"{}\"", v);
+            }
+            else
+            {
+                sources->source.addf("\"{}\",", v);
+            }
+        }
+        sources->source.add("};");
+        sources->source.add("const auto cb = could_be(value.GetString(), all_values);");
+
+        json_return_error(&sources->source, "value", "'\"<<value.GetString() << \"' is not a valid value for enum '{}', could be \" << cb << \"", e.name);
         sources->source.add("}");
         sources->source.add("");
     }

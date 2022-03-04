@@ -13,21 +13,37 @@ namespace gaf
 
     std::string GafToString(const rapidjson::Value& val)
     {
+        return GafToString(val, 0);
+    }
+
+    std::string GafToString(const rapidjson::Value& val, int level)
+    {
         if (val.IsNull())
         {
-            return "Null";
+            return "null";
         }
         else if (val.IsFalse())
         {
-            return "False";
+            return "false";
         }
         else if (val.IsTrue())
         {
-            return "True";
+            return "true";
         }
         else if (val.IsObject())
         {
-            return "Object";
+            if(level < 3)
+            {
+                if(const auto id = val.FindMember("id"); id != val.MemberEnd())
+                {
+                    return fmt::format("object with id={}", GafToString(id->value, level+1));
+                }
+                else if(const auto name = val.FindMember("name"); name != val.MemberEnd())
+                {
+                    return fmt::format("object with name={}", GafToString(name->value, level+1));
+                }
+            }
+            return "object";
         }
         else if (val.IsArray())
         {
@@ -35,27 +51,19 @@ namespace gaf
         }
         else if (val.IsUint64())
         {
-            std::stringstream ss;
-            ss << "uint64 of " << val.GetUint64();
-            return ss.str();
+            return fmt::format("{} (uint64)", val.GetUint64());
         }
         else if (val.IsInt64())
         {
-            std::stringstream ss;
-            ss << "int of " << val.GetInt64();
-            return ss.str();
+            return fmt::format("{} (int)", val.GetInt64());
         }
         else if (val.IsFloat())
         {
-            std::stringstream ss;
-            ss << "float of " << val.GetFloat();
-            return ss.str();
+            return fmt::format("{} (float)", val.GetFloat());
         }
         else if (val.IsString())
         {
-            std::stringstream ss;
-            ss << "string of " << val.GetString();
-            return ss.str();
+            return fmt::format("'{}' (string)", val.GetString());
         }
         else
         {
@@ -66,9 +74,7 @@ namespace gaf
     // todo(Gustav): remove this horrible function
     std::string GafToString(int64_t val)
     {
-        std::stringstream ss;
-        ss << val;
-        return ss.str();
+        return fmt::format("{}", val);
     }
 
     std::vector<std::string> get_all_properties(const rapidjson::Value& e)
@@ -103,12 +109,6 @@ namespace gaf
         return r;
     }
 
-    namespace
-    {
-        static const char* kTypeNames[] = {"Null",  "False",  "True",  "Object",
-                                           "Array", "String", "Number"};
-    }
-
 
     void report_unused_struct
     (
@@ -118,6 +118,7 @@ namespace gaf
         const std::set<std::string>& unused_properties_set,
         const std::vector<MissingType>& missing_types,
         const std::vector<MissingType>& optional_types,
+        const std::vector<std::string>& all_struct_members,
         const std::string& path,
         const could_be_fun& could_be
     )
@@ -162,47 +163,26 @@ namespace gaf
                 const auto found = struct_source.FindMember(unused.c_str());
                 const auto json_type = GafToString(found->value);
 
+                const auto could_be_optional = could_be(unused, optional_names);
+                const auto could_be_all = could_be(unused, all_struct_members);
+
+                // todo(Gustav): handle empty suggestions
+                const auto could_be_mes = could_be_optional == could_be_all
+                    ? fmt::format("could be {}", could_be_optional)
+                    : fmt::format
+                    (
+                        "could be {0} but only {1} {2} specified",
+                        could_be_all,
+                        could_be_optional,
+                        optional_names.size() == 1 ? "isn't" : "aren't"
+                    )
+                    ;
+
                 errors->emplace_back(fmt::format(
-                    "Found unused proptery named '{1}' (a {0}) for type {2} at {3}.{1}: could be {4}",
+                    "Found unused property in a {5} named '{1}': {0} for type {2}, at {3}.{1}: {4}",
                     json_type, unused, struct_name, path,
-                    could_be(unused, optional_names)
+                    could_be_mes, GafToString(struct_source)
                 ));
-            }
-        }
-    }
-
-    void report_unused(std::vector<Error>* errors, const std::string& type_name,
-                       const std::string& path,
-                       const rapidjson::Value& e, const std::set<std::string>& unused_values,
-                                const std::set<std::string>& available_names,
-                                const could_be_fun& could_be)
-    {
-        if (errors == nullptr)
-        {
-            return;
-        }
-
-        if (e.IsObject() == false)
-        {
-            errors->emplace_back(fmt::format("expected object {} at {}:", type_name, path));
-            return;
-        }
-
-        errors->emplace_back(
-            fmt::format("Found unused elements for type {} at {}:", type_name, path));
-
-        const auto values = std::vector<std::string>(available_names.begin(), available_names.end());
-
-        for (const auto& unused : unused_values)
-        {
-            const auto c = could_be(unused, values);
-
-            for (auto itr = e.MemberBegin(); itr != e.MemberEnd();
-                 ++itr)
-            {
-                errors->emplace_back(fmt::format("Unused {} named {} for {} and it could be {}",
-                                                 kTypeNames[itr->value.GetType()],
-                                                 itr->name.GetString(), unused, c));
             }
         }
     }
