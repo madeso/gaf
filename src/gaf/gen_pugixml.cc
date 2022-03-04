@@ -379,8 +379,8 @@ namespace xml
         add_unused_xml(sources, "list_of_children", false, "children", s);
         add_unused_xml(sources, "list_of_attributes", true, "attributes", s);
         sources->source.add("");
+
         sources->source.add("if(loaded_ok)");
-        sources->source.add("");
         sources->source.add("{");
         sources->source.add("return c;");
         sources->source.add("}");
@@ -388,6 +388,7 @@ namespace xml
         sources->source.add("{");
         sources->source.add("return std::nullopt;");
         sources->source.add("}");
+        
         sources->source.add("}");
         sources->source.add("");
     }
