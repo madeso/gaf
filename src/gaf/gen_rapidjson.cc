@@ -160,83 +160,72 @@ namespace json
                 sources->source.add("const rapidjson::Value& arr = iter->value;");
                 sources->source.add("if(!arr.IsArray())");
                 json_return_error(&sources->source, "arr", "tried to read {} but value was not a array", m.name);
-                const auto lines = make_array<std::string>
-                (
-                    "for (rapidjson::SizeType i=0; i<arr.Size(); i++)",
-                    "{{",
-                    "gaf_ss.str(\"\");",
-                    "gaf_ss << gaf_path << \".{name}[\" << i << \"]\";",
-                    "auto temp = ReadJson{type}(errors, arr[i], could_be, gaf_ss.str());",
-                    "if(temp.has_value() == false)",
-                    "{{",
-                    "gaf_ok = false;",
-                    "}}",
-                    "else",
-                    "{{",
-                    "ret.{name}.push_back(std::move(*temp));",
-                    "}}",
-                    "}}"
-                );
-                for (const auto& line : lines)
-                {
-                    sources->source.add(fmt::format(line,
-                        fmt::arg("name", m.name),
-                        fmt::arg("type", m.type_name.name),
-                        fmt::arg("false", ".empty() == false"),
-                        fmt::arg("rv", "std::string")
-                    ));
-                }
+                
+                #define ADD_SOURCE(line) sources->source.add(fmt::format(line,\
+                        fmt::arg("name", m.name),\
+                        fmt::arg("type", m.type_name.name),\
+                        fmt::arg("false", ".empty() == false"),\
+                        fmt::arg("rv", "std::string")\
+                    ))
+                ADD_SOURCE("for (rapidjson::SizeType i=0; i<arr.Size(); i++)");
+                ADD_SOURCE("{{");
+                ADD_SOURCE("gaf_ss.str(\"\");");
+                ADD_SOURCE("gaf_ss << gaf_path << \".{name}[\" << i << \"]\";");
+                ADD_SOURCE("auto temp = ReadJson{type}(errors, arr[i], could_be, gaf_ss.str());");
+                ADD_SOURCE("if(temp.has_value() == false)");
+                ADD_SOURCE("{{");
+                ADD_SOURCE("gaf_ok = false;");
+                ADD_SOURCE("}}");
+                ADD_SOURCE("else");
+                ADD_SOURCE("{{");
+                ADD_SOURCE("ret.{name}.push_back(std::move(*temp));");
+                ADD_SOURCE("}}");
+                ADD_SOURCE("}}");
+                #undef ADD_SOURCE
             }
             else if (m.is_optional)
             {
-                const auto lines = make_array<std::string>(
-                    "gaf_ss.str(\"\");",
-                    "gaf_ss << gaf_path << \".{name}\";",
-                    "auto temp = ReadJson{type}(errors, iter->value, could_be, gaf_ss.str());",
-                    "if(temp.has_value() == false)",
-                    "{{",
-                    "ret.{name}.reset();",
-                    "gaf_ok = false;"
-                    "}}",
-                    "else",
-                    "{{",
-                    "ret.{name} = std::make_shared<{type}>(std::move(*temp));",
-                    "}}"
-                );
-                for (const auto& line : lines)
-                {
-                    sources->source.add(fmt::format(line,
-                        fmt::arg("name", m.name),
-                        fmt::arg("type", m.type_name.name),
-                        fmt::arg("false", ".empty() == false"),
-                        fmt::arg("rv", "std::string")
-                    ));
-                }
+                #define ADD_SOURCE(line) sources->source.add(fmt::format(line,\
+                        fmt::arg("name", m.name),\
+                        fmt::arg("type", m.type_name.name),\
+                        fmt::arg("false", ".empty() == false"),\
+                        fmt::arg("rv", "std::string")\
+                    ))
+                
+                ADD_SOURCE("gaf_ss.str(\"\");");
+                ADD_SOURCE("gaf_ss << gaf_path << \".{name}\";");
+                ADD_SOURCE("auto temp = ReadJson{type}(errors, iter->value, could_be, gaf_ss.str());");
+                ADD_SOURCE("if(temp.has_value() == false)");
+                ADD_SOURCE("{{");
+                ADD_SOURCE("ret.{name}.reset();");
+                ADD_SOURCE("gaf_ok = false;");
+                ADD_SOURCE("}}");
+                ADD_SOURCE("else");
+                ADD_SOURCE("{{");
+                ADD_SOURCE("ret.{name} = std::make_shared<{type}>(std::move(*temp));");
+                ADD_SOURCE("}}");
+                #undef ADD_SOURCE
             }
             else
             {
-                const auto lines = make_array<std::string>(
-                    "gaf_ss.str(\"\");",
-                    "gaf_ss << gaf_path << \".{name}\";",
-                    "auto temp = ReadJson{type}(errors, iter->value, could_be, gaf_ss.str());",
-                    "if(temp.has_value() == false)",
-                    "{{",
-                    "gaf_ok = false;",
-                    "}}",
-                    "else",
-                    "{{",
-                    "ret.{name} = std::move(*temp);",
-                    "}}"
-                );
-                for (const auto& line : lines)
-                {
-                    sources->source.add(fmt::format(line,
-                        fmt::arg("name", m.name),
-                        fmt::arg("type", m.type_name.name),
-                        fmt::arg("false", ".empty() == false"),
-                        fmt::arg("rv", "std::string")
-                    ));
-                }
+                #define ADD_SOURCE(line) sources->source.add(fmt::format(line,\
+                        fmt::arg("name", m.name),\
+                        fmt::arg("type", m.type_name.name),\
+                        fmt::arg("false", ".empty() == false"),\
+                        fmt::arg("rv", "std::string")\
+                    ))
+                ADD_SOURCE("gaf_ss.str(\"\");");
+                ADD_SOURCE("gaf_ss << gaf_path << \".{name}\";");
+                ADD_SOURCE("auto temp = ReadJson{type}(errors, iter->value, could_be, gaf_ss.str());");
+                ADD_SOURCE("if(temp.has_value() == false)");
+                ADD_SOURCE("{{");
+                ADD_SOURCE("gaf_ok = false;");
+                ADD_SOURCE("}}");
+                ADD_SOURCE("else");
+                ADD_SOURCE("{{");
+                ADD_SOURCE("ret.{name} = std::move(*temp);");
+                ADD_SOURCE("}}");
+                #undef ADD_SOURCE
             }
         }
     }
