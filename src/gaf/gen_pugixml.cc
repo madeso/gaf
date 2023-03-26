@@ -19,14 +19,14 @@ namespace xml
         const auto signature = fmt::format(
             "std::string ParseEnumString({}* c, const char* value, const ::gaf::could_be_fun& could_be)",
             e.name);
-        sources->header.addf("{};", signature);
+        sources->header.add(fmt::format("{};", signature));
         sources->source.add(signature);
         sources->source.add("{");
         for (const auto& v : e.values)
         {
-            sources->source.addf(
+            sources->source.add(fmt::format(
                 "if(strcmp(value, \"{value}\") == 0) {{ *c = {type}::{value}; return \"\"; }}",
-                fmt::arg("type", e.name), fmt::arg("value", v));
+                fmt::arg("type", e.name), fmt::arg("value", v)));
         }
         sources->source.add("const auto all_values = std::vector<std::string>");
         sources->source.add("{");
@@ -36,25 +36,25 @@ namespace xml
             count -= 1;
             if (count == 0)
             {
-                sources->source.addf("\"{}\"", v);
+                sources->source.add(fmt::format("\"{}\"", v));
             }
             else
             {
-                sources->source.addf("\"{}\",", v);
+                sources->source.add(fmt::format("\"{}\",", v));
             }
         }
         sources->source.add("};");
         sources->source.add("const auto cv = could_be(value, all_values);");
         sources->source.add("if(cv.empty())");
         sources->source.add("{");
-        sources->source.addf("return fmt::format(\"{{}} is not a valid name for enum {}\", value);",
-                             e.name);
+        sources->source.add(fmt::format("return fmt::format(\"{{}} is not a valid name for enum {}\", value);",
+                             e.name));
         sources->source.add("}");
         sources->source.add("else");
         sources->source.add("{");
-        sources->source.addf(
+        sources->source.add(fmt::format(
             "return fmt::format(\"{{}} is not a valid name for enum {}, could be {{}}\", value, cv);",
-            e.name);
+            e.name));
         sources->source.add("}");
         sources->source.add("}");
         sources->source.add("");
@@ -65,7 +65,7 @@ namespace xml
         sources->source.add("loaded_ok = false;");
         sources->source.add("if(errors != nullptr)");
         sources->source.add("{");
-        sources->source.addf("errors->emplace_back({});", error_exp);
+        sources->source.add(fmt::format("errors->emplace_back({});", error_exp));
         sources->source.add("}");
     }
 
@@ -77,11 +77,11 @@ namespace xml
             sources->source.add("{");
             if (m.is_optional)
             {
-                sources->source.addf("c.{}.reset();", m.name);
+                sources->source.add(fmt::format("c.{}.reset();", m.name));
             }
             else
             {
-                sources->source.addf("const auto cv = could_be(\"{}\", {});", m.name, get_values);
+                sources->source.add(fmt::format("const auto cv = could_be(\"{}\", {});", m.name, get_values));
                 sources->source.add("const auto path_to_val = ::gaf::get_path(value);");
                 sources->source.add("if(cv.empty())");
                 sources->source.add("{");
@@ -126,15 +126,15 @@ namespace xml
     {
         if (check)
         {
-            sources->source.addf("const auto found = {0}.find(\"{1}\");", var, name);
-            sources->source.addf("if(found != {0}.end())", var);
+            sources->source.add(fmt::format("const auto found = {0}.find(\"{1}\");", var, name));
+            sources->source.add(fmt::format("if(found != {0}.end())", var));
             sources->source.add("{");
-            sources->source.addf("{}.erase(found);", var);
+            sources->source.add(fmt::format("{}.erase(found);", var));
             sources->source.add("}");
         }
         else
         {
-            sources->source.addf("{0}.erase({0}.find(\"{1}\"));", var, name);
+            sources->source.add(fmt::format("{0}.erase({0}.find(\"{1}\"));", var, name));
         }
     }
 
@@ -157,11 +157,11 @@ namespace xml
     {
         if (m.type_name.is_enum)
         {
-            sources->source.addf("children.emplace(\"{}\");", m.name);
-            sources->source.addf("for(const auto el: value.children(\"{}\"))", m.name);
+            sources->source.add(fmt::format("children.emplace(\"{}\");", m.name));
+            sources->source.add(fmt::format("for(const auto el: value.children(\"{}\"))", m.name));
             sources->source.add("{");
             read_array_nodes(sources, m.name);
-            sources->source.addf("auto em = {}{{}};", m.type_name.get_cpp_type());
+            sources->source.add(fmt::format("auto em = {}{{}};", m.type_name.get_cpp_type()));
             sources->source.add(
                 "if(const auto error = ParseEnumString(&em, el.child_value(), could_be); error.empty() "
                 "== "
@@ -169,13 +169,13 @@ namespace xml
             sources->source.add("{");
             on_xml_error(sources, "error");
             sources->source.add("}");
-            sources->source.addf("c.{}.emplace_back(em);", m.name);
+            sources->source.add(fmt::format("c.{}.emplace_back(em);", m.name));
             sources->source.add("}");
         }
         else if (is_basic_type(m.type_name))
         {
-            sources->source.addf("children.emplace(\"{}\");", m.name);
-            sources->source.addf("for(const auto el: value.children(\"{}\"))", m.name);
+            sources->source.add(fmt::format("children.emplace(\"{}\");", m.name));
+            sources->source.add(fmt::format("for(const auto el: value.children(\"{}\"))", m.name));
             sources->source.add("{");
             read_array_nodes(sources, m.name);
             switch (m.type_name.standard_type)
@@ -188,36 +188,36 @@ namespace xml
                     sources,
                     fmt::format("fmt::format(\"Invalid bool for {}: {{}}\", el.child_value())", m.name));
                 sources->source.add("}");
-                sources->source.addf("c.{}.emplace_back(b);", m.name);
+                sources->source.add(fmt::format("c.{}.emplace_back(b);", m.name));
                 break;
             case StandardType::String:
-                sources->source.addf("c.{}.emplace_back(el.child_value());", m.name);
+                sources->source.add(fmt::format("c.{}.emplace_back(el.child_value());", m.name));
                 break;
             default:
                 sources->source.add("const auto property = el.child_value();");
-                sources->source.addf("const auto parsed = ::gaf::parse_number<{}>(property);",
-                                     m.type_name.get_cpp_type());
+                sources->source.add(fmt::format("const auto parsed = ::gaf::parse_number<{}>(property);",
+                                     m.type_name.get_cpp_type()));
                 sources->source.add("if(!parsed)");
                 sources->source.add("{");
                 on_xml_error(
                     sources,
                     fmt::format("fmt::format(\"Invalid format for {}: {{}}\", property)", m.name));
                 sources->source.add("}");
-                sources->source.addf("c.{}.emplace_back(*parsed);", m.name);
+                sources->source.add(fmt::format("c.{}.emplace_back(*parsed);", m.name));
                 break;
             }
             sources->source.add("}");
         }
         else
         {
-            sources->source.addf("children.emplace(\"{}\");", m.name);
-            sources->source.addf("for(const auto el: value.children(\"{}\"))", m.name);
+            sources->source.add(fmt::format("children.emplace(\"{}\");", m.name));
+            sources->source.add(fmt::format("for(const auto el: value.children(\"{}\"))", m.name));
             sources->source.add("{");
             read_array_nodes(sources, m.name);
-            sources->source.addf("if(auto v = ReadXmlElement{}(errors, el, could_be); v)",
-                                 m.type_name.name);
+            sources->source.add(fmt::format("if(auto v = ReadXmlElement{}(errors, el, could_be); v)",
+                                 m.type_name.name));
             sources->source.add("{");
-            sources->source.addf("c.{}.emplace_back(*v);", m.name);
+            sources->source.add(fmt::format("c.{}.emplace_back(*v);", m.name));
             sources->source.add("}");
             sources->source.add("else");
             sources->source.add("{");
@@ -236,27 +236,27 @@ namespace xml
         auto create_mem = [sources, m]() {
             if (m.is_optional)
             {
-                sources->source.addf("c.{} = std::make_shared<{}>();", m.name,
-                                     m.type_name.get_cpp_type());
+                sources->source.add(fmt::format("c.{} = std::make_shared<{}>();", m.name,
+                                     m.type_name.get_cpp_type()));
             }
         };
         auto clear_mem = [sources, m]() {
             if (m.is_optional)
             {
-                sources->source.addf("c.{}.reset();", m.name);
+                sources->source.add(fmt::format("c.{}.reset();", m.name));
             }
         };
         if (m.type_name.is_enum)
         {
-            sources->source.addf("attributes.emplace(\"{}\");", m.name);
-            sources->source.addf("if(const auto el = value.attribute(\"{}\"); el)", m.name);
+            sources->source.add(fmt::format("attributes.emplace(\"{}\");", m.name));
+            sources->source.add(fmt::format("if(const auto el = value.attribute(\"{}\"); el)", m.name));
             sources->source.add("{");
             read_attribute(sources, m.name);
             create_mem();
-            sources->source.addf(
+            sources->source.add(fmt::format(
                 "if(const auto error = ParseEnumString({}, el.value(), could_be); error.empty() == "
                 "false)",
-                ptr);
+                ptr));
             sources->source.add("{");
             clear_mem();
             on_xml_error(sources, "error");
@@ -266,15 +266,15 @@ namespace xml
         }
         else if (is_basic_type(m.type_name))
         {
-            sources->source.addf("attributes.emplace(\"{}\");", m.name);
-            sources->source.addf("if(const auto el = value.attribute(\"{}\"); el)", m.name);
+            sources->source.add(fmt::format("attributes.emplace(\"{}\");", m.name));
+            sources->source.add(fmt::format("if(const auto el = value.attribute(\"{}\"); el)", m.name));
             sources->source.add("{");
             read_attribute(sources, m.name);
             create_mem();
             switch (m.type_name.standard_type)
             {
             case StandardType::Bool:
-                sources->source.addf("if(gaf::parse_bool({}, el.value()) == false)", ptr);
+                sources->source.add(fmt::format("if(gaf::parse_bool({}, el.value()) == false)", ptr));
                 sources->source.add("{");
                 clear_mem();
                 on_xml_error(
@@ -283,15 +283,15 @@ namespace xml
                 sources->source.add("}");
                 break;
             case StandardType::String:
-                sources->source.addf("{} = el.value();", val);
+                sources->source.add(fmt::format("{} = el.value();", val));
                 break;
             default:
                 sources->source.add("const auto property = el.value();");
-                sources->source.addf("const auto parsed = ::gaf::parse_number<{}>(property);",
-                                     m.type_name.get_cpp_type());
+                sources->source.add(fmt::format("const auto parsed = ::gaf::parse_number<{}>(property);",
+                                     m.type_name.get_cpp_type()));
                 sources->source.add("if(parsed)");
                 sources->source.add("{");
-                sources->source.addf("{} = *parsed;", val);
+                sources->source.add(fmt::format("{} = *parsed;", val));
                 sources->source.add("}");
                 sources->source.add("else");
                 sources->source.add("{");
@@ -307,15 +307,15 @@ namespace xml
         }
         else
         {
-            sources->source.addf("children.emplace(\"{}\");", m.name);
-            sources->source.addf("if(const auto child = value.child(\"{}\"); child)", m.name);
+            sources->source.add(fmt::format("children.emplace(\"{}\");", m.name));
+            sources->source.add(fmt::format("if(const auto child = value.child(\"{}\"); child)", m.name));
             sources->source.add("{");
             read_single_node(sources, m.name);
-            sources->source.addf("if(auto v = ReadXmlElement{}(errors, child, could_be); v)",
-                                 m.type_name.name);
+            sources->source.add(fmt::format("if(auto v = ReadXmlElement{}(errors, child, could_be); v)",
+                                 m.type_name.name));
             sources->source.add("{");
             create_mem();
-            sources->source.addf("{} = std::move(*v);", val);
+            sources->source.add(fmt::format("{} = std::move(*v);", val));
             sources->source.add("}");
             sources->source.add("else");
             sources->source.add("{");
@@ -332,7 +332,7 @@ namespace xml
     void add_member_variable(Out* sources, const Member& m)
     {
         sources->source.add(std::string(80, '/'));
-        sources->source.addf("// {}", m.name);
+        sources->source.add(fmt::format("// {}", m.name));
         if (m.is_dynamic_array)
         {
             add_member_variable_array(sources, m);
@@ -347,12 +347,12 @@ namespace xml
     void add_unused_xml(Out* sources, const std::string& missing_values, bool is_attribute,
                         const std::string& existing_names, const Struct& s)
     {
-        sources->source.addf("if({}.empty() == false)", missing_values);
+        sources->source.add(fmt::format("if({}.empty() == false)", missing_values));
         sources->source.add("{");
         sources->source.add("loaded_ok = false;");
         const auto function_name = is_attribute ? "report_unused_attributes" : "report_unused_elements";
-        sources->source.addf("::gaf::{}(errors, \"{}\", value, {}, {}, could_be);", function_name,
-                             s.name, missing_values, existing_names);
+        sources->source.add(fmt::format("::gaf::{}(errors, \"{}\", value, {}, {}, could_be);", function_name,
+                             s.name, missing_values, existing_names));
         sources->source.add("}");
     }
 
@@ -362,10 +362,10 @@ namespace xml
             "std::optional<{0}> ReadXmlElement{0}(std::vector<::gaf::Error>* errors, const "
             "pugi::xml_node& value, [[maybe_unused]] const ::gaf::could_be_fun& could_be) noexcept",
             s.name);
-        sources->header.addf("{};", signature);
+        sources->header.add(fmt::format("{};", signature));
         sources->source.add(signature);
         sources->source.add("{");
-        sources->source.addf("{} c;", s.name);
+        sources->source.add(fmt::format("{} c;", s.name));
         sources->source.add("bool loaded_ok = true;");
         sources->source.add("auto list_of_children = ::gaf::get_all_children_set(value);");
         sources->source.add("auto list_of_attributes = ::gaf::get_all_attributes_set(value);");
@@ -404,7 +404,7 @@ namespace xml
         sources.header.add("#include <vector>");
         sources.header.add("#include \"pugixml.hpp\"");
         sources.header.add("");
-        sources.header.addf("#include \"gaf_{}.h\"", name);
+        sources.header.add(fmt::format("#include \"gaf_{}.h\"", name));
         sources.header.add("#include \"gaf/lib_pugixml.h\"");
 
         sources.source.add("#include <cstring>");
@@ -415,7 +415,7 @@ namespace xml
 
         if (f.package_name.empty() == false)
         {
-            sources.addf("namespace {}", f.package_name);
+            sources.add(fmt::format("namespace {}", f.package_name));
             sources.add("{");
         }
 

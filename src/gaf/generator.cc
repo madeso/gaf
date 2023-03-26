@@ -20,20 +20,10 @@ void Lines::add(const std::string& str)
     lines.emplace_back(str);
 }
 
-void Lines::addfv(fmt::string_view format, fmt::format_args args)
-{
-    add(fmt::vformat(format, args));
-}
-
 void Out::add(const std::string& str)
 {
     header.add(str);
     source.add(str);
-}
-
-void Out::addfv(fmt::string_view format, fmt::format_args args)
-{
-    add(fmt::vformat(format, args));
 }
 
 std::string get_file_path(const std::string& folder, const std::string& name)
@@ -58,7 +48,7 @@ Lines complete_source(const Lines& source, const std::string& name, const std::s
 {
     Lines ret;
 
-    ret.addf("#include \"{}.h\"", prefix + name);
+    ret.add(fmt::format("#include \"{}.h\"", prefix + name));
     ret.add("");
 
     for (const auto& s : source.lines)

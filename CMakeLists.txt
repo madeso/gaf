@@ -19,7 +19,7 @@ include(tools/cmake/compiler_warnings.cmake)
 set(CMAKE_CXX_EXTENSIONS OFF)
 
 add_library(gaf_project_options INTERFACE)
-target_compile_features(gaf_project_options INTERFACE cxx_std_17)
+target_compile_features(gaf_project_options INTERFACE cxx_std_20)
 add_library(libgaf::project_options ALIAS project_options)
 
 add_library(gaf_project_warnings INTERFACE)
