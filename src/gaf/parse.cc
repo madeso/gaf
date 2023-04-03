@@ -11,16 +11,31 @@
 #include "fmt/format.h"
 #include "gaf/types.h"
 
-std::string read_file_to_string(const std::string& path)
+std::optional<std::string> read_file_to_string(const std::string& path)
 {
     std::ifstream t(path.c_str());
-    return std::string((std::istreambuf_iterator<char>(t)), std::istreambuf_iterator<char>());
+    if (t)
+    {
+        return std::string((std::istreambuf_iterator<char>(t)), std::istreambuf_iterator<char>());
+    }
+    else
+    {
+        return std::nullopt;
+    }
 }
 
 CharFile::CharFile(const std::string& file)
     : name(file)
-    , data(read_file_to_string(file))
 {
+    auto loaded = read_file_to_string(file);
+    if (loaded)
+    {
+        data = std::move(*loaded);
+    }
+    else
+    {
+        errors.emplace_back(fmt::format("Failed to load file {}", file));
+    }
 }
 
 char CharFile::read()
